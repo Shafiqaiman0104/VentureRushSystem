@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>All Bookings</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      background: #f8fafc;
+    }
+    header {
+      background: white;
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #ddd;
+    }
+    nav {
+      display: flex;
+      gap: 1rem;
+    }
+    .tab {
+      padding: 0.5rem 1rem;
+      border-radius: 5px;
+      cursor: pointer;
+      background: #f1f5f9;
+    }
+    .tab.active {
+      background: white;
+      border: 1px solid #ddd;
+    }
+    .action-button {
+      background: #0ea5e9;
+      color: white;
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .action-button:hover {
+      background: #0284c7;
+    }
+    main {
+      padding: 2rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border: 1px solid #e2e8f0;
+    }
+    th, td {
+      padding: 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    th {
+      background: #f1f5f9;
+    }
+    .top-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div><strong>🏕️ Campsite Agent Portal</strong></div>
+    <nav>
+      <div class="tab" onclick="window.location='dashboard.html'">Check Availability</div>
+      <div class="tab" onclick="window.location='booking.html'">New Booking</div>
+      <div class="tab active">All Bookings</div>
+    </nav>
+    <div>
+      Welcome, sa <button class="action-button" onclick="logout()">Logout</button>
+    </div>
+  </header>
+
+  <main>
+    <h2>All Bookings</h2>
+    <div class="top-actions">
+      <button class="action-button" onclick="fetchBookings()">🔄 Refresh Data</button>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Phone</th>
+          <th>Email</th>
+          <th>Units</th>
+          <th>Check-in</th>
+          <th>Check-out</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody id="bookingTableBody">
+        <!-- Booking rows will be inserted here -->
+      </tbody>
+    </table>
+  </main>
+
+  <script>
+    const deploymentId = "AKfycbzVGWCzJX46iYyXdyJmN-VUyoSbnvAubKePmCl3YPRnkkcR25uzT8ERwEpg3Pi8BOTT";
+
+    function fetchBookings() {
+      fetch(`https://script.google.com/macros/s/${deploymentId}/exec`)
+        .then(res => res.json())
+        .then(data => {
+          if (!data.bookings) throw new Error("No bookings data found.");
+          renderBookings(data.bookings);
+        })
+        .catch(err => alert("Error fetching data: " + err));
+    }
+
+    function renderBookings(bookings) {
+      const tbody = document.getElementById("bookingTableBody");
+      tbody.innerHTML = "";
+
+      bookings.forEach(booking => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${booking.name}</td>
+          <td>${booking.phone}</td>
+          <td>${booking.email}</td>
+          <td>${booking.unit}</td>
+          <td>${booking.checkin}</td>
+          <td>${booking.checkout}</td>
+          <td>${booking.notes || ""}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    function logout() {
+      window.location.href = "index.html";
+    }
+
+    // Auto-load data on first load
+    window.onload = fetchBookings;
+  </script>
+
+</body>
+</html>

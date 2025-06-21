@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Campsite Agent Portal - New Booking</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #f1f5f9;
+    }
+
+    header {
+      background: white;
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+      flex-wrap: wrap;
+    }
+
+    .logo { font-weight: bold; }
+
+    .menu-toggle {
+      display: none;
+      font-size: 1.5rem;
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+
+    nav {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .mobile-menu {
+      display: none;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-top: 1rem;
+      width: 100%;
+    }
+
+    .mobile-menu.show {
+      display: flex;
+    }
+
+    .tab {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 5px;
+      background: #f3f4f6;
+      cursor: pointer;
+      font-size: 0.95rem;
+    }
+
+    .tab.active {
+      background: #ffffff;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    .logout-btn {
+      padding: 0.5rem 1rem;
+      background: #ef4444;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    main {
+      padding: 1.5rem;
+      max-width: 700px;
+      margin: auto;
+    }
+
+    .form-card {
+      background: white;
+      padding: 1.5rem;
+      margin-top: 1rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    form h2 {
+      margin-bottom: 0;
+    }
+
+    form p {
+      margin-top: 0;
+      color: #555;
+    }
+
+    label {
+      font-weight: 600;
+      margin-bottom: 0.3rem;
+      display: block;
+    }
+
+    input, select, button {
+      width: 100%;
+      padding: 0.5rem;
+      border-radius: 5px;
+      border: 1px solid #cbd5e1;
+      font-size: 1rem;
+    }
+
+    .unit-group {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 1rem;
+    }
+
+    .unit label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .unit small {
+      color: green;
+      font-weight: bold;
+      font-size: 0.85rem;
+    }
+
+    .readonly {
+      background: #f1f5f9;
+      pointer-events: none;
+      opacity: 0.6;
+    }
+
+    .form-footer {
+      text-align: center;
+    }
+
+    .success {
+      color: green;
+      margin-top: 1rem;
+    }
+
+    .error {
+      color: red;
+      margin-top: 1rem;
+    }
+
+    @media (max-width: 768px) {
+      nav { display: none; }
+      .menu-toggle { display: block; }
+      .mobile-menu.show { display: flex; }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="logo">🏕️ Campsite Agent Portal</div>
+    <button class="menu-toggle" onclick="toggleMenu()">☰</button>
+    <nav>
+      <button class="tab" onclick="location.href='dashboard.html'">Check Availability</button>
+      <button class="tab active">New Booking</button>
+      <button class="tab" onclick="location.href='all-bookings.html'">All Bookings</button>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </nav>
+    <div class="mobile-menu" id="mobileMenu">
+      <button class="tab" onclick="location.href='dashboard.html'">Check Availability</button>
+      <button class="tab active">New Booking</button>
+      <button class="tab" onclick="location.href='all-bookings.html'">All Bookings</button>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="form-card">
+      <form id="bookingForm">
+        <h2>New Campsite Booking</h2>
+        <p>Submit a new booking for your client. Click "Check Availability" first before filling units.</p>
+
+        <div>
+          <label>Client Name *</label>
+          <input type="text" name="custName" required />
+        </div>
+        <div>
+          <label>Phone Number *</label>
+          <input type="tel" name="custPhone" required />
+        </div>
+        <div>
+          <label>Email *</label>
+          <input type="email" name="custEmail" required />
+        </div>
+        <div>
+          <label>Check-in Date *</label>
+          <input type="date" id="checkin" required />
+        </div>
+        <div>
+          <label>Check-out Date *</label>
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <input type="date" id="checkout" required />
+            <button type="button" class="tab" onclick="updateAvailability()">Check Availability</button>
+          </div>
+        </div>
+
+        <div class="unit-group">
+          <div class="unit">
+            <label>A-TENT <small id="aTentLabel">(7 available)</small></label>
+            <input type="number" min="0" value="0" id="inputATent" />
+            <input type="hidden" name="quantityATent" id="hiddenATent" value="0" />
+          </div>
+          <div class="unit">
+            <label>CAMP-LOT A <small id="lotALabel">(1 available)</small></label>
+            <input type="number" min="0" value="0" id="inputLotA" />
+            <input type="hidden" name="quantityLotA" id="hiddenLotA" value="0" />
+          </div>
+          <div class="unit">
+            <label>CAMP-LOT B <small id="lotBLabel">(3 available)</small></label>
+            <input type="number" min="0" value="0" id="inputLotB" />
+            <input type="hidden" name="quantityLotB" id="hiddenLotB" value="0" />
+          </div>
+          <div class="unit">
+            <label>CAMP-LOT C <small id="lotCLabel">(5 available)</small></label>
+            <input type="number" min="0" value="0" id="inputLotC" />
+            <input type="hidden" name="quantityLotC" id="hiddenLotC" value="0" />
+          </div>
+        </div>
+
+        <div>
+          <label>Total Amount (RM)</label>
+          <input type="text" id="totalPrice" required />
+          <input type="hidden" name="totalPrice" id="formattedPrice" />
+        </div>
+
+        <div>
+          <label>Booking ID (Optional)</label>
+          <input type="text" name="userId" placeholder="Auto-generated if empty" />
+        </div>
+
+        <input type="hidden" name="startDate" id="formattedCheckin" />
+        <input type="hidden" name="endDate" id="formattedCheckout" />
+
+        <div class="form-footer">
+          <button type="submit" class="tab">Submit Booking</button>
+          <div class="success" id="successMsg" style="display:none">Booking submitted!</div>
+          <div class="error" id="errorMsg" style="display:none">Something went wrong!</div>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <script>
+    const deploymentId = "AKfycbzVGWCzJX46iYyXdyJmN-VUyoSbnvAubKePmCl3YPRnkkcR25uzT8ERwEpg3Pi8BOTT";
+    const MAX_UNITS = { tentA: 7, lotA: 1, lotB: 3, lotC: 5 };
+
+    function toggleMenu() {
+      document.getElementById("mobileMenu").classList.toggle("show");
+    }
+
+    function logout() {
+      window.location.href = "index.html";
+    }
+
+    function formatDate(input) {
+      const [year, month, day] = input.split("-");
+      return `${day}/${month}/${year}`;
+    }
+
+    function formatNumericPrice(input) {
+      const number = parseFloat(input.replace(/,/g, "").trim());
+      if (isNaN(number)) return "";
+      return number % 1 === 0 ? number.toFixed(0) : number.toString();
+    }
+
+    function updateAvailability() {
+      const checkin = document.getElementById("checkin").value;
+      const checkout = document.getElementById("checkout").value;
+      if (!checkin || !checkout) return alert("Please select check-in and check-out dates");
+
+      fetch(`https://script.google.com/macros/s/${deploymentId}/exec`)
+        .then(res => res.json())
+        .then(data => {
+          const bookings = data.bookings;
+          const counts = { tentA: 0, lotA: 0, lotB: 0, lotC: 0 };
+          const overlaps = (start, end) => !(end <= checkin || start >= checkout);
+
+          bookings.forEach(b => {
+            if (overlaps(b.checkin, b.checkout)) {
+              const unit = b.unit || "";
+              counts.tentA += parseInt(unit.match(/TentA:\s*(\d+)/)?.[1] || 0);
+              counts.lotA += parseInt(unit.match(/LotA:\s*(\d+)/)?.[1] || 0);
+              counts.lotB += parseInt(unit.match(/LotB:\s*(\d+)/)?.[1] || 0);
+              counts.lotC += parseInt(unit.match(/LotC:\s*(\d+)/)?.[1] || 0);
+            }
+          });
+
+          const available = {
+            tentA: Math.max(0, MAX_UNITS.tentA - counts.tentA),
+            lotA: Math.max(0, MAX_UNITS.lotA - counts.lotA),
+            lotB: Math.max(0, MAX_UNITS.lotB - counts.lotB),
+            lotC: Math.max(0, MAX_UNITS.lotC - counts.lotC),
+          };
+
+          updateUnit("aTentLabel", "inputATent", "hiddenATent", available.tentA);
+          updateUnit("lotALabel", "inputLotA", "hiddenLotA", available.lotA);
+          updateUnit("lotBLabel", "inputLotB", "hiddenLotB", available.lotB);
+          updateUnit("lotCLabel", "inputLotC", "hiddenLotC", available.lotC);
+        })
+        .catch(err => console.error("Error checking availability", err));
+    }
+
+    function updateUnit(labelId, inputId, hiddenId, available) {
+      document.getElementById(labelId).innerText = `(${available} available)`;
+      const input = document.getElementById(inputId);
+      const hidden = document.getElementById(hiddenId);
+      input.max = available;
+      input.readOnly = available === 0;
+      input.classList.toggle('readonly', available === 0);
+      if (available === 0) input.value = 0;
+      hidden.value = input.value;
+    }
+
+    document.getElementById("totalPrice").addEventListener("blur", function () {
+      const formatted = formatNumericPrice(this.value);
+      if (formatted) this.value = formatted;
+    });
+
+    document.getElementById("bookingForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      document.getElementById("hiddenATent").value = document.getElementById("inputATent").value || "0";
+      document.getElementById("hiddenLotA").value = document.getElementById("inputLotA").value || "0";
+      document.getElementById("hiddenLotB").value = document.getElementById("inputLotB").value || "0";
+      document.getElementById("hiddenLotC").value = document.getElementById("inputLotC").value || "0";
+
+      const checkin = document.getElementById("checkin").value;
+      const checkout = document.getElementById("checkout").value;
+      const priceRaw = document.getElementById("totalPrice").value;
+      const priceFormatted = formatNumericPrice(priceRaw);
+
+      document.getElementById("formattedCheckin").value = formatDate(checkin);
+      document.getElementById("formattedCheckout").value = formatDate(checkout);
+      document.getElementById("formattedPrice").value = priceFormatted;
+
+      const formData = new FormData(this);
+      const params = new URLSearchParams();
+      for (const [key, value] of formData.entries()) {
+        params.append(key, value || "0");
+      }
+
+      fetch(`https://script.google.com/macros/s/${deploymentId}/exec`, {
+        method: 'POST',
+        body: params,
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+      })
+        .then(res => res.text())
+        .then(text => {
+          if (text.includes("✅ Booking added")) {
+            document.getElementById("successMsg").style.display = "block";
+            document.getElementById("errorMsg").style.display = "none";
+            document.getElementById("bookingForm").reset();
+          } else {
+            throw new Error("Booking failed: " + text);
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          document.getElementById("successMsg").style.display = "none";
+          document.getElementById("errorMsg").style.display = "block";
+        });
+    });
+  </script>
+</body>
+</html>
