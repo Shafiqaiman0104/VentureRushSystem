@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Dashboard – Campsite Portal</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: #f8fafc;
+  }
+  header {
+    background: white;
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+    flex-wrap: wrap;
+  }
+  .logo { font-weight: bold; }
+  .menu-toggle {
+    display: none;
+    font-size: 1.5rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+  nav {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+  }
+  .mobile-menu {
+    display: none;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    width: 100%;
+  }
+  .mobile-menu.show {
+    display: flex;
+  }
+  .tab {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 5px;
+    background: #f3f4f6;
+    cursor: pointer;
+    font-size: 0.95rem;
+  }
+  .tab.active {
+    background: #ffffff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  }
+  .logout-btn {
+    padding: 0.5rem 1rem;
+    background: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  .welcome-mobile {
+    display: none;
+    font-size: 0.8rem;
+    color: #334155;
+    margin-left: auto;
+    margin-right: 0.5rem;
+  }
+  main {
+    padding: 1.5rem;
+    max-width: 1000px;
+    margin: auto;
+  }
+  .top-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+  .action-button {
+    background: #0ea5e9;
+    color: white;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  .action-button:hover {
+    background: #0284c7;
+  }
+  .table-wrapper {
+    overflow-x: auto;
+    width: 100%;
+  }
+  .admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border: 1px solid #e2e8f0;
+  }
+  th, td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #e2e8f0;
+    word-break: normal;
+  }
+  th {
+    white-space: nowrap;
+    background: #f1f5f9;
+  }
+  .units-cell {
+    white-space: normal;
+    word-break: keep-all;
+    vertical-align: top;
+    max-width: 220px;
+    min-width: 150px;
+  }
+  .comm-cards {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+  .comm-card {
+    flex: 1;
+    min-width: 200px;
+    background: white;
+    padding: 1rem;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+  }
+  .comm-card p {
+    font-size: 0.9rem;
+    color: #64748b;
+    margin-bottom: 0.3rem;
+  }
+  .comm-card h3 {
+    font-size: 1.5rem;
+    color: #0f172a;
+    margin: 0;
+  }
+  .filters-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+  }
+  .filter-group {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .filters-admin {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+  }
+  .charts-container {
+    display: flex;
+    gap: 2rem;
+    margin-top: 2rem;
+  }
+  .chart-box {
+    flex: 1;
+  }
+  .chart-box:first-child {
+    flex-basis: 70%;
+  }
+  .chart-box:last-child {
+    flex-basis: 30%;
+  }
+
+  @media (max-width: 768px) {
+    .charts-container {
+      flex-direction: column;
+    }
+    .chart-box {
+      flex-basis: 100% !important;
+    }
+    .filters-admin, .filters-container {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .filter-group.dates {
+      flex-direction: column;
+      align-items: flex-start;
+      width: 100%;
+    }
+    nav {
+      display: none;
+    }
+    .menu-toggle {
+      display: block;
+    }
+    .mobile-menu.show {
+      display: flex;
+    }
+    .top-actions {
+      flex-direction: column;
+      gap: 1rem;
+      align-items: stretch;
+    }
+    .table-wrapper {
+      font-size: 0.9rem;
+    }
+    .welcome-mobile {
+      display: block;
+    }
+    nav #welcomeText {
+      display: none;
+    }
+  }
+</style>  
+</head>
+<body>
+  <header>
+    <div class="logo">🏕️ Campsite Admin Portal</div>
+    <div class="welcome-mobile" id="mobileWelcome"></div>
+    <button class="menu-toggle" onclick="toggleMenu()">☰</button>
+    <nav>
+      <span id="welcomeText" style="margin-right: 1rem; font-weight: bold;"></span>
+      <button class="tab active">Dashboard</button>
+      <button class="tab" onclick="location.href='apPendingCom.html'">Pending Commissions</button>
+      <button class="tab" onclick="location.href='apAllBooking.html'">All Bookings</button>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </nav>
+    <div class="mobile-menu" id="mobileMenu">
+      <button class="tab active">Dashboard</button>
+      <button class="tab" onclick="location.href='apPendingCom.html'">Pending Commissions</button>
+      <button class="tab" onclick="location.href='apAllBooking.html'">All Bookings</button>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+  </header>
+
+  <main>
+    <h2>Admin Dashboard</h2>
+    <div class="comm-cards" id="commSummary">
+      <div class="comm-card"><p>Total Sales</p><h3 id="totalSales">RM 0.00</h3></div>
+      <div class="comm-card"><p>Total Commission</p><h3 id="totalComm">RM 0.00</h3></div>
+      <div class="comm-card"><p>Total Paid</p><h3 id="paidComm">RM 0.00</h3></div>
+      <div class="comm-card"><p>Total Pending</p><h3 id="pendComm">RM 0.00</h3></div>
+    </div>
+
+    <div class="filters-admin">
+      <div><label>Agent:</label>
+        <select id="agentFilter" onchange="renderAgentTable()">
+          <option value="all">All Agents</option>
+        </select>
+      </div>
+      <div><label>From:</label><input type="date" id="fromDate" onchange="renderAgentTable()"/></div>
+      <div><label>To:</label><input type="date" id="toDate" onchange="renderAgentTable()"/></div>
+      <button class="action-button" onclick="refreshAll()">🔄 Refresh</button>
+    </div>
+<div class="table-wrapper">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Agent Name</th><th>#Bookings</th><th>Total Sales</th>
+          <th>Commission (10%)</th><th>Paid Commission</th><th>Pending Commission</th>
+        </tr>
+      </thead>
+      <tbody id="agentTable"></tbody>
+    </table>
+</div>
+<div class="charts-container">
+  <div class="chart-box">
+    <h3>Top Agents Chart</h3>
+    <canvas id="agentChart" style="width:100%;max-width:700px"></canvas>
+  </div>
+  <div class="chart-box">
+    <h3>Unit Sales Breakdown</h3>
+    <canvas id="unitSalesChart" style="width:100%;max-width:500px"></canvas>
+  </div>
+</div>
+  </main>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+<script>
+const username = localStorage.getItem("username") || "Admin";
+document.getElementById("welcomeText").textContent = `Welcome ${username} !!`;
+document.getElementById("mobileWelcome").textContent = `Welcome ${username} !!`;
+
+function toggleMenu() {
+  document.getElementById("mobileMenu").classList.toggle("show");
+}
+
+function logout() {
+  localStorage.clear();
+  window.location.href = "index.html";
+}
+
+const agentId = "AKfycbwZYyoTqEYrTzk2mLPDer4RoLysmRVXakI4__TvENZ4GZRzMFvDcFOP8FX3xqG4hPv2TQ";
+const bookingId = "AKfycbz4bCHnZDbTpCUyiEh3NvkqqbbjxmGVWlHoHhjn7968mCKQKXeJib5FuYAGLvrDDri8SQ";
+let bookings = [], users = {}, userType = "staff";
+
+async function fetchAll(){
+  const ures = await fetch(`https://script.google.com/macros/s/${agentId}/exec`);
+  const dres = await fetch(`https://script.google.com/macros/s/${bookingId}/exec`);
+
+  const { users: udata } = await ures.json();
+  const { bookings: bdata } = await dres.json();
+
+  bookings = bdata;
+  users = {};
+  udata.forEach(u => {
+    users[u.userId] = { username: u.username, type: u.type };
+    if (u.username === username) userType = u.type;
+  });
+
+  setupAgents();
+  renderCommission();
+  renderAgentTable();
+  renderUnitSalesChart(); // move this here
+}
+
+let unitSalesChartInstance;
+
+function renderUnitSalesChart() {
+  const unitSums = { TentA: 0, LotA: 0, LotB: 0, LotC: 0 };
+
+  bookings.forEach(b => {
+    const unitStr = b.unit;
+    if (unitStr) {
+      unitStr.split(',').forEach(part => {
+        const [key, value] = part.split(':').map(s => s.trim());
+        if (unitSums.hasOwnProperty(key)) {
+          unitSums[key] += parseInt(value) || 0;
+        }
+      });
+    }
+  });
+
+  const ctx = document.getElementById('unitSalesChart').getContext('2d');
+  if (unitSalesChartInstance) unitSalesChartInstance.destroy();
+  unitSalesChartInstance = new Chart(ctx, {
+    type: 'pie',
+    data: {
+      labels: ['TentA', 'LotA', 'LotB', 'LotC'],
+      datasets: [{
+        data: [unitSums.TentA, unitSums.LotA, unitSums.LotB, unitSums.LotC],
+        backgroundColor: ['#f87171', '#facc15', '#4ade80', '#60a5fa']
+      }]
+    },
+    options: {
+      plugins: {
+        datalabels: {
+          formatter: (value, context) => {
+            const data = context.chart.data.datasets[0].data;
+            const sum = data.reduce((a, b) => a + b, 0);
+            const percentage = ((value / sum) * 100).toFixed(1) + "%";
+            return percentage;
+          },
+          color: '#fff',
+          font: {
+            weight: 'bold',
+            size: 14
+          }
+        }
+      }
+    },
+    plugins: [ChartDataLabels]
+  });
+}
+
+function setupAgents(){
+  const sel = document.getElementById("agentFilter");
+  sel.innerHTML = `<option value="all">All Agents</option>`;
+  Object.values(users).forEach(u => {
+    sel.innerHTML += `<option value="${u.username}">${u.username}</option>`;
+  });
+}
+
+function renderCommission() {
+  let totalSales = 0, totalComm = 0, paid = 0, pending = 0;
+  bookings.forEach(b => {
+    const amt = parseFloat(b.total) || 0;
+    totalSales += amt;
+    const [rawName] = b.userId.split(" - ");
+    const uEntry = Object.entries(users).find(([id, u]) => u.username === rawName);
+    if (uEntry && uEntry[1].type === "staff") {
+      const comm = amt * 0.10;
+      totalComm += comm;
+      if (b.userId.includes("paid")) paid += comm;
+      else pending += comm;
+    }
+  });
+  document.getElementById("totalSales").textContent = `RM ${totalSales.toFixed(2)}`;
+  document.getElementById("totalComm").textContent = `RM ${totalComm.toFixed(2)}`;
+  document.getElementById("paidComm").textContent = `RM ${paid.toFixed(2)}`;
+  document.getElementById("pendComm").textContent = `RM ${pending.toFixed(2)}`;
+}
+
+let agentChartInstance;
+
+function renderAgentChart(stats) {
+  const labels = Object.keys(stats);
+  const bookings = Object.values(stats).map(s => s.count);
+  const sales = Object.values(stats).map(s => s.total);
+  const ctx = document.getElementById('agentChart').getContext('2d');
+  if (agentChartInstance) agentChartInstance.destroy();
+  agentChartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [
+        { label: 'Bookings', data: bookings, backgroundColor: '#0ea5e9' },
+        { label: 'Total Sales', data: sales, backgroundColor: '#34d399' }
+      ]
+    }
+  });
+}
+
+function renderAgentTable() {
+  const agentName = document.getElementById("agentFilter").value;
+  const from = document.getElementById("fromDate").value;
+  const to = document.getElementById("toDate").value;
+  const stats = {};
+
+  bookings.forEach(b => {
+    const [rawName] = b.userId.split(" - ");
+    const agent = rawName || "Unknown";
+    if (agentName !== "all" && agent !== agentName) return;
+
+    if (from || to) {
+      const checkinDate = new Date(b.checkin);
+      const checkoutDate = new Date(b.checkout);
+      checkinDate.setHours(0, 0, 0, 0);
+      checkoutDate.setHours(0, 0, 0, 0);
+      if (from && to) {
+        const fromDate = new Date(from);
+        const toDate = new Date(to);
+        fromDate.setHours(0, 0, 0, 0);
+        toDate.setHours(0, 0, 0, 0);
+        if (checkoutDate <= fromDate || checkinDate >= toDate) return;
+      }
+    }
+
+    const obj = stats[agent] || { count: 0, total: 0, comm: 0, paid: 0 };
+    const amt = parseFloat(b.total) || 0;
+    const cm = amt * 0.10;
+    obj.count++;
+    obj.total += amt;
+    obj.comm += cm;
+    if (b.userId.includes("paid")) obj.paid += cm;
+    stats[agent] = obj;
+  });
+
+  const tbody = document.getElementById("agentTable");
+  tbody.innerHTML = "";
+  Object.entries(stats).forEach(([agent, obj]) => {
+    const pend = obj.comm - obj.paid;
+    const agentUserEntry = Object.entries(users).find(([id, u]) => u.username === agent);
+    const agentIsAdmin = agentUserEntry && agentUserEntry[1].type === "admin";
+
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${agent}</td>
+      <td>${obj.count}</td>
+      <td>RM ${obj.total.toFixed(2)}</td>
+      <td>${agentIsAdmin ? "N/A" : `RM ${obj.comm.toFixed(2)}`}</td>
+      <td>${agentIsAdmin ? "N/A" : `RM ${obj.paid.toFixed(2)}`}</td>
+      <td>${agentIsAdmin ? "N/A" : `RM ${pend.toFixed(2)}`}</td>
+    `;
+    tbody.appendChild(row);
+  });
+renderAgentChart(stats);
+}
+
+function refreshAll(){ fetchAll(); }
+window.onload = fetchAll;
+</script>
+</body>
+</html>
