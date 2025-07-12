@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Monthly Profit Report</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 1rem;
+      background: #f8fafc;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    .card {
+      background: white;
+      padding: 1.5rem;
+      max-width: 1200px;
+      margin: auto;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .form-group {
+      margin-bottom: 1rem;
+      display: flex;
+      flex-direction: column;
+    }
+    select {
+      padding: 0.5rem;
+      border-radius: 6px;
+      border: 1px solid #d1d5db;
+    }
+    .report {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: #f1f5f9;
+      border-radius: 6px;
+    }
+    .report div {
+      margin-bottom: 0.5rem;
+      font-size: 1.1rem;
+    }
+    .profit {
+      font-weight: bold;
+      color: #0f766e;
+    }
+    .error {
+      color: red;
+      margin-top: 1rem;
+    }
+    table {
+      margin-top: 1.5rem;
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+    th, td {
+     border: 1px solid #d1d5db;
+     padding: 8px;
+     text-align: left;
+     white-space: nowrap;
+    }
+    th {
+      background: #e2e8f0;
+    }
+    tr:nth-child(even) {
+      background: #f8fafc;
+    }
+.table-wrapper {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.table-wrapper table {
+  width: max-content; /* 👈 Ensures table doesn't shrink inside scroll container */
+}
+h3 {
+  margin-top: 2rem;
+  font-size: 1.2rem;
+  color: #1e293b;
+}
+
+  </style>
+</head>
+<body>
+
+<h2>📊 Monthly Profit Report</h2>
+<div class="card">
+  <div class="form-group">
+    <label for="monthSelect">Select Month:</label>
+    <select id="monthSelect"></select>
+  </div>
+
+  <div class="report" id="reportBox" style="display:none;">
+    <div>📦 Total Booking Revenue: <span id="bookingTotal">RM 0</span></div>
+    <div>💸 Total Expenses: <span id="expenseTotal">RM 0</span></div>
+    <div>👥 Total Pax: <span id="totalPax">0</span></div>
+    <div>🛏️ Units Sold:</div>
+    <div style="padding-left: 1rem;">
+      <div>🏕️ Pondok A-Tent: <span id="unitTentA">0</span></div>
+      <div>⛺ Camp-Lot A: <span id="unitLotA">0</span></div>
+      <div>⛺ Camp-Lot B: <span id="unitLotB">0</span></div>
+      <div>⛺ Camp-Lot C: <span id="unitLotC">0</span></div>
+    </div>
+    <div class="profit">💰 Profit: <span id="profitTotal">RM 0</span></div>
+  </div>
+
+  <div id="errorMsg" class="error"></div>
+
+  <div class="table-wrapper" style="display:none;" id="bookingWrapper">
+<h3 style="margin-top:2rem;">📑 Bookings Data</h3>
+  <table id="bookingTable">
+    <thead>
+      <tr>
+        <th>Name</th><th>Phone</th><th>Email</th><th>A-Tent</th><th>Lot A</th><th>Lot B</th><th>Lot C</th>
+        <th>Check In</th><th>Check Out</th><th>Total Pax</th><th>Extra Pax</th><th>Total</th>
+        <th>Book Id</th><th>User Id</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+<div class="table-wrapper" style="display:none;" id="expenseWrapper">
+  <h3 style="margin-top:2rem;">📑 Expense Breakdown</h3>
+  <table id="expenseTable">
+    <thead>
+      <tr>
+        <th>Bill on</th><th>Date</th><th>Category</th><th>Description</th>
+        <th>Amount</th><th>Paid to</th><th>Notes</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+</div>
+
+<script>
+  const bookingDeploymentId = "AKfycbwsPIi_Zf7UtwTQJ8BPiLmNR87VxecATUOItw68loKglD60QRcRzeQoqIzyynvTXolipA";
+  const expenseDeploymentId = "AKfycbzbrZVENGEBlwymKaqKBaHrIU4Gl6MDmmrcEL8us5uOesyWhhEXYwWFcvzRB5ECGh4v";
+
+  function populateMonthSelect() {
+    const select = document.getElementById("monthSelect");
+    const now = new Date();
+    const months = [];
+
+    for (let i = 0; i < 12; i++) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const value = `${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
+      const label = date.toLocaleString('default', { month: 'long', year: 'numeric' });
+      months.push({ value, label });
+    }
+
+    months.forEach(m => {
+      const opt = document.createElement("option");
+      opt.value = m.value;
+      opt.textContent = m.label;
+      select.appendChild(opt);
+    });
+
+    select.addEventListener("change", loadReport);
+    select.selectedIndex = 0;
+    loadReport();
+  }
+function formatDate(isoDate) {
+  if (!isoDate) return "";
+  const d = new Date(isoDate);
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  return `${day}/${month}/${year}`;
+}
+
+  async function loadReport() {
+    const monthValue = document.getElementById("monthSelect").value;
+    const [mm, yyyy] = monthValue.split('/').map(Number);
+    const reportBox = document.getElementById("reportBox");
+    const errorBox = document.getElementById("errorMsg");
+    const table = document.getElementById("bookingTable");
+    const tbody = table.querySelector("tbody");
+document.getElementById("expenseWrapper").style.display = "none";
+document.getElementById("bookingWrapper").style.display = "none";
+
+    errorBox.textContent = "";
+    reportBox.style.display = "none";
+    tbody.innerHTML = "";
+
+    let bookingTotal = 0;
+    let expenseTotal = 0;
+    let totalPax = 0;
+    let unitTentA = 0;
+    let unitLotA = 0;
+    let unitLotB = 0;
+    let unitLotC = 0;
+
+    try {
+      const res1 = await fetch(`https://script.google.com/macros/s/${bookingDeploymentId}/exec`);
+      const data1 = await res1.json();
+      const bookings = data1.bookings || [];
+
+      bookings.forEach(b => {
+        if (!b.total || !b.checkin || b.userId === "BLOCK" || b.userId === "HOLD") return;
+        const date = new Date(b.checkin);
+        if (date.getMonth() + 1 === mm && date.getFullYear() === yyyy) {
+          bookingTotal += parseFloat(b.total) || 0;
+          totalPax += parseInt(b.totalPax) || 0;
+
+          const matchTentA = b.unit.match(/TentA: (\d+)/);
+          const matchLotA = b.unit.match(/LotA: (\d+)/);
+          const matchLotB = b.unit.match(/LotB: (\d+)/);
+          const matchLotC = b.unit.match(/LotC: (\d+)/);
+
+          const aTent = matchTentA ? matchTentA[1] : "0";
+          const lotA = matchLotA ? matchLotA[1] : "0";
+          const lotB = matchLotB ? matchLotB[1] : "0";
+          const lotC = matchLotC ? matchLotC[1] : "0";
+
+          unitTentA += parseInt(aTent);
+          unitLotA += parseInt(lotA);
+          unitLotB += parseInt(lotB);
+          unitLotC += parseInt(lotC);
+
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${b.name || ''}</td>
+            <td>${b.phone || ''}</td>
+            <td>${b.email || ''}</td>
+            <td>${aTent}</td>
+            <td>${lotA}</td>
+            <td>${lotB}</td>
+            <td>${lotC}</td>
+            <td>${formatDate(b.checkin)}</td>
+            <td>${formatDate(b.checkout)}</td>
+            <td>${b.totalPax || ''}</td>
+            <td>${b.extraPax || ''}</td>
+            <td>RM ${parseFloat(b.total).toFixed(2)}</td>
+            <td>${b.bookId || ''}</td>
+            <td>${b.userId || ''}</td>
+          `;
+          tbody.appendChild(tr);
+        }
+      });
+    } catch (err) {
+      errorBox.textContent = "❌ Failed to load booking data.";
+      return;
+    }
+
+   try {
+
+  const expenseTable = document.getElementById("expenseTable");
+  const expenseBody = expenseTable.querySelector("tbody");
+  expenseBody.innerHTML = "";
+
+  const res2 = await fetch(`https://script.google.com/macros/s/${expenseDeploymentId}/exec?action=getExpenses`);
+  const data2 = await res2.json();
+  const expenses = data2.expenses || [];
+
+  expenses.forEach(e => {
+    if (!e.amount || !e.date) return;
+    const date = new Date(e.date);
+    if (date.getMonth() + 1 === mm && date.getFullYear() === yyyy) {
+      expenseTotal += parseFloat(e.amount) || 0;
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${formatDate(e.billOn) || ''}</td>
+        <td>${formatDate(e.date) || ''}</td>
+        <td>${e.category || ''}</td>
+        <td>${e.description || ''}</td>
+        <td>RM ${parseFloat(e.amount).toFixed(2)}</td>
+        <td>${e.paidTo || ''}</td>
+        <td>${e.notes || ''}</td>
+      `;
+      expenseBody.appendChild(tr);
+    }
+  });
+
+  
+} catch (err) {
+  errorBox.textContent = "❌ Failed to load expenses data.";
+  return;
+}
+
+    document.getElementById("bookingTotal").textContent = `RM ${bookingTotal.toFixed(2)}`;
+    document.getElementById("expenseTotal").textContent = `RM ${expenseTotal.toFixed(2)}`;
+    document.getElementById("profitTotal").textContent = `RM ${(bookingTotal - expenseTotal).toFixed(2)}`;
+    document.getElementById("totalPax").textContent = totalPax;
+    document.getElementById("unitTentA").textContent = unitTentA;
+    document.getElementById("unitLotA").textContent = unitLotA;
+    document.getElementById("unitLotB").textContent = unitLotB;
+    document.getElementById("unitLotC").textContent = unitLotC;
+
+    reportBox.style.display = "block";
+    table.style.display = "table";
+    document.getElementById("bookingWrapper").style.display = "block";
+    document.getElementById("expenseWrapper").style.display = "block";
+  }
+
+  window.onload = populateMonthSelect;
+</script>
+</body>
+</html>
