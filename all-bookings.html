@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Bookings</title>
+  <style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: #f8fafc;
+  }
+  header {
+    background: white;
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+    flex-wrap: wrap;
+  }
+  .logo { font-weight: bold; }
+  .menu-toggle {
+    display: none;
+    font-size: 1.5rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+  nav {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+  }
+  .mobile-menu {
+    display: none;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    width: 100%;
+  }
+  .mobile-menu.show {
+    display: flex;
+  }
+  .tab {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 5px;
+    background: #f3f4f6;
+    cursor: pointer;
+    font-size: 0.95rem;
+  }
+  .tab.active {
+    background: #ffffff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  }
+  .logout-btn {
+    padding: 0.5rem 1rem;
+    background: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  .welcome-mobile {
+    display: none;
+    font-size: 0.8rem;
+    color: #334155;
+    margin-left: auto;
+    margin-right: 0.5rem;
+  }
+  main {
+    padding: 1.5rem;
+    max-width: 1000px;
+    margin: auto;
+  }
+  .top-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+  .action-button {
+    background: #0ea5e9;
+    color: white;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  .action-button:hover {
+    background: #0284c7;
+  }
+  .table-container {
+    overflow-x: auto;
+    width: 100%;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border: 1px solid #e2e8f0;
+  }
+  th, td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #e2e8f0;
+  word-break: normal;
+  }
+  th {
+    white-space: nowrap;
+    background: #f1f5f9;
+  }
+  .units-cell {
+    white-space: normal;
+    word-break: keep-all;
+    vertical-align: top;
+    max-width: 220px;
+    min-width: 150px;
+  }
+  .stats-cards {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+.stat-card {
+  flex: 1;
+  min-width: 200px;
+  background: white;
+  padding: 1rem;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+}
+.stat-card p {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin-bottom: 0.3rem;
+}
+.stat-card h3 {
+  font-size: 1.5rem;
+  color: #0f172a;
+  margin: 0;
+}
+.filters-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+}
+
+.filter-group {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  .filters-container {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .filter-group.dates {
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+  }
+}
+
+  @media (max-width: 768px) {
+    nav { display: none; }
+    .menu-toggle { display: block; }
+    .mobile-menu.show { display: flex; }
+    .top-actions {
+      flex-direction: column;
+      gap: 1rem;
+      align-items: stretch;
+    }
+    table {
+      font-size: 0.9rem;
+    }
+    .welcome-mobile {
+      display: block;
+    }
+    nav #welcomeText {
+      display: none;
+    }
+  }
+</style>
+</head>
+<body>
+  <header>
+    <div class="logo">🏕️ Campsite Agent Portal</div>
+    <div class="welcome-mobile" id="mobileWelcome"></div>
+    <button class="menu-toggle" onclick="toggleMenu()">☰</button>
+
+    <nav>
+      <span id="welcomeText" style="margin-right: 1rem; font-weight: bold;"></span>
+      <button class="tab" onclick="location.href='dashboard.html'">Check Availability</button>
+      <button class="tab" onclick="location.href='booking.html'">New Booking</button>
+      <button class="tab active">My Bookings</button>
+      <button class="tab" onclick="location.href='coView.html'">C.O View</button>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </nav>
+
+    <div class="mobile-menu" id="mobileMenu">
+      <button class="tab" onclick="location.href='dashboard.html'">Check Availability</button>
+      <button class="tab" onclick="location.href='booking.html'">New Booking</button>
+      <button class="tab active">My Bookings</button>
+      <button class="tab" onclick="location.href='coView.html'">C.O View</button>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+  </header>
+  <main>
+    <div class="stats-cards">
+  <div class="stat-card">
+    <p>Total Bookings</p>
+    <h3 id="totalBookings">0</h3>
+  </div>
+  <div class="stat-card">
+    <p>Total Sales</p>
+    <h3 id="totalSales">RM 0.00</h3>
+  </div>
+  <div class="stat-card">
+    <p>Total Pending</p>
+    <h3 id="totalPending">RM 0.00</h3>
+  </div>
+  <div class="stat-card">
+    <p>Total Paid</p>
+    <h3 id="totalPaid">RM 0.00</h3>
+  </div>
+</div>
+    <h2>My Bookings</h2>
+    <div class="top-actions">
+      <div class="filters-container">
+  <div class="filter-group">
+    <label for="filterStatus">Commission Filter: </label>
+    <select id="filterStatus" onchange="renderBookings(cachedBookings)">
+      <option value="all">All</option>
+      <option value="pending">Pending Only</option>
+      <option value="paid">Paid Only</option>
+    </select>
+  </div>
+
+  <div class="filter-group dates">
+    <label for="checkinFilter">Check-in:</label>
+    <input type="date" id="checkinFilter" onchange="renderBookings(cachedBookings)" />
+
+    <label for="checkoutFilter">Check-out:</label>
+    <input type="date" id="checkoutFilter" onchange="renderBookings(cachedBookings)" />
+  </div>
+</div>
+  <button class="action-button" onclick="fetchBookings()">🔄 Refresh Data</button>
+</div>
+<div style="margin-bottom: 1rem;">
+  <input type="text" id="searchInput" oninput="renderBookings(cachedBookings)" placeholder="🔍 Search bookings..." 
+    style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 1rem;" />
+</div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Contact</th>
+            <th>Units</th>
+            <th>Check-in</th>
+            <th>Check-out</th>
+            <th>Total Pax</th>
+            <th>Extra Pax</th>
+            <th>Total Sales</th>
+            <th>Book Id</th>
+            <th>Total Commission</th>
+            <th>Commission Status</th>
+          </tr>
+        </thead>
+        <tbody id="bookingTableBody">
+          <!-- Booking rows will be inserted here -->
+        </tbody>
+      </table>
+    </div>
+  </main>
+  <script>
+    const username = localStorage.getItem("username") || "User";
+    // 🔐 Redirect if not logged in (username missing or defaulted to "User")
+if (!localStorage.getItem("username") || localStorage.getItem("username") === "User") {
+  window.location.href = "index.html";
+}
+
+    document.getElementById("welcomeText").textContent = `Welcome ${username} !!`;
+    document.getElementById("mobileWelcome").textContent = `Welcome ${username} !!`;
+
+    const deploymentId = "AKfycbwsPIi_Zf7UtwTQJ8BPiLmNR87VxecATUOItw68loKglD60QRcRzeQoqIzyynvTXolipA";
+    let cachedBookings = [];
+
+    function toggleMenu() {
+      document.getElementById("mobileMenu").classList.toggle("show");
+    }
+
+    function logout() {
+      localStorage.clear();
+      window.location.href = "index.html";
+    }
+
+    function formatDate(dateStr) {
+      const d = new Date(dateStr);
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const year = d.getFullYear();
+      return `${day}/${month}/${year}`;
+    }
+
+    function fetchBookings() {
+      fetch(`https://script.google.com/macros/s/${deploymentId}/exec`)
+        .then(res => res.json())
+        .then(data => {
+          if (!data.bookings) throw new Error("No bookings data found.");
+          const usernameVariants = [
+            username,
+            `${username} - paid`,
+            `${username} - pending`
+          ];
+          cachedBookings = data.bookings.filter(b => usernameVariants.includes(b.userId));
+          renderBookings(cachedBookings);
+        })
+        .catch(err => alert("Error fetching data: " + err));
+    }
+function renderBookings(bookings) {
+  const tbody = document.getElementById("bookingTableBody");
+  const filter = document.getElementById("filterStatus").value;
+  const searchQuery = (document.getElementById("searchInput")?.value || "").toLowerCase();
+  tbody.innerHTML = "";
+  const checkinFilter = document.getElementById("checkinFilter").value;
+  const checkoutFilter = document.getElementById("checkoutFilter").value;
+
+  let total = 0;
+  let totalPaid = 0;
+  let totalPending = 0;
+  let count = 0;
+
+  bookings.forEach(booking => {
+    const totalAmount = parseFloat(booking.total || 0);
+    const extraPaxCharge = (parseInt(booking.extraPax) || 0) * 5;
+    const commission = (totalAmount - extraPaxCharge) * 0.10;
+
+
+    let statusLabel = "N/A";
+    let statusColor = "#94a3b8"; // gray
+
+    if (booking.userId === `${username} - paid`) {
+      statusLabel = "Paid";
+      statusColor = "#10b981";
+
+    } else if (booking.userId === `${username} - pending`) {
+      statusLabel = "Pending";
+      statusColor = "#ef4444";
+
+    }
+
+    if (
+      (filter === "paid" && statusLabel !== "Paid") ||
+      (filter === "pending" && statusLabel !== "Pending")
+    ) return;
+    if (checkinFilter && checkoutFilter) {
+  const filterStart = new Date(checkinFilter);
+  const filterEnd = new Date(checkoutFilter);
+  filterStart.setHours(0, 0, 0, 0);
+  filterEnd.setHours(0, 0, 0, 0);
+
+  const bCheckin = new Date(booking.checkin);
+  const bCheckout = new Date(booking.checkout);
+  bCheckin.setHours(0, 0, 0, 0);
+  bCheckout.setHours(0, 0, 0, 0);
+
+  // Only keep bookings that overlap with the selected range
+  if (bCheckin >= filterEnd || bCheckout <= filterStart) return;
+}
+  
+
+    total += totalAmount;
+    count++;
+     if (statusLabel === "Paid") {
+          totalPaid += commission;
+        }
+        if (statusLabel === "Pending") {
+          totalPending += commission;
+        }
+
+    const unitParts = booking.unit.split(',').map(u => u.trim());
+    const formattedUnits = unitParts
+      .filter(part => {
+        const num = parseInt(part.split(':')[1]);
+        return num >= 1;
+      })
+      .map(part => {
+        const [key, value] = part.split(':').map(p => p.trim());
+        switch (key) {
+          case "TentA": return `Pondok A-Tent: ${value}`;
+          case "LotA": return `Camp-lot A: ${value}`;
+          case "LotB": return `Camp-lot B: ${value}`;
+          case "LotC": return `Camp-lot C: ${value}`;
+          default: return part;
+        }
+      })
+      .join('<br>');
+
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${booking.name}</td>
+      <td>${booking.phone}<br>${booking.email}</td>
+      <td class="units-cell">${formattedUnits || '-'}</td>
+      <td>${formatDate(booking.checkin)}</td>
+      <td>${formatDate(booking.checkout)}</td>
+      <td>${booking.totalPax || '-'}</td>
+      <td>${booking.extraPax || '-'}</td>
+      <td>RM ${totalAmount.toFixed(2)}</td>
+      <td>${booking.bookId || ""}</td>
+      <td>RM ${commission.toFixed(2)}</td>
+      <td>
+        <span style="color: white; background-color: ${statusColor}; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem;">
+          ${statusLabel}
+        </span>
+      </td>
+    `;
+// 🔍 Global search filter based on what is actually displayed (HTML output)
+const visibleText = row.innerText.toLowerCase();
+if (searchQuery && !visibleText.includes(searchQuery)) return;
+    tbody.appendChild(row);
+  });
+
+  // 🟢 Update stat cards
+  document.getElementById("totalBookings").textContent = count;
+  document.getElementById("totalSales").textContent = `RM ${total.toFixed(2)}`;
+  document.getElementById("totalPending").textContent = `RM ${totalPending.toFixed(2)}`;
+  document.getElementById("totalPaid").textContent = `RM ${totalPaid.toFixed(2)}`;
+}
+    window.onload = fetchBookings;
+  </script>
+</body>
+</html>

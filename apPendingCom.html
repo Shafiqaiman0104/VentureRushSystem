@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin - Pending Commissions</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #f8fafc; }
+    header { background: white; padding: 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; box-shadow: 0 2px 4px rgba(0,0,0,0.06); }
+    .logo { font-weight: bold; }
+    .menu-toggle { display: none; font-size: 1.5rem; background: none; border: none; cursor: pointer; }
+    nav { display: flex; gap: 1rem; align-items: center; }
+
+
+.dropdown-btn {
+    margin: 0 4px;
+    padding: 8px 12px;
+    background-color: #f3f4f6;
+    border: none;
+    cursor: pointer;
+    font-size: 0.95rem;
+    width: 150px;
+  }
+  .dropdown {
+    position: relative;
+  }
+ .dropdown-content {
+    display: none;
+    position: absolute;
+    top: 110%;
+    left: 0;
+    background-color: white;
+    min-width: 100%;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    z-index: 999;
+    flex-direction: column;
+  }
+  .dropdown-content button {
+    padding: 10px;
+    width: 100%;
+    text-align: left;
+    background-color: #f3f4f6;
+    border: none;
+    border-top: 1px solid #ccc;
+    border-radius: 0px; /* ← square buttons */
+    white-space: nowrap;      
+  }
+  .dropdown-content button:hover {
+    background-color: white; 
+    color: #000; /* optional: make text darker for visibility */
+  }
+ .dropdown:hover .dropdown-content {
+    display: flex;
+  }
+
+
+    .tab { padding: 0.5rem 1rem; border: none; border-radius: 5px; background: #f3f4f6; cursor: pointer; font-size: 0.95rem; }
+    .tab.active { background: #ffffff; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); }
+    .logout-btn { padding: 0.5rem 1rem; background: #ef4444; color: white; border: none; border-radius: 5px; cursor: pointer; }
+    .mobile-menu { display: none; flex-direction: column; gap: 0.5rem; margin-top: 1rem; width: 100%; }
+    .welcome-mobile { display: none; font-size: 0.8rem; color: #334155; margin-left: auto; margin-right: 0.5rem; }
+    main { padding: 1.5rem; max-width: 1000px; margin: auto; }
+    .filters-admin { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; margin-bottom: 1rem; }
+    .action-button { background: #0ea5e9; color: white; padding: 0.5rem 1rem; border: none; border-radius: 5px; cursor: pointer; }
+    .action-button:hover { background: #0284c7; }
+    .table-wrapper { overflow-x: auto; width: 100%; }
+    .admin-table { width: 100%; border-collapse: collapse; background: white; border: 1px solid #e2e8f0; }
+    th, td { padding: 0.75rem; border-bottom: 1px solid #e2e8f0; text-align: left; }
+    th { background: #f1f5f9; }
+    .btn-mark-paid { padding: 0.5rem 1rem;
+      background: linear-gradient(135deg, #3498db, #2980b9);
+      white-space: nowrap;
+      color: white;
+      border: none;
+      border-radius: 9999px;
+      cursor: pointer;
+      font-weight: 600;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      transition: all 0.3s ease;}
+    .btn-mark-paid:hover { background: linear-gradient(135deg, #2980b9, #2471a3);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+      transform: translateY(-2px); }
+    .status-paid { color: #16a34a; font-weight: normal; }  
+    .status-pending { color: #dc2626; font-weight: normal; }
+    @media (max-width: 768px) {
+      nav { display: none; }
+      .menu-toggle { display: block; }
+      .mobile-menu.show { display: flex; }
+      .welcome-mobile { display: block; }
+      nav #welcomeText { display: none; }
+      .filters-admin { flex-direction: column; align-items: stretch; }
+    }
+  </style>
+</head>
+<body>
+<header>
+    <div class="logo">🏕️ Campsite Admin Portal</div>
+    <div class="welcome-mobile" id="mobileWelcome"></div>
+    <button class="menu-toggle" onclick="toggleMenu()">☰</button>
+    <nav>
+      <span id="welcomeText" style="margin-right: 1rem; font-weight: bold;"></span>
+      <button class="tab" onclick="location.href='adminpage.html'">Dashboard</button>
+      <button class="tab active">Pending Commissions</button>
+
+      <div class="dropdown">
+      <button class="dropdown-btn">Block & Hold ▼</button>
+      <div class="dropdown-content">
+       <button class="tab" onclick="location.href='apBlockDate.html'">Block Dates</button>
+       <button class="tab" onclick="location.href='apHoldUnit.html'">Hold Unit</button>      
+      </div>
+      </div>
+
+      <div class="dropdown">
+      <button class="dropdown-btn">Financials ▼</button>
+      <div class="dropdown-content">
+       <button class="tab" onclick="location.href='apExpenses.html'">Expense Tracker</button>
+       <button class="tab" onclick="location.href='apOtherIncome.html'">Other Income</button>
+       <button class="tab" onclick="location.href='apReport.html'">Monthly Report</button>
+      </div>
+      </div>
+      
+      <div class="dropdown">
+      <button class="dropdown-btn">C.O ▼</button>
+      <div class="dropdown-content">
+       <button class="tab" onclick="location.href='apCoView.html'">C.O View</button>
+       <button class="tab" onclick="location.href='apCoData.html'">C.O Data</button>
+      </div>
+      </div>
+
+      <button class="tab" onclick="location.href='apCheckAvailability.html'">Check Availability</button>
+      <button class="tab" onclick="location.href='apBooking.html'">New Booking</button>
+      <button class="tab" onclick="location.href='apAllBooking.html'">All Bookings</button>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </nav>
+    <div class="mobile-menu" id="mobileMenu">
+      <button class="tab" onclick="location.href='adminpage.html'">Dashboard</button>
+      <button class="tab active">Pending Commissions</button>
+      <button class="tab" onclick="location.href='apBlockDate.html'">Block Dates</button>
+      <button class="tab" onclick="location.href='apHoldUnit.html'">Hold Unit</button>
+      <button class="tab" onclick="location.href='apExpenses.html'">Expense Tracker</button>
+      <button class="tab" onclick="location.href='apOtherIncome.html'">Other Income</button>
+      <button class="tab" onclick="location.href='apReport.html'">Monthly Report</button>
+      <button class="tab" onclick="location.href='apCoView.html'">C.O View</button>
+      <button class="tab" onclick="location.href='apCoData.html'">C.O Data</button>
+      <button class="tab" onclick="location.href='apCheckAvailability.html'">Check Availability</button>
+      <button class="tab" onclick="location.href='apBooking.html'">New Booking</button>
+      <button class="tab" onclick="location.href='apAllBooking.html'">All Bookings</button>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+  </header>
+  
+  <main>
+    <h2>Manage Pending Commissions</h2>
+    <div class="filters-admin">
+  <div><label>Agent:</label>
+    <select id="agentFilter" onchange="renderTable()">
+      <option value="all">All Agents</option>
+    </select>
+  </div>
+
+  <div>
+    <label>Check-in:</label>
+    <input type="date" id="checkinFilter" onchange="renderTable()" />
+  </div>
+
+  <div>
+    <label>Check-out:</label>
+    <input type="date" id="checkoutFilter" onchange="renderTable()" />
+  </div>
+  <button class="action-button" onclick="refreshAll()">🔄 Refresh</button>
+  <button class="action-button" id="markAllBtn" style="display: none;" onclick="markAllAsPaid()">✅ Mark all as Paid</button>
+</div>
+    <div class="table-wrapper">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Book Id</th>
+            <th>Agent Name</th>
+            <th>Total</th>
+            <th>Commission</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="pendingTable"></tbody>
+      </table>
+    </div>
+  </main>
+  <script>
+    const bookingId = "AKfycbwsPIi_Zf7UtwTQJ8BPiLmNR87VxecATUOItw68loKglD60QRcRzeQoqIzyynvTXolipA";
+    const userDbId = "AKfycbwZYyoTqEYrTzk2mLPDer4RoLysmRVXakI4__TvENZ4GZRzMFvDcFOP8FX3xqG4hPv2TQ";
+    let bookings = [], users = {};
+    let filteredPending = [];
+
+async function fetchAll(){
+  const [bookingsRes, usersRes] = await Promise.all([
+    fetch(`https://script.google.com/macros/s/${bookingId}/exec`),
+    fetch(`https://script.google.com/macros/s/${userDbId}/exec`)
+  ]);
+
+  const { bookings: bdata } = await bookingsRes.json();
+  const { users: udata } = await usersRes.json();
+
+  bookings = bdata;
+  users = {};
+  udata.forEach(u => { users[u.username] = u; });
+
+  setupAgents();
+  renderTable();
+}
+
+const username = localStorage.getItem("username") || "Admin";
+// 🔐 Redirect if not logged in (username missing or defaulted to "Admin")
+if (!localStorage.getItem("username") || localStorage.getItem("username") === "Admin") {
+  window.location.href = "index.html";
+}
+document.getElementById("welcomeText").textContent = `Welcome ${username} !!`;
+document.getElementById("mobileWelcome").textContent = `Welcome ${username} !!`;
+
+function setupAgents(){
+  const sel = document.getElementById("agentFilter");
+  sel.innerHTML = `<option value="all">All Agents</option>`;
+  const agents = new Set(bookings
+    .filter(b => b.userId !== "BLOCK" && b.userId !== "HOLD")
+    .map(b => b.userId.split(" - ")[0])
+  );
+  agents.forEach(a => {
+    if (users[a]?.type !== "admin") {
+      sel.innerHTML += `<option value="${a}">${a}</option>`;
+    }
+  });
+}
+
+    
+
+    function logout() {
+      localStorage.clear();
+      window.location.href = "index.html";
+    }
+    function renderTable(){
+  const agent = document.getElementById("agentFilter").value;
+  const checkinFilter = document.getElementById("checkinFilter").value;
+  const checkoutFilter = document.getElementById("checkoutFilter").value;
+  const tbody = document.getElementById("pendingTable");
+  tbody.innerHTML = "";
+  filteredPending = [];
+
+  bookings.forEach(b => {
+    if (b.userId === "BLOCK" || b.userId === "HOLD") return;
+
+const [rawName] = b.userId.split(" - ");
+const user = users[rawName];
+if (user?.type === "admin") return; // ✅ Skip admin users
+
+    if (agent !== "all" && rawName !== agent) return;
+   
+     if (checkinFilter && checkoutFilter) {
+      const filterStart = new Date(checkinFilter);
+      const filterEnd = new Date(checkoutFilter);
+      filterStart.setHours(0, 0, 0, 0);
+      filterEnd.setHours(0, 0, 0, 0);
+
+      const bCheckin = new Date(b.checkin);
+      const bCheckout = new Date(b.checkout);
+      bCheckin.setHours(0, 0, 0, 0);
+      bCheckout.setHours(0, 0, 0, 0);
+
+      // Skip bookings outside filter range
+      if (bCheckin >= filterEnd || bCheckout <= filterStart) return;
+    }
+
+    const amt = parseFloat(b.total) || 0;
+const extraPaxCharge = (parseInt(b.extraPax) || 0) * 5;
+const net = amt - extraPaxCharge;
+const commission = net * 0.10;
+
+const status = b.userId.includes("paid") ? "Paid" : "Pending";
+
+if (status === "Pending") {
+  filteredPending.push(b);
+}
+
+const row = document.createElement("tr");
+row.innerHTML = `
+  <td>${b.bookId || "-"}</td>
+  <td>${rawName}</td>
+  <td>RM ${parseFloat(b.total).toFixed(2)}</td>
+  <td>RM ${commission.toFixed(2)}</td>
+  <td class="${status === "Paid" ? "status-paid" : "status-pending"}">${status}</td>
+  <td>
+    ${status === "Pending" ? `<button class="btn-mark-paid" onclick="markPaid('${b.bookId}')">Mark as Paid</button>` : "-"}
+  </td>
+`;
+
+tbody.appendChild(row);
+
+  });
+document.getElementById("markAllBtn").style.display =
+  (agent !== "all" && filteredPending.length > 0) ? "inline-block" : "none";
+
+}
+async function markAllAsPaid() {
+  const agent = document.getElementById("agentFilter").value;
+  const checkinFilter = document.getElementById("checkinFilter").value;
+  const checkoutFilter = document.getElementById("checkoutFilter").value;
+
+  if (filteredPending.length === 0) {
+    alert("No pending commissions to mark as paid.");
+    return;
+  }
+
+  if (filteredPending.some(b => b.bookId === "pending payment")) {
+  alert("⚠️ One or more customers have not paid yet. Cannot mark commission as paid because no payment was received.");
+  return;
+  }
+
+  let confirmMsg = `Confirm mark all ${agent}'s commissions as paid?`;
+  if (checkinFilter && checkoutFilter) {
+    confirmMsg = `Confirm mark all ${agent}'s commissions as paid from ${checkinFilter} to ${checkoutFilter}?`;
+  }
+
+  if (!confirm(confirmMsg)) return;
+
+  document.getElementById("loadingPopup").style.display = "flex";
+
+  let successCount = 0;
+
+  for (let b of filteredPending) {
+    try {
+      await fetch(`https://script.google.com/macros/s/${bookingId}/exec?action=markPaid&bookId=${encodeURIComponent(b.bookId)}`);
+      successCount++;
+      await sleep(200); // ✅ delay between calls
+    } catch (err) {
+      console.error("❌ Failed for", b.bookId, err);
+    }
+  }
+
+    // ✅ HIDE loading popup
+  document.getElementById("loadingPopup").style.display = "none";
+
+  alert(`✅ Marked ${successCount} commissions as paid.`);
+  fetchAll();
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+  function markPaid(bookId) {
+    if (bookId === "pending payment") {
+    alert("⚠️ This customer has not paid yet. Cannot mark commission as paid because no payment was received.");
+    return;
+  }
+
+  if (!confirm("Are you sure you want to mark this commission as paid?")) return;
+
+  fetch(`https://script.google.com/macros/s/${bookingId}/exec?action=markPaid&bookId=${encodeURIComponent(bookId)}`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        alert("Marked as paid successfully.");
+        fetchAll();
+      } else {
+        alert("Error marking as paid.");
+      }
+    })
+    .catch(err => {
+      console.error(err);
+      alert("Request failed.");
+    });
+}
+function toggleMenu() {
+    document.getElementById("mobileMenu").classList.toggle("show");
+    }		
+    function refreshAll(){ fetchAll(); }
+    window.onload = fetchAll;
+  </script>
+<div id="loadingPopup" style="
+  display: none; /* only this */
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.4);
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  font-size: 1.2rem;
+  color: white;
+  font-weight: bold;
+">
+  🔄 Marking as paid...
+</div>
+</body>
+</html>

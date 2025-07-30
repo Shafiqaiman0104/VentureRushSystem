@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>All Bookings</title>
+  <style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: #f8fafc;
+  }
+  header {
+    background: white;
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+    flex-wrap: wrap;
+  }
+  .logo { font-weight: bold; }
+  .menu-toggle {
+    display: none;
+    font-size: 1.5rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+  nav {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+  }
+
+
+.dropdown-btn {
+    margin: 0 4px;
+    padding: 8px 12px;
+    background-color: #f3f4f6;
+    border: none;
+    cursor: pointer;
+    font-size: 0.95rem;
+    width: 150px;
+  }
+  .dropdown {
+    position: relative;
+  }
+ .dropdown-content {
+    display: none;
+    position: absolute;
+    top: 110%;
+    left: 0;
+    background-color: white;
+    min-width: 100%;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    z-index: 999;
+    flex-direction: column;
+  }
+  .dropdown-content button {
+    padding: 10px;
+    width: 100%;
+    text-align: left;
+    background-color: #f3f4f6;
+    border: none;
+    border-top: 1px solid #ccc;
+    border-radius: 0px; /* ← square buttons */
+    white-space: nowrap;      
+  }
+  .dropdown-content button:hover {
+    background-color: white; 
+    color: #000; /* optional: make text darker for visibility */
+  }
+ .dropdown:hover .dropdown-content {
+    display: flex;
+  }
+
+
+  .mobile-menu {
+    display: none;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    width: 100%;
+  }
+  .mobile-menu.show {
+    display: flex;
+  }
+  .tab {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 5px;
+    background: #f3f4f6;
+    cursor: pointer;
+    font-size: 0.95rem;
+  }
+  .tab.active {
+    background: #ffffff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  }
+  .logout-btn {
+    padding: 0.5rem 1rem;
+    background: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  .welcome-mobile {
+    display: none;
+    font-size: 0.8rem;
+    color: #334155;
+    margin-left: auto;
+    margin-right: 0.5rem;
+  }
+  main {
+    padding: 1.5rem;
+    max-width: 1000px;
+    margin: auto;
+  }
+  .top-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+  .action-button {
+    background: #0ea5e9;
+    color: white;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  .action-button:hover {
+    background: #0284c7;
+  }
+  .table-container {
+    overflow-x: auto;
+    width: 100%;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border: 1px solid #e2e8f0;
+  }
+  th, td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #e2e8f0;
+  word-break: normal;
+  }
+  th {
+    white-space: nowrap;
+    background: #f1f5f9;
+  }
+  .units-cell {
+    white-space: normal;
+    word-break: keep-all;
+    vertical-align: top;
+    max-width: 220px;
+    min-width: 150px;
+  }
+  .stats-cards {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+.stat-card {
+  flex: 1;
+  min-width: 200px;
+  background: white;
+  padding: 1rem;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+}
+.stat-card p {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin-bottom: 0.3rem;
+}
+.stat-card h3 {
+  font-size: 1.5rem;
+  color: #0f172a;
+  margin: 0;
+}
+.filters-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+}
+
+.filter-group {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+#editPopup {
+  display: none;
+  position: fixed;
+  top: 8%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  max-width: 500px;
+  width: 90%;
+}
+
+#editPopup h3 {
+  margin-top: 0;
+  font-size: 1.3rem;
+  color: #0f172a;
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 8px;
+  margin-bottom: 15px;
+}
+
+#editForm label {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 12px;
+  font-size: 0.95rem;
+  color: #334155;
+}
+
+#editForm input {
+  padding: 8px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  margin-top: 5px;
+  font-size: 0.95rem;
+  width: 100%;
+}
+
+#editForm .button-group {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+#editForm .button-group button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+#editForm .button-group button:first-child {
+  background-color: #0ea5e9;
+  color: white;
+}
+
+#editForm .button-group button:first-child:hover {
+  background-color: #0284c7;
+}
+
+#editForm .button-group button:last-child {
+  background-color: #e2e8f0;
+  color: #334155;
+}
+
+#editForm .button-group button:last-child:hover {
+  background-color: #cbd5e1;
+}
+@media (max-width: 600px) {
+  #editPopup {
+    width: 90%;
+    left: 5%;
+    transform: none;
+    padding: 15px;
+    max-width: none;
+    overflow-y: auto;
+    max-height: 90vh;
+  }
+
+  #editForm label {
+    display: block;
+    margin-bottom: 10px;
+  }
+
+  #editForm input {
+    width: 100%;
+    margin-top: 4px;
+  }
+
+  #editForm button {
+    width: 48%;
+    margin-top: 10px;
+  }
+}
+@media (max-width: 768px) {
+  .filters-container {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .filter-group.dates {
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+  }
+}
+
+  @media (max-width: 768px) {
+    nav { display: none; }
+    .menu-toggle { display: block; }
+    .mobile-menu.show { display: flex; }
+    .top-actions {
+      flex-direction: column;
+      gap: 1rem;
+      align-items: stretch;
+    }
+    table {
+      font-size: 0.9rem;
+    }
+    .welcome-mobile {
+      display: block;
+    }
+    nav #welcomeText {
+      display: none;
+    }
+  }
+</style>
+</head>
+<body>
+<header>
+    <div class="logo">🏕️ Campsite Admin Portal</div>
+    <div class="welcome-mobile" id="mobileWelcome"></div>
+    <button class="menu-toggle" onclick="toggleMenu()">☰</button>
+    <nav>
+      <span id="welcomeText" style="margin-right: 1rem; font-weight: bold;"></span>
+      <button class="tab" onclick="location.href='adminpage.html'">Dashboard</button>
+      <button class="tab" onclick="location.href='apPendingCom.html'">Pending Commissions</button>
+
+      <div class="dropdown">
+      <button class="dropdown-btn">Block & Hold ▼</button>
+      <div class="dropdown-content">
+       <button class="tab" onclick="location.href='apBlockDate.html'">Block Dates</button>
+       <button class="tab" onclick="location.href='apHoldUnit.html'">Hold Unit</button>      
+      </div>
+      </div>
+
+      <div class="dropdown">
+      <button class="dropdown-btn">Financials ▼</button>
+      <div class="dropdown-content">
+       <button class="tab" onclick="location.href='apExpenses.html'">Expense Tracker</button>
+       <button class="tab" onclick="location.href='apOtherIncome.html'">Other Income</button>
+       <button class="tab" onclick="location.href='apReport.html'">Monthly Report</button>
+      </div>
+      </div>
+      
+      <div class="dropdown">
+      <button class="dropdown-btn">C.O ▼</button>
+      <div class="dropdown-content">
+       <button class="tab" onclick="location.href='apCoView.html'">C.O View</button>
+       <button class="tab" onclick="location.href='apCoData.html'">C.O Data</button>
+      </div>
+      </div>
+
+      <button class="tab" onclick="location.href='apCheckAvailability.html'">Check Availability</button>
+      <button class="tab" onclick="location.href='apBooking.html'">New Booking</button>
+      <button class="tab active">All Bookings</button>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </nav>
+    <div class="mobile-menu" id="mobileMenu">
+      <button class="tab" onclick="location.href='adminpage.html'">Dashboard</button>
+      <button class="tab" onclick="location.href='apPendingCom.html'">Pending Commissions</button>
+      <button class="tab" onclick="location.href='apBlockDate.html'">Block Dates</button>
+      <button class="tab" onclick="location.href='apHoldUnit.html'">Hold Unit</button>
+      <button class="tab" onclick="location.href='apExpenses.html'">Expense Tracker</button>
+      <button class="tab" onclick="location.href='apOtherIncome.html'">Other Income</button>
+      <button class="tab" onclick="location.href='apReport.html'">Monthly Report</button>
+      <button class="tab" onclick="location.href='apCoView.html'">C.O View</button>
+      <button class="tab" onclick="location.href='apCoData.html'">C.O Data</button>
+      <button class="tab" onclick="location.href='apCheckAvailability.html'">Check Availability</button>
+      <button class="tab" onclick="location.href='apBooking.html'">New Booking</button>
+      <button class="tab active">All Bookings</button>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+  </header>
+ 
+  <main>
+    <div class="stats-cards">
+  <div class="stat-card">
+    <p>Total Bookings</p>
+    <h3 id="totalBookings">0</h3>
+  </div>
+  <div class="stat-card">
+    <p>Total Sales</p>
+    <h3 id="totalSales">RM 0.00</h3>
+  </div>
+  <div class="stat-card">
+    <p>Total Pending</p>
+    <h3 id="totalPending">RM 0.00</h3>
+  </div>
+  <div class="stat-card">
+    <p>Total Paid</p>
+    <h3 id="totalPaid">RM 0.00</h3>
+  </div>
+</div>
+    <h2>All Bookings</h2>
+    <div class="top-actions">
+      <div class="filters-container">
+  <div class="filter-group">
+    <label for="filterStatus">Commission Filter: </label>
+    <select id="filterStatus" onchange="renderBookings(cachedBookings)">
+      <option value="all">All</option>
+      <option value="pending">Pending Only</option>
+      <option value="paid">Paid Only</option>
+    </select>
+  </div>
+  <div class="filter-group">
+  <label for="agentFilter">Agent: </label>
+  <select id="agentFilter" onchange="renderBookings(cachedBookings)">
+    <option value="all">All</option>
+    <!-- options will be filled by JavaScript -->
+  </select>
+</div>
+  <div class="filter-group dates">
+    <label for="checkinFilter">Check-in:</label>
+    <input type="date" id="checkinFilter" onchange="renderBookings(cachedBookings)" />
+
+    <label for="checkoutFilter">Check-out:</label>
+    <input type="date" id="checkoutFilter" onchange="renderBookings(cachedBookings)" />
+  </div>
+</div>
+  <button class="action-button" onclick="fetchBookings()">🔄 Refresh Data</button>
+</div>
+<div style="margin-bottom: 1rem;">
+  <input type="text" id="searchInput" oninput="renderBookings(cachedBookings)" placeholder="🔍 Search bookings..." 
+    style="width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 1rem;" />
+</div>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Contact</th>
+            <th>Units</th>
+            <th>Check-in</th>
+            <th>Check-out</th>
+            <th>Total Pax</th>
+            <th>Extra Pax</th>
+            <th>Total Sales</th>
+            <th>Book Id</th>
+            <th>Total Commission</th>
+            <th>Agent</th>
+            <th>Commission Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="bookingTableBody">
+          <!-- Booking rows will be inserted here -->
+        </tbody>
+      </table>
+    </div>
+<div id="editPopup">
+  <h3>Edit Booking</h3>
+  <form id="editForm">
+    <div style="display: flex; flex-wrap: wrap; gap: 12px;">
+      <div style="flex: 1 1 45%;">
+        <label>Name:<input type="text" id="editName" required></label>
+      </div>
+      <div style="flex: 1 1 45%;">
+        <label>Phone:<input type="text" id="editPhone" required></label>
+      </div>
+      <div style="flex: 1 1 100%;">
+        <label>Email:<input type="email" id="editEmail" required></label>
+      </div>
+      <div style="flex: 1 1 100%; display: flex; gap: 10px;">
+        <label style="flex: 1;">Tent A:<input type="number" id="editTentA" min="0"></label>
+        <label style="flex: 1;">Lot A:<input type="number" id="editLotA" min="0"></label>
+        <label style="flex: 1;">Lot B:<input type="number" id="editLotB" min="0"></label>
+        <label style="flex: 1;">Lot C:<input type="number" id="editLotC" min="0"></label>
+      </div>
+      <div style="flex: 1 1 45%;">
+        <label>Check-in:<input type="date" id="editCheckin"></label>
+      </div>
+      <div style="flex: 1 1 45%;">
+        <label>Check-out:<input type="date" id="editCheckout"></label>
+      </div>
+      <div style="flex: 1 1 45%;">
+        <label>Total Pax:<input type="number" id="editTotalPax" min="0"></label>
+      </div>
+      <div style="flex: 1 1 45%;">
+        <label>Extra Pax:<input type="number" id="editExtraPax" min="0" disabled style="background-color: #f1f5f9;"></label>
+      </div>
+      <div style="flex: 1 1 100%;">
+        <label>Total Sales (RM):<input type="number" id="editTotal" step="0.01" min="0"></label>
+      </div>
+    </div>
+
+    <input type="hidden" id="editBookId">
+    <input type="hidden" id="editUserId">
+
+    <div class="button-group">
+     <button type="button" onclick="submitEdit()">Confirm</button>
+     <button type="button" onclick="deleteBooking()" style="background-color:#ef4444;color:white;">Delete</button>
+     <button type="button" onclick="document.getElementById('editPopup').style.display='none'">Cancel</button>
+</div>
+  </form>
+</div>
+  </main>
+   <script>
+    const username = localStorage.getItem("username") || "Admin";
+// 🔐 Redirect if not logged in (username missing or defaulted to "Admin")
+if (!localStorage.getItem("username") || localStorage.getItem("username") === "Admin") {
+  window.location.href = "index.html";
+}
+    document.getElementById("welcomeText").textContent = `Welcome ${username} !!`;
+    document.getElementById("mobileWelcome").textContent = `Welcome ${username} !!`;
+
+    const deploymentId = "AKfycbwsPIi_Zf7UtwTQJ8BPiLmNR87VxecATUOItw68loKglD60QRcRzeQoqIzyynvTXolipA";
+    const adminListUrl = "https://script.google.com/macros/s/AKfycbwZYyoTqEYrTzk2mLPDer4RoLysmRVXakI4__TvENZ4GZRzMFvDcFOP8FX3xqG4hPv2TQ/exec";
+    let cachedBookings = [];
+    let adminUsernames = [];
+let coData = []; // globally declared
+let originalEditData = {}; // declare globally at top
+
+    const MAX_UNITS = { tentA: 7, lotA: 1, lotB: 3, lotC: 5 };
+
+
+function fetchCOData() {
+  return fetch("https://script.google.com/macros/s/AKfycbxwLq33J4Ud1P7bPVSZM86kr1CUmWeiEAVM9jjB3ffJtiCCfapZEAtVkpzU7v52tmo/exec")
+    .then(res => res.json())
+    .then(data => {
+      if (!Array.isArray(data)) {
+        console.error("⚠️ Unexpected CO data format:", data);
+        coData = [];
+        return;
+      }
+
+      coData = data.map(row => ({
+        bookId: row[0],
+        unit: row[1],
+        checkin: row[2],
+        checkout: row[3],
+        unitUse: row[4],
+        remark: row[5],
+        coName: row[6],
+      }));
+
+      console.log("✅ CO Data loaded:", coData);
+    })
+    .catch(err => {
+  console.error("❌ Failed to fetch CO data:", err);
+  alert("❌ Error loading C.O. data. Some validations may not work.");
+  coData = [];
+    });
+}
+
+    function toggleMenu() {
+      document.getElementById("mobileMenu").classList.toggle("show");
+    }
+
+    function logout() {
+      localStorage.clear();
+      window.location.href = "index.html";
+    }
+
+    function formatDate(dateStr) {
+      const d = new Date(dateStr);
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const year = d.getFullYear();
+      return `${day}/${month}/${year}`;
+    }
+
+    function toInputDateFormat(dateStr) {
+  if (!dateStr) return '';
+  const dateObj = new Date(dateStr);
+  const year = dateObj.getFullYear();
+  const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+  const day = String(dateObj.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+ function parseSheetDate(dateStr) {
+      const parts = dateStr.includes("-") ? dateStr.split("-") : dateStr.split("/");
+      if (parts.length !== 3) return null;
+      try {
+        return dateStr.includes("-")
+          ? new Date(`${parts[0]}-${parts[1]}-${parts[2]}`)
+          : new Date(`${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`);
+      } catch { return null; }
+    }
+
+    function fetchAdminList() {
+      return fetch(adminListUrl)
+        .then(res => res.json())
+        .then(data => {
+          adminUsernames = data.users
+            .filter(user => user.type === "admin")
+            .map(user => user.username);
+        });
+    }
+
+    function fetchBookings() {
+      fetchAdminList()
+        .then(() => {
+          return fetch(`https://script.google.com/macros/s/${deploymentId}/exec`);
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (!data.bookings) throw new Error("No bookings data found.");
+          cachedBookings = data.bookings;
+          populateAgentFilter(cachedBookings);
+          renderBookings(cachedBookings);
+        })
+        .catch(err => alert("Error fetching data: " + err));
+    }
+
+function populateAgentFilter(bookings) {
+  const agentDropdown = document.getElementById("agentFilter");
+  const agents = new Set();
+
+  bookings.forEach(b => {
+    if (b.userId !== "BLOCK" && b.userId !== "HOLD") {
+      const [agentName] = b.userId.split(" - ");
+      agents.add(agentName); // ✅ Now includes admins too
+    }
+  });
+
+  const sortedAgents = Array.from(agents).sort();
+  agentDropdown.innerHTML = `<option value="all">All</option>` +
+    sortedAgents.map(a => `<option value="${a}">${a}</option>`).join("");
+}
+function openEditPopup(data) {
+  originalEditData = {
+    tentA: parseInt(data.unit.match(/TentA:\s?(\d+)/)?.[1] || 0),
+    lotA: parseInt(data.unit.match(/LotA:\s?(\d+)/)?.[1] || 0),
+    lotB: parseInt(data.unit.match(/LotB:\s?(\d+)/)?.[1] || 0),
+    lotC: parseInt(data.unit.match(/LotC:\s?(\d+)/)?.[1] || 0),
+    checkin: toInputDateFormat(data.checkin || ''),
+    checkout: toInputDateFormat(data.checkout || ''),
+  };
+
+  console.log("Raw checkin from data:", data.checkin); // 👈 log this
+  console.log("Converted checkin for input:", toInputDateFormat(data.checkin)); // 👈 and this
+  document.getElementById('editName').value = data.name || '';
+  document.getElementById('editPhone').value = data.phone || '';
+  document.getElementById('editEmail').value = data.email || '';
+  document.getElementById('editTentA').value = data.unit.match(/TentA:\s?(\d+)/)?.[1] || 0;
+  document.getElementById('editLotA').value = data.unit.match(/LotA:\s?(\d+)/)?.[1] || 0;
+  document.getElementById('editLotB').value = data.unit.match(/LotB:\s?(\d+)/)?.[1] || 0;
+  document.getElementById('editLotC').value = data.unit.match(/LotC:\s?(\d+)/)?.[1] || 0;
+  document.getElementById('editCheckin').value = toInputDateFormat(data.checkin || '');
+  document.getElementById('editCheckout').value = toInputDateFormat(data.checkout || '');
+  document.getElementById('editTotalPax').value = data.totalPax || '';
+  document.getElementById('editExtraPax').value = data.extraPax || '';
+  document.getElementById('editTotal').value = data.total || '';
+
+  document.getElementById('editBookId').value = data.bookId;
+  document.getElementById('editUserId').value = data.userId;
+
+  document.getElementById('editPopup').style.display = 'block';
+}
+
+function deleteBooking() {
+  if (!confirm("Confirm delete this booking?")) return;
+  const bookId = document.getElementById('editBookId').value;
+  const payload = new URLSearchParams();
+  payload.append("action", "delete");
+  payload.append("bookId", bookId);
+
+  fetch(`https://script.google.com/macros/s/${deploymentId}/exec`, {
+    method: 'POST',
+    body: payload
+  })
+  .then(res => res.text())
+  .then(response => {
+    alert(response);
+    document.getElementById('editPopup').style.display = 'none';
+    location.reload();
+  })
+  .catch(err => {
+    alert("❌ Error deleting booking: " + err.message);
+  });
+}
+
+ function calculateAvailability(bookings, currentDate, excludeBookId = null) {
+      const unitCounts = { tentA: 0, lotA: 0, lotB: 0, lotC: 0 };
+      bookings.forEach(booking => {
+        if (booking.bookId === excludeBookId) return;
+        const bStart = parseSheetDate(booking.checkin);
+        const bEnd = parseSheetDate(booking.checkout);
+        if (!bStart || !bEnd) return;
+        if (bStart <= currentDate && bEnd > currentDate) {
+          const units = booking.unit || "";
+          unitCounts.tentA += parseInt(units.match(/TentA:\s*(\d+)/)?.[1] || 0);
+          unitCounts.lotA += parseInt(units.match(/LotA:\s*(\d+)/)?.[1] || 0);
+          unitCounts.lotB += parseInt(units.match(/LotB:\s*(\d+)/)?.[1] || 0);
+          unitCounts.lotC += parseInt(units.match(/LotC:\s*(\d+)/)?.[1] || 0);
+        }
+      });
+      return [
+        { key: "tentA", name: "Pondok A-Tent", available: Math.max(0, MAX_UNITS.tentA - unitCounts.tentA) },
+        { key: "lotA", name: "Camp-Lot A", available: Math.max(0, MAX_UNITS.lotA - unitCounts.lotA) },
+        { key: "lotB", name: "Camp-Lot B", available: Math.max(0, MAX_UNITS.lotB - unitCounts.lotB) },
+        { key: "lotC", name: "Camp-Lot C", available: Math.max(0, MAX_UNITS.lotC - unitCounts.lotC) }
+      ];
+    }
+
+function formatPhone(p) {
+  const cleaned = p.replace(/\D/g, '');
+
+  // ❌ Reject any number starting with 0
+  if (cleaned.startsWith('0')) {
+    alert("❌ Please enter valid international format. Example: +60123456789");
+    throw new Error("Phone number must be in international format.");
+  }
+
+  // ✅ Accept numbers like 60123456789
+  if (/^6\d{8,12}$/.test(cleaned)) return cleaned;
+
+  // ✅ Accept international format with + (e.g., +60123456789)
+  if (/^\+\d{8,15}$/.test(p)) return p.replace('+', '');
+
+  // 🚫 Everything else: reject
+  alert("❌ Please enter valid international format. Example: +60123456789");
+  throw new Error("Invalid phone number format");
+}
+
+function submitEdit() {
+const bookId = document.getElementById('editBookId').value;
+
+const tentA = parseInt(document.getElementById('editTentA').value) || 0;
+      const lotA = parseInt(document.getElementById('editLotA').value) || 0;
+      const lotB = parseInt(document.getElementById('editLotB').value) || 0;
+      const lotC = parseInt(document.getElementById('editLotC').value) || 0;
+      const totalPax = parseInt(document.getElementById('editTotalPax').value) || 0;
+
+  const unitRules = {
+    tentA: { base: 4, addon: 3 },
+    lotA: { base: 6, addon: 4 },
+    lotB: { base: 4, addon: 3 },
+    lotC: { base: 2, addon: 2 },
+  };
+
+  const basePax = tentA * unitRules.tentA.base +
+                  lotA * unitRules.lotA.base +
+                  lotB * unitRules.lotB.base +
+                  lotC * unitRules.lotC.base;
+  const maxPax = tentA * (unitRules.tentA.base + unitRules.tentA.addon) +
+                 lotA * (unitRules.lotA.base + unitRules.lotA.addon) +
+                 lotB * (unitRules.lotB.base + unitRules.lotB.addon) +
+                 lotC * (unitRules.lotC.base + unitRules.lotC.addon);
+
+  if (totalPax > maxPax) {
+    alert(`❌ Total pax (${totalPax}) exceeds maximum allowed (${maxPax}).`);
+    return;
+  }
+
+  const extraPax = Math.max(0, totalPax - basePax);
+  const extraCharge = extraPax * 5;
+
+  if (totalPax > basePax) {
+    const summary = `Pax Summary:\nTotal Pax: ${totalPax}\nIncluded Pax: ${basePax}\nExtra Pax: ${extraPax}\nAdditional Payment: RM${extraCharge}`;
+    if (!confirm(summary + "\n\nClick OK to proceed with update.")) return;
+  } else {
+    if (!confirm("Confirm update this data?")) return;
+  }
+      const checkIn = document.getElementById('editCheckin').value;
+      const checkOut = document.getElementById('editCheckout').value;
+
+const unitChanged = (
+  tentA !== originalEditData.tentA ||
+  lotA !== originalEditData.lotA ||
+  lotB !== originalEditData.lotB ||
+  lotC !== originalEditData.lotC
+);
+
+const dateChanged = (
+  checkIn !== originalEditData.checkin ||
+  checkOut !== originalEditData.checkout
+);
+
+if ((unitChanged || dateChanged)) {
+  const coRow = coData.find(r => (r.bookId || '').trim() === bookId.trim());
+  const hasCheckin = coRow?.checkin?.trim();
+
+  if (hasCheckin && hasCheckin !== "") {
+    alert(`⚠️ Sorry this [${bookId}] cannot change unit or date due to customer already checked in`);
+    return;
+  }
+}
+
+      
+
+      if (!checkIn || !checkOut || new Date(checkOut) <= new Date(checkIn)) {
+        alert("❌ Invalid check-in/check-out dates.");
+        return;
+      }
+
+      const dates = [];
+      let current = new Date(checkIn);
+      while (current < new Date(checkOut)) {
+        dates.push(new Date(current));
+        current.setDate(current.getDate() + 1);
+      }
+
+      const selectedQty = { tentA, lotA, lotB, lotC };
+      const warnings = [];
+
+      dates.forEach(date => {
+        const units = calculateAvailability(cachedBookings, date, bookId);
+        units.forEach(unit => {
+          const want = selectedQty[unit.key] || 0;
+          if (want > 0 && unit.available < want) {
+            warnings.push(`${unit.name} only has ${unit.available} left on ${formatDate(date.toISOString())}`);
+          }
+        });
+      });
+
+      if (warnings.length > 0) {
+        alert("❌ Limited availability:\n" + warnings.join("\n"));
+        return;
+      }
+  if (!confirm("Confirm update this data?")) return;
+  let formattedPhone;
+try {
+  formattedPhone = formatPhone(document.getElementById('editPhone').value.trim());
+} catch (err) {
+  return; // If error in formatPhone, alert is already shown.
+}
+
+  const payload = new URLSearchParams();
+  payload.append("action", "editBooking");
+  payload.append("name", document.getElementById('editName').value);
+  payload.append("phone", formattedPhone);
+  payload.append("email", document.getElementById('editEmail').value);
+  payload.append("quantityATent", document.getElementById('editTentA').value || 0);
+  payload.append("quantityLotA", document.getElementById('editLotA').value || 0);
+  payload.append("quantityLotB", document.getElementById('editLotB').value || 0);
+  payload.append("quantityLotC", document.getElementById('editLotC').value || 0);
+  payload.append("checkIn", document.getElementById('editCheckin').value);
+  payload.append("checkOut", document.getElementById('editCheckout').value);
+  payload.append("totalPax", document.getElementById('editTotalPax').value || 0);
+  payload.append("extraPax", document.getElementById('editExtraPax').value || 0);
+  payload.append("total", document.getElementById('editTotal').value || 0);
+  payload.append("bookId", document.getElementById('editBookId').value);
+  payload.append("userId", document.getElementById('editUserId').value);
+
+document.getElementById("loadingOverlay").style.display = "flex"; // Show loading
+
+  fetch(`https://script.google.com/macros/s/${deploymentId}/exec`, {
+    method: 'POST',
+    body: payload
+  })
+  .then(res => res.text())
+  .then(response => {
+    document.getElementById("loadingOverlay").style.display = "none"; // Hide loading
+    alert(response);
+    document.getElementById('editPopup').style.display = 'none';
+    location.reload();
+  })
+  .catch(err => {
+  document.getElementById("loadingOverlay").style.display = "none"; // Hide loading
+  alert("❌ Error updating booking: " + err.message);
+});
+}
+
+    function renderBookings(bookings) {
+      const tbody = document.getElementById("bookingTableBody");
+      const filter = document.getElementById("filterStatus").value;
+      const searchQuery = (document.getElementById("searchInput")?.value || "").toLowerCase();
+      const agentFilter = document.getElementById("agentFilter").value;
+      tbody.innerHTML = "";
+      const checkinFilter = document.getElementById("checkinFilter").value;
+      const checkoutFilter = document.getElementById("checkoutFilter").value;
+
+      let total = 0;
+      let totalPaid = 0;
+      let totalPending = 0;
+      let count = 0;
+
+      bookings.forEach(booking => {
+        if (booking.userId === "BLOCK" || booking.userId === "HOLD") return; // ✅ Skip BLOCK and HOLD entries
+        const totalAmount = parseFloat(booking.total || 0);
+        const extraPaxCharge = (parseInt(booking.extraPax) || 0) * 5;
+        const commission = (totalAmount - extraPaxCharge) * 0.10;
+
+        let statusLabel = "N/A";
+        let statusColor = "#94a3b8"; // gray
+
+        const [agentName] = booking.userId.split(" - ");
+
+        if (adminUsernames.includes(agentName)) {
+          statusLabel = "N/A";
+          statusColor = "#94a3b8";
+        } else if (booking.userId.endsWith('- paid')) {
+          statusLabel = "Paid";
+          statusColor = "#10b981";
+        } else if (booking.userId.endsWith('- pending')) {
+          statusLabel = "Pending";
+          statusColor = "#ef4444";
+        }
+
+        if (
+          (filter === "paid" && statusLabel !== "Paid") ||
+          (filter === "pending" && statusLabel !== "Pending")
+        ) return;
+        if (agentFilter !== "all" && agentName !== agentFilter) return;
+        if (checkinFilter && checkoutFilter) {
+          const filterStart = new Date(checkinFilter);
+          const filterEnd = new Date(checkoutFilter);
+          filterStart.setHours(0, 0, 0, 0);
+          filterEnd.setHours(0, 0, 0, 0);
+
+          const bCheckin = new Date(booking.checkin);
+          const bCheckout = new Date(booking.checkout);
+          bCheckin.setHours(0, 0, 0, 0);
+          bCheckout.setHours(0, 0, 0, 0);
+
+          if (bCheckin >= filterEnd || bCheckout <= filterStart) return;
+        }
+        
+        total += totalAmount;
+        count++;
+           if (statusLabel === "Paid") {
+          totalPaid += commission;
+        }
+        if (statusLabel === "Pending") {
+          totalPending += commission;
+        }
+
+        const unitParts = booking.unit.split(',').map(u => u.trim());
+        const formattedUnits = unitParts
+          .filter(part => {
+            const num = parseInt(part.split(':')[1]);
+            return num >= 1;
+          })
+          .map(part => {
+            const [key, value] = part.split(':').map(p => p.trim());
+            switch (key) {
+              case "TentA": return `Pondok A-Tent: ${value}`;
+              case "LotA": return `Camp-lot A: ${value}`;
+              case "LotB": return `Camp-lot B: ${value}`;
+              case "LotC": return `Camp-lot C: ${value}`;
+              default: return part;
+            }
+          })
+          .join('<br>');
+        const row = document.createElement("tr");
+        let commissionDisplay = `RM ${commission.toFixed(2)}`;
+if (statusLabel === "N/A") {
+  commissionDisplay = "N/A";
+}
+        row.innerHTML = `
+          <td>${booking.name}</td>
+          <td>${booking.phone}<br>${booking.email}</td>
+          <td class="units-cell">${formattedUnits || '-'}</td>
+          <td>${formatDate(booking.checkin)}</td>
+          <td>${formatDate(booking.checkout)}</td>
+          <td>${booking.totalPax || '-'}</td>
+          <td>${booking.extraPax || '-'}</td>
+          <td>RM ${totalAmount.toFixed(2)}</td>
+          <td>${booking.bookId || ""}</td>
+          <td>${commissionDisplay}</td>
+          <td>${agentName}</td>
+          <td>
+            <span style="color: white; background-color: ${statusColor}; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem;">
+              ${statusLabel}
+            </span>
+          </td>
+        `;
+const actionCell = document.createElement('td');
+const editBtn = document.createElement('button');
+editBtn.innerText = 'Edit';
+editBtn.className = 'action-button'; // Apply same style as Refresh
+editBtn.onclick = () => openEditPopup(booking);  // booking = row data
+actionCell.appendChild(editBtn);
+row.appendChild(actionCell);
+// 🔍 Global search filter based on what is actually displayed (HTML output)
+const visibleText = row.innerText.toLowerCase();
+if (searchQuery && !visibleText.includes(searchQuery)) return;
+        tbody.appendChild(row);
+      });
+
+      document.getElementById("totalBookings").textContent = count;
+      document.getElementById("totalSales").textContent = `RM ${total.toFixed(2)}`;
+      document.getElementById("totalPending").textContent = `RM ${totalPending.toFixed(2)}`;
+      document.getElementById("totalPaid").textContent = `RM ${totalPaid.toFixed(2)}`;
+    }
+
+window.onload = async () => {
+  await fetchCOData(); // load first
+  fetchBookings();     // then load bookings
+};
+
+document.getElementById('editTotalPax').addEventListener('input', updateExtraPax);
+document.getElementById('editTentA').addEventListener('input', updateExtraPax);
+document.getElementById('editLotA').addEventListener('input', updateExtraPax);
+document.getElementById('editLotB').addEventListener('input', updateExtraPax);
+document.getElementById('editLotC').addEventListener('input', updateExtraPax);
+
+function updateExtraPax() {
+  const tentA = parseInt(document.getElementById('editTentA').value) || 0;
+  const lotA = parseInt(document.getElementById('editLotA').value) || 0;
+  const lotB = parseInt(document.getElementById('editLotB').value) || 0;
+  const lotC = parseInt(document.getElementById('editLotC').value) || 0;
+  const totalPax = parseInt(document.getElementById('editTotalPax').value) || 0;
+
+  const basePax = tentA * 4 + lotA * 6 + lotB * 4 + lotC * 2;
+  const extraPax = Math.max(0, totalPax - basePax);
+
+  document.getElementById('editExtraPax').value = extraPax;
+}
+  </script>
+<div id="loadingOverlay" style="
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.5);
+  z-index: 2000;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-size: 1.5rem;
+  font-weight: bold;
+">
+  Updating booking...
+</div>
+</body>
+</html>

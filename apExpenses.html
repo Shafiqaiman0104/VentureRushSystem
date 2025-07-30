@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Add Expense</title>
+  <style>
+     * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #f8fafc;
+    }
+header {
+      background: white;
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+      flex-wrap: wrap;
+    }
+.logo { font-weight: bold; }
+    .menu-toggle {
+      display: none;
+      font-size: 1.5rem;
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+    nav {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+
+
+.dropdown-btn {
+    margin: 0 4px;
+    padding: 8px 12px;
+    background-color: #f3f4f6;
+    border: none;
+    cursor: pointer;
+    font-size: 0.95rem;
+    width: 150px;
+  }
+  .dropdown {
+    position: relative;
+  }
+ .dropdown-content {
+    display: none;
+    position: absolute;
+    top: 110%;
+    left: 0;
+    background-color: white;
+    min-width: 100%;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    z-index: 999;
+    flex-direction: column;
+  }
+  .dropdown-content button {
+    padding: 10px;
+    width: 100%;
+    text-align: left;
+    background-color: #f3f4f6;
+    border: none;
+    border-top: 1px solid #ccc;
+    border-radius: 0px; /* ← square buttons */
+    white-space: nowrap;      
+  }
+  .dropdown-content button:hover {
+    background-color: white; 
+    color: #000; /* optional: make text darker for visibility */
+  }
+ .dropdown:hover .dropdown-content {
+    display: flex;
+  }
+
+
+    .mobile-menu {
+      display: none;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-top: 1rem;
+      width: 100%;
+    }
+    .mobile-menu.show {
+      display: flex;
+    }
+    .tab {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 5px;
+      background: #f3f4f6;
+      cursor: pointer;
+      font-size: 0.95rem;
+    }
+    .tab.active {
+      background: #ffffff;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+    .logout-btn {
+      padding: 0.5rem 1rem;
+      background: #ef4444;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .welcome-mobile {
+      display: none;
+      font-size: 0.8rem;
+      color: #334155;
+      margin-left: auto;
+      margin-right: 0.5rem;
+    }
+main {
+      padding: 1.5rem;
+    max-width: 1000px;
+    margin: auto;
+    }
+    .card {
+  flex: 1;
+  min-width: 300px;
+  max-width: 600px;
+  padding: 1.5rem;
+  border-radius: 10px;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 0.3rem;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid #d1d5db;
+      border-radius: 5px;
+    }
+    .action-button {
+      background: #0ea5e9;
+      color: white;
+      padding: 0.75rem;
+      width: 100%;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .action-button:hover {
+      background: #0284c7;
+    }
+    .hidden {
+      display: none;
+    }
+     /* 👇 Loading Overlay */
+    .loading-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 9999;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      font-size: 1.5rem;
+      display: none;
+    }
+    .card-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    flex-wrap: wrap; /* allows wrapping on smaller screens */
+    gap: 2rem;
+   }
+   /* Stylish table design - matching Block Dates style */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  background: white;
+  overflow-x: auto;
+}
+
+thead {
+  background: #f1f5f9;
+}
+
+thead th {
+  padding: 0.75rem;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #334155;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+tbody td {
+  padding: 0.65rem;
+  font-size: 0.9rem;
+  border-bottom: 1px solid #e2e8f0;
+  color: #475569;
+}
+
+tbody tr:hover {
+  background-color: #f9fafb;
+}
+.popup {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.5); display: flex;
+  align-items: center; justify-content: center; z-index: 999;
+}
+.popup-content {
+  background: white; padding: 20px; border-radius: 10px; max-width: 400px;
+  width: 90%;
+}
+.popup-content input { width: 100%; margin-bottom: 10px; }
+.popup-buttons {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.popup-buttons button {
+  flex: 1;
+  padding: 0.5rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.btn-save {
+  background-color: #0ea5e9;
+  color: white;
+}
+
+.btn-save:hover {
+  background-color: #0284c7;
+}
+
+.btn-delete {
+  background-color: #ef4444;
+  color: white;
+}
+
+.btn-delete:hover {
+  background-color: #dc2626;
+}
+
+.btn-cancel {
+  background-color: #e5e7eb;
+  color: #111827;
+}
+
+.btn-cancel:hover {
+  background-color: #d1d5db;
+}
+ @media (max-width: 768px) {
+      nav {
+        display: none;
+      }
+      .menu-toggle {
+        display: block;
+      }
+      .mobile-menu.show {
+        display: flex;
+      }
+      .welcome-mobile {
+      display: block;
+    }
+    }
+
+  </style>
+</head>
+<body>
+<header>
+    <div class="logo">🏕️ Campsite Admin Portal</div>
+    <div class="welcome-mobile" id="mobileWelcome"></div>
+    <button class="menu-toggle" onclick="toggleMenu()">☰</button>
+    <nav>
+      <span id="welcomeText" style="margin-right: 1rem; font-weight: bold;"></span>
+      <button class="tab" onclick="location.href='adminpage.html'">Dashboard</button>
+      <button class="tab" onclick="location.href='apPendingCom.html'">Pending Commissions</button>
+
+      <div class="dropdown">
+      <button class="dropdown-btn">Block & Hold ▼</button>
+      <div class="dropdown-content">
+       <button class="tab" onclick="location.href='apBlockDate.html'">Block Dates</button>
+       <button class="tab" onclick="location.href='apHoldUnit.html'">Hold Unit</button>      
+      </div>
+      </div>
+
+      <div class="dropdown">
+      <button class="dropdown-btn">Financials ▼</button>
+      <div class="dropdown-content">
+       <button class="tab active">Expense Tracker</button>
+       <button class="tab" onclick="location.href='apOtherIncome.html'">Other Income</button>
+       <button class="tab" onclick="location.href='apReport.html'">Monthly Report</button>
+      </div>
+      </div>
+      
+      <div class="dropdown">
+      <button class="dropdown-btn">C.O ▼</button>
+      <div class="dropdown-content">
+       <button class="tab" onclick="location.href='apCoView.html'">C.O View</button>
+       <button class="tab" onclick="location.href='apCoData.html'">C.O Data</button>
+      </div>
+      </div>
+
+      <button class="tab" onclick="location.href='apCheckAvailability.html'">Check Availability</button>
+      <button class="tab" onclick="location.href='apBooking.html'">New Booking</button>
+      <button class="tab" onclick="location.href='apAllBooking.html'">All Bookings</button>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </nav>
+    <div class="mobile-menu" id="mobileMenu">
+      <button class="tab" onclick="location.href='adminpage.html'">Dashboard</button>
+      <button class="tab" onclick="location.href='apPendingCom.html'">Pending Commissions</button>
+      <button class="tab" onclick="location.href='apBlockDate.html'">Block Dates</button>
+      <button class="tab" onclick="location.href='apHoldUnit.html'">Hold Unit</button>
+      <button class="tab active">Expense Tracker</button>
+      <button class="tab" onclick="location.href='apOtherIncome.html'">Other Income</button>
+      <button class="tab" onclick="location.href='apReport.html'">Monthly Report</button>
+      <button class="tab" onclick="location.href='apCoView.html'">C.O View</button>
+      <button class="tab" onclick="location.href='apCoData.html'">C.O Data</button>
+      <button class="tab" onclick="location.href='apCheckAvailability.html'">Check Availability</button>
+      <button class="tab" onclick="location.href='apBooking.html'">New Booking</button>
+      <button class="tab" onclick="location.href='apAllBooking.html'">All Bookings</button>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+  </header>
+
+<main>
+<div class="card-container">
+  <div class="card">
+    <h2>Add Expense</h2>
+    <form id="expenseForm">
+      <div class="form-group">
+        <label>Bill On</label>
+        <input type="date" name="billOn" required />
+      </div>
+      <div class="form-group">
+        <label>Expense Date</label>
+        <input type="date" name="date" required />
+      </div>
+      <div class="form-group">
+        <label>Category</label>
+        <select name="category" id="categorySelect" required>
+          <option value="">-- Select --</option>
+          <option value="Administration">Administration</option>
+          <option value="Marketing">Marketing</option>
+          <option value="Maintenance">Maintenance</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Description</label>
+        <select name="description" id="descriptionSelect" class="hidden"></select>
+        <input type="text" id="customDescription" name="customDescription" class="hidden" placeholder="Please specify" />
+      </div>
+
+      <div class="form-group">
+        <label>Amount (RM)</label>
+        <input type="number" name="amount" step="0.01" required />
+      </div>
+      <div class="form-group">
+        <label>Paid To</label>
+        <input type="text" name="paidTo" />
+      </div>
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea name="notes" rows="3"></textarea>
+      </div>
+      <button class="action-button" type="submit">Submit Expense</button>
+    </form>
+  </div>
+  <!-- All Expense Card -->
+<div class="card">
+  <h2>All Expenses</h2>
+  <div class="form-group">
+    <label>Filter by Month</label>
+    <input type="month" id="monthFilter" />
+  </div>
+  <div style="overflow-x:auto;">
+    <table id="expenseTable">
+      <thead style="background:#e2e8f0;">
+        <tr>
+          <th>Bill On</th>
+          <th>Expense Date</th>
+          <th>Category</th>
+          <th>Description</th>
+          <th>Amount (RM)</th>
+          <th>Paid To</th>
+          <th>Notes</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="expenseTableBody">
+        <tr><td colspan="7" style="text-align:center;">Loading...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</div>
+
+<div id="editExpensePopup" class="popup" style="display:none;">
+  <div class="popup-content">
+    <h3>Edit Expense</h3>
+    <form id="editExpenseForm">
+      <input type="hidden" id="editIndex" />
+      <label>Bill On:</label>
+      <input type="date" id="editBillOn" required /><br/>
+      <label>Date:</label>
+      <input type="date" id="editDate" required /><br/>
+
+      <label>Category:</label>
+      <select id="editCategory" required>
+      <option value="">-- Select --</option>
+      <option value="Administration">Administration</option>
+      <option value="Marketing">Marketing</option>
+      <option value="Maintenance">Maintenance</option>
+      <option value="Other">Other</option>
+      </select><br/>
+
+      <label>Description:</label>
+      <select id="editDescriptionSelect" class="hidden"></select>
+      <input type="text" id="editCustomDescription" class="hidden" placeholder="Please specify" /><br/>
+
+      <label>Amount (RM):</label>
+      <input type="number" step="0.01" id="editAmount" required /><br/>
+      <label>Paid To:</label>
+      <input type="text" id="editPaidTo" /><br/>
+      <label>Notes:</label>
+      <input type="text" id="editNotes" /><br/><br/>
+      <div class="popup-buttons">
+  <button type="submit" class="btn-save">✅ Save</button>
+  <button type="button" class="btn-delete" onclick="deleteFromEdit()">🗑️ Delete</button>
+  <button type="button" class="btn-cancel" onclick="closeEditPopup()">❌ Cancel</button>
+</div>
+
+    </form>
+  </div>
+</div>
+
+  <div class="loading-overlay" id="loadingOverlay">Loading...</div>
+</main>
+<script>
+  const username = localStorage.getItem("username") || "Admin";
+if (!localStorage.getItem("username") || localStorage.getItem("username") === "Admin") {
+  window.location.href = "index.html";
+}
+document.getElementById("welcomeText").textContent = `Welcome ${username} !!`;
+document.getElementById("mobileWelcome").textContent = `Welcome ${username} !!`;
+
+function toggleMenu() {
+  document.getElementById("mobileMenu").classList.toggle("show");
+}
+
+  const deploymentId = "AKfycbzbrZVENGEBlwymKaqKBaHrIU4Gl6MDmmrcEL8us5uOesyWhhEXYwWFcvzRB5ECGh4v";
+
+  const categorySelect = document.getElementById("categorySelect");
+  const descriptionSelect = document.getElementById("descriptionSelect");
+  const customDescription = document.getElementById("customDescription");
+
+  const options = {
+    Administration: ["Leasing", "License", "Internet / CCTV", "Salary", "Part Time", "Allowance", "Other"],
+    Marketing: ["Printings/Collaterals", "Stationeries", "Sponsorships", "Other"],
+    Maintenance: ["Plumbing", "M&Electrical", "Building", "Cleaning", "CCTV", "Waste Mgmt", "Utilities charges", "Other"]
+  };
+  const editCategorySelect = document.getElementById("editCategory");
+const editDescriptionSelect = document.getElementById("editDescriptionSelect");
+const editCustomDescription = document.getElementById("editCustomDescription");
+
+editCategorySelect.addEventListener("change", () => {
+  const cat = editCategorySelect.value;
+  editDescriptionSelect.innerHTML = "";
+  editCustomDescription.value = "";
+  editCustomDescription.classList.add("hidden");
+
+  if (options[cat]) {
+    options[cat].forEach(item => {
+      const opt = document.createElement("option");
+      opt.value = item;
+      opt.textContent = item;
+      editDescriptionSelect.appendChild(opt);
+    });
+    editDescriptionSelect.classList.remove("hidden");
+  } else {
+    editDescriptionSelect.classList.add("hidden");
+    editCustomDescription.classList.remove("hidden");
+  }
+});
+
+editDescriptionSelect.addEventListener("change", () => {
+  if (editDescriptionSelect.value === "Other") {
+    editCustomDescription.classList.remove("hidden");
+  } else {
+    editCustomDescription.classList.add("hidden");
+  }
+});
+  
+
+  categorySelect.addEventListener("change", () => {
+    const cat = categorySelect.value;
+    descriptionSelect.innerHTML = "";
+    customDescription.value = "";
+    customDescription.classList.add("hidden");
+
+    if (options[cat]) {
+      options[cat].forEach(item => {
+        const opt = document.createElement("option");
+        opt.value = item;
+        opt.textContent = item;
+        descriptionSelect.appendChild(opt);
+      });
+      descriptionSelect.classList.remove("hidden");
+    } else {
+      descriptionSelect.classList.add("hidden");
+      customDescription.classList.remove("hidden");
+    }
+  });
+
+  descriptionSelect.addEventListener("change", () => {
+    if (descriptionSelect.value === "Other") {
+      customDescription.classList.remove("hidden");
+    } else {
+      customDescription.classList.add("hidden");
+    }
+  });
+
+function logout() {
+  localStorage.clear();
+  window.location.href = "index.html";
+}
+
+  function formatDate(isoDate) {
+    if (!isoDate) return "";
+    const [year, month, day] = isoDate.split("-");
+    return `${day}/${month}/${year}`;
+  }
+
+  function reformatDDMMYYYY(input) {
+    try {
+      const dateObj = new Date(input.split("/").reverse().join("-"));
+      const day = String(dateObj.getDate()).padStart(2, '0');
+      const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const year = dateObj.getFullYear();
+      return `${day}/${month}/${year}`;
+    } catch {
+      return input;
+    }
+  }
+
+  document.getElementById("expenseForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const formData = new FormData(form);
+
+    const category = formData.get("category");
+    let description = "";
+
+    if (category === "Other") {
+      description = formData.get("customDescription").trim();
+    } else {
+      const selected = descriptionSelect.value;
+      if (selected === "Other") {
+        description = customDescription.value.trim();
+      } else {
+        description = selected;
+      }
+    }
+
+    if (!description) {
+      alert("Please provide a valid description.");
+      return;
+    }
+
+    const billOnFormatted = formatDate(formData.get("billOn"));
+    const dateFormatted = formatDate(formData.get("date"));
+
+    let rawAmount = parseFloat(formData.get("amount"));
+    if (isNaN(rawAmount)) {
+      alert("Please enter a valid number for amount.");
+      return;
+    }
+    let formattedAmount = rawAmount.toFixed(2);
+
+    const params = new URLSearchParams();
+    params.append("action", "addExpense");
+    params.append("billOn", billOnFormatted);
+    params.append("date", dateFormatted);
+    params.append("category", category);
+    params.append("description", description);
+    params.append("amount", formattedAmount);
+    params.append("paidTo", formData.get("paidTo"));
+    params.append("notes", formData.get("notes"));
+
+    loadingOverlay.style.display = "flex";
+
+    try {
+      await fetch(`https://script.google.com/macros/s/${deploymentId}/exec`, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: params.toString()
+      });
+      alert("✅ Expense saved successfully!");
+      await loadAllExpenses(); // 🔁 Refresh table with latest data
+      form.reset();
+      descriptionSelect.innerHTML = "";
+      descriptionSelect.classList.add("hidden");
+      customDescription.classList.add("hidden");
+    } catch (err) {
+      console.error("Error saving expense:", err);
+      alert("❌ Failed to save expense. Please try again.");
+    } finally {
+      loadingOverlay.style.display = "none";
+    }
+  });
+
+  async function loadAllExpenses() {
+    const tbody = document.getElementById("expenseTableBody");
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;">Loading...</td></tr>`;
+
+    try {
+      const res = await fetch(`https://script.google.com/macros/s/${deploymentId}/exec?action=getExpenses`);
+      const data = await res.json();
+      allExpenses = data.expenses || [];
+      renderExpenseTable();
+    } catch (err) {
+      console.error("Failed to load expenses", err);
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:red;">Failed to load expenses</td></tr>`;
+    }
+  }
+
+  let allExpenses = [];
+
+  function renderExpenseTable() {
+    const tbody = document.getElementById("expenseTableBody");
+    const selectedMonth = document.getElementById("monthFilter").value;
+
+    console.log("Selected Month:", selectedMonth);
+    console.log("All expenses:", allExpenses);
+
+    const filtered = allExpenses.filter(exp => {
+  if (!selectedMonth) return true;
+  if (!exp.date) return false;
+
+  const expDateObj = new Date(exp.date);
+  const expMonth = String(expDateObj.getMonth() + 1).padStart(2, '0'); // Month is 0-indexed
+  const expYear = expDateObj.getFullYear().toString();
+
+  const [filterYear, filterMonth] = selectedMonth.split("-");
+  return expMonth === filterMonth && expYear === filterYear;
+});
+
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;">No expenses found for this month.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = filtered.map(exp => {
+  const index = allExpenses.findIndex(e => e.timestamp === exp.timestamp); // safer match
+  return `
+    <tr>
+      <td>${reformatDDMMYYYY(exp.billOn)}</td>
+      <td>${reformatDDMMYYYY(exp.date)}</td>
+      <td>${exp.category}</td>
+      <td>${exp.description}</td>
+      <td>${parseFloat(exp.amount).toFixed(2)}</td>
+      <td>${exp.paidTo}</td>
+      <td>${exp.notes}</td>
+      <td>
+        <button class="action-button" onclick="openEditExpense(${index})">Edit</button>
+      </td>
+    </tr>
+  `;
+}).join("");
+
+
+  }
+
+  document.getElementById("monthFilter").addEventListener("change", renderExpenseTable);
+  
+
+function openEditExpense(index) {
+  const exp = allExpenses[index];
+  document.getElementById("editIndex").value = index;
+  document.getElementById("editBillOn").value = toInputDateFormat(exp.billOn);
+  document.getElementById("editDate").value = toInputDateFormat(exp.date);
+  editCategorySelect.value = exp.category;
+editCategorySelect.dispatchEvent(new Event("change")); // trigger options load
+
+setTimeout(() => {
+  if (options[exp.category]) {
+    editDescriptionSelect.value = exp.description;
+    editCustomDescription.classList.add("hidden");
+  } else {
+    editCustomDescription.value = exp.description;
+    editDescriptionSelect.classList.add("hidden");
+    editCustomDescription.classList.remove("hidden");
+  }
+
+  if (exp.description === "Other") {
+    editCustomDescription.classList.remove("hidden");
+  }
+}, 100); // delay to allow DOM options to populate
+
+  document.getElementById("editAmount").value = exp.amount;
+  document.getElementById("editPaidTo").value = exp.paidTo;
+  document.getElementById("editNotes").value = exp.notes;
+  document.getElementById("editExpensePopup").style.display = "flex";
+}
+
+function closeEditPopup() {
+  document.getElementById("editExpensePopup").style.display = "none";
+}
+async function deleteFromEdit() {
+  if (!confirm("❌ Are you sure you want to delete this expense?")) return;
+  const index = parseInt(document.getElementById("editIndex").value);
+  const exp = allExpenses[index];
+
+  const params = new URLSearchParams();
+  params.append("action", "deleteExpense");
+  params.append("originalTimestamp", exp.timestamp);
+
+  loadingOverlay.style.display = "flex";
+  try {
+    await fetch(`https://script.google.com/macros/s/${deploymentId}/exec`, {
+      method: "POST",
+      body: params.toString(),
+      headers: { "Content-Type": "application/x-www-form-urlencoded" }
+    });
+    alert("🗑️ Expense deleted.");
+    closeEditPopup();
+    loadAllExpenses();
+  } catch (err) {
+    alert("❌ Failed to delete expense.");
+  } finally {
+    loadingOverlay.style.display = "none";
+  }
+}
+
+function toInputDateFormat(dateStr) {
+  if (!dateStr) return "";
+  
+  // If already in input format, return as is
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+
+  const parts = dateStr.split("/");
+  if (parts.length === 3) {
+    const [dd, mm, yyyy] = parts;
+    return `${yyyy}-${mm.padStart(2, '0')}-${dd.padStart(2, '0')}`;
+  }
+
+  // If still not valid, try to parse with Date
+  const date = new Date(dateStr);
+  if (!isNaN(date)) {
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
+  return "";
+}
+
+document.getElementById("editExpenseForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  
+  const confirmUpdate = confirm("✅ Confirm to update this expense?");
+  if (!confirmUpdate) return;
+  
+  const index = parseInt(document.getElementById("editIndex").value);
+  const exp = allExpenses[index];
+
+  const params = new URLSearchParams();
+  params.append("action", "editExpense");
+  params.append("originalTimestamp", exp.timestamp); // You'll need to store this in Apps Script later
+  params.append("billOn", formatDate(document.getElementById("editBillOn").value));
+  params.append("date", formatDate(document.getElementById("editDate").value));
+  params.append("category", document.getElementById("editCategory").value);
+  let finalEditDescription = "";
+
+if (editCategorySelect.value === "Other") {
+  finalEditDescription = editCustomDescription.value.trim();
+} else {
+  const selected = editDescriptionSelect.value;
+  if (selected === "Other") {
+    finalEditDescription = editCustomDescription.value.trim();
+  } else {
+    finalEditDescription = selected;
+  }
+}
+
+if (!finalEditDescription) {
+  alert("Please provide a valid description.");
+  return;
+}
+
+params.append("description", finalEditDescription);
+
+  params.append("amount", parseFloat(document.getElementById("editAmount").value).toFixed(2));
+  params.append("paidTo", document.getElementById("editPaidTo").value);
+  params.append("notes", document.getElementById("editNotes").value);
+
+  loadingOverlay.style.display = "flex";
+  try {
+    await fetch(`https://script.google.com/macros/s/${deploymentId}/exec`, {
+      method: "POST",
+      body: params.toString(),
+      headers: { "Content-Type": "application/x-www-form-urlencoded" }
+    });
+    alert("✅ Expense updated!");
+    closeEditPopup();
+    loadAllExpenses();
+  } catch (err) {
+    alert("❌ Failed to update expense.");
+  } finally {
+    loadingOverlay.style.display = "none";
+  }
+});
+
+window.addEventListener("DOMContentLoaded", loadAllExpenses);
+</script>
+  
+</body>
+</html>

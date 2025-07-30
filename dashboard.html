@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Campsite Agent Portal – Check Availability</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #eef2f7; }
+    h2, h3 { margin-top: 0; }
+
+    header {
+      background: #ffffff;
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+      flex-wrap: wrap;
+    }
+
+    .logo { font-weight: bold; }
+
+    .menu-toggle {
+      display: none;
+      font-size: 1.5rem;
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+
+    nav { display: flex; gap: 1rem; align-items: center; }
+
+    .tab {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 5px;
+      background: #f3f4f6;
+      cursor: pointer;
+      font-size: 0.95rem;
+    }
+
+    .tab.active {
+      background: #ffffff;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+
+    .logout-btn {
+      padding: 0.5rem 1rem;
+      background: #ef4444;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .mobile-menu {
+      display: none;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-top: 1rem;
+      width: 100%;
+    }
+
+    .welcome-mobile {
+      display: none;
+      font-size: 0.8rem;
+      color: #334155;
+      margin-left: auto;
+      margin-right: 0.5rem;
+    }
+
+    main {
+      padding: 1rem;
+      max-width: 800px;
+      margin: auto;
+    }
+
+    .card {
+      background: white;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .form-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .form-group label {
+      flex: 1;
+      min-width: 45%;
+      display: flex;
+      flex-direction: column;
+      font-size: 0.95rem;
+    }
+
+    .form-group input[type="date"],
+    .form-group input[type="number"] {
+      margin-top: 0.3rem;
+      padding: 0.5rem;
+      border: 1px solid #cbd5e1;
+      border-radius: 5px;
+      font-size: 1rem;
+    }
+
+    .form-group input[type="number"] {
+      width: 100%;
+    }
+
+    .btn-main {
+      width: 100%;
+      padding: 0.75rem;
+      font-size: 1rem;
+      background: #0d9488;
+      border: none;
+      border-radius: 6px;
+      color: white;
+      cursor: pointer;
+      margin-top: 0.5rem;
+      transition: background 0.2s;
+    }
+
+    .btn-main:hover { background: #0f766e; }
+
+    button.copy-btn {
+      margin-top: 1rem;
+      width: 100%;
+      background: #2563eb;
+    }
+
+    button.copy-btn:hover {
+      background: #1e40af;
+    }
+
+    .full-alert {
+      margin-top: 1rem;
+      color: #b91c1c;
+      font-weight: bold;
+      white-space: pre-line;
+    }
+
+    #loadingOverlay {
+      display: none;
+      position: fixed;
+      z-index: 9999;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.4);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .loading-popup {
+      background: white;
+      padding: 1.5rem 2rem;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 1.2rem;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+    }
+
+    @media (max-width: 768px) {
+      nav { display: none; }
+      .menu-toggle { display: block; }
+      .mobile-menu.show { display: flex; }
+      .welcome-mobile { display: block; }
+      #welcomeText { display: none; }
+    }
+
+    @media (max-width: 600px) {
+      .form-group label { min-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">🏕️ Campsite Agent Portal</div>
+    <div class="welcome-mobile" id="mobileWelcome"></div>
+    <button class="menu-toggle" onclick="toggleMenu()">☰</button>
+    <nav>
+      <span id="welcomeText" style="margin-right: 1rem; font-weight: bold;"></span>
+      <button class="tab active">Check Availability</button>
+      <button class="tab" onclick="location.href='booking.html'">New Booking</button>
+      <button class="tab" onclick="location.href='all-bookings.html'">My Bookings</button>
+      <button class="tab" onclick="location.href='coView.html'">C.O View</button>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </nav>
+    <div class="mobile-menu" id="mobileMenu">
+      <button class="tab active">Check Availability</button>
+      <button class="tab" onclick="location.href='booking.html'">New Booking</button>
+      <button class="tab" onclick="location.href='all-bookings.html'">My Bookings</button>
+      <button class="tab" onclick="location.href='coView.html'">C.O View</button>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+  </header>
+
+  <main>
+    <h2>Check Availability</h2>
+    <div class="card">
+      <h3>Select Dates</h3>
+      <div class="form-group">
+        <label>Check-in Date
+          <input type="date" id="checkin" />
+        </label>
+        <label>Check-out Date
+          <input type="date" id="checkout" />
+        </label>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Choose Items</h3>
+      <div class="form-group">
+        <label>Pondok A‑Tent
+          <input type="number" id="qtyTentA" value="0" min="0" />
+        </label>
+        <label>Camp‑Lot A
+          <input type="number" id="qtyLotA" value="0" min="0" />
+        </label>
+      </div>
+      <div class="form-group">
+        <label>Camp‑Lot B
+          <input type="number" id="qtyLotB" value="0" min="0" />
+        </label>
+        <label>Camp‑Lot C
+          <input type="number" id="qtyLotC" value="0" min="0" />
+        </label>
+      </div>
+      <button class="btn-main" onclick="fetchAvailability()">Check Availability</button>
+      <p id="dateRangeInfo"></p>
+    </div>
+
+    <div class="card" id="bookingSummaryCard" style="display:none">
+      <h3>Booking Summary</h3>
+      <pre id="bookingSummary" style="font-family: inherit;"></pre>
+      <div id="fullAlert" class="full-alert"></div>
+      <button class="btn-main copy-btn" onclick="copySummary()">Copy & share to customer</button>
+    </div>
+  </main>
+
+  <div id="loadingOverlay">
+    <div class="loading-popup">Loading...</div>
+  </div>
+
+  <script>
+    const username = localStorage.getItem("username") || "User";
+// 🔐 Redirect if not logged in (username missing or defaulted to "User")
+if (!localStorage.getItem("username") || localStorage.getItem("username") === "User") {
+  window.location.href = "index.html";
+}
+    document.getElementById("welcomeText").textContent = `Welcome ${username} !!`;
+    document.getElementById("mobileWelcome").textContent = `Welcome ${username} !!`;
+
+    const deploymentId = "AKfycbwsPIi_Zf7UtwTQJ8BPiLmNR87VxecATUOItw68loKglD60QRcRzeQoqIzyynvTXolipA";
+    const MAX_UNITS = { tentA: 7, lotA: 1, lotB: 3, lotC: 5 };
+    const nameToKey = {
+      "Pondok A-Tent": "tentA",
+      "Camp-Lot A": "lotA",
+      "Camp-Lot B": "lotB",
+      "Camp-Lot C": "lotC"
+    };
+
+    function toggleMenu() {
+      document.getElementById("mobileMenu").classList.toggle("show");
+    }
+
+    function logout() {
+      localStorage.clear();
+      window.location.href = "index.html";
+    }
+
+    function fetchAvailability() {
+      const checkinStr = document.getElementById("checkin").value;
+      const checkoutStr = document.getElementById("checkout").value;
+      const selectedQty = {
+        tentA: parseInt(document.getElementById("qtyTentA").value) || 0,
+        lotA: parseInt(document.getElementById("qtyLotA").value) || 0,
+        lotB: parseInt(document.getElementById("qtyLotB").value) || 0,
+        lotC: parseInt(document.getElementById("qtyLotC").value) || 0,
+      };
+
+      if (!checkinStr || !checkoutStr) {
+        alert("Please select both check-in and check-out dates.");
+        return;
+      }
+
+      const checkin = new Date(checkinStr);
+      const checkout = new Date(checkoutStr);
+      if (checkout <= checkin) {
+        alert("Checkout must be after checkin.");
+        return;
+      }
+
+      const dates = [];
+      let current = new Date(checkin);
+      while (current < checkout) {
+        dates.push(new Date(current));
+        current.setDate(current.getDate() + 1);
+      }
+
+      document.getElementById("dateRangeInfo").innerText =
+        `Showing availability from ${formatDate(checkinStr)} to ${formatDate(checkoutStr)}`;
+
+      document.getElementById("loadingOverlay").style.display = "flex";
+
+      fetch(`https://script.google.com/macros/s/${deploymentId}/exec`)
+        .then(res => res.json())
+        .then(data => {
+          document.getElementById("loadingOverlay").style.display = "none";
+
+          if (!data.bookings) throw new Error("Missing 'bookings' in response");
+
+          const summaryContainer = document.getElementById("bookingSummary");
+          const fullAlert = document.getElementById("fullAlert");
+          document.getElementById("bookingSummaryCard").style.display = "block";
+          summaryContainer.innerHTML = "";
+          fullAlert.innerHTML = "";
+
+          const warnings = [];
+          let summaryText = "";
+
+          dates.forEach(date => {
+            const units = calculateAvailability(data.bookings, date);
+            const dateStr = formatDate(date.toISOString());
+            summaryText += `${dateStr}\n`;
+
+            units.forEach(unit => {
+              const key = nameToKey[unit.name];
+              const want = selectedQty[key] || 0;
+              const status = unit.available === 0
+                ? "full booked"
+                : unit.available < want
+                  ? `not enough only got ${unit.available} left`
+                  : `${unit.available} left`;
+
+              summaryText += `${unit.name} : ${status}\n`;
+
+              if (want > 0) {
+                if (unit.available === 0) {
+                  warnings.push(`${unit.name} full booked on ${dateStr}`);
+                } else if (unit.available < want) {
+                  warnings.push(`${unit.name} not enough only got ${unit.available} left on ${dateStr}`);
+                }
+              }
+            });
+            summaryText += `\n`;
+          });
+
+          summaryContainer.innerText = summaryText;
+
+          if (warnings.length > 0) {
+            fullAlert.innerText = `Limited availability:\n${warnings.join('\n')}\n– would you like to change date?`;
+          }
+        })
+        .catch(err => {
+          document.getElementById("loadingOverlay").style.display = "none";
+          alert("Error fetching data: " + err);
+        });
+    }
+
+    function copySummary() {
+      const summaryText = document.getElementById("bookingSummary").innerText;
+      const warnings = document.getElementById("fullAlert").innerText;
+      const fullText = `Booking Summary\n${summaryText}${warnings}`;
+      navigator.clipboard.writeText(fullText)
+        .then(() => alert("Copied to clipboard. You can now share it to customer."))
+        .catch(err => alert("Failed to copy: " + err));
+    }
+
+    function calculateAvailability(bookings, currentDate) {
+      const unitCounts = { tentA: 0, lotA: 0, lotB: 0, lotC: 0 };
+
+      bookings.forEach(booking => {
+        const bStart = parseSheetDate(booking.checkin);
+        const bEnd = parseSheetDate(booking.checkout);
+        if (!bStart || !bEnd) return;
+
+        if (bStart <= currentDate && bEnd > currentDate) {
+          const units = booking.unit || "";
+          unitCounts.tentA += parseInt(units.match(/TentA:\s*(\d+)/)?.[1] || 0);
+          unitCounts.lotA += parseInt(units.match(/LotA:\s*(\d+)/)?.[1] || 0);
+          unitCounts.lotB += parseInt(units.match(/LotB:\s*(\d+)/)?.[1] || 0);
+          unitCounts.lotC += parseInt(units.match(/LotC:\s*(\d+)/)?.[1] || 0);
+        }
+      });
+
+      return [
+        { name: "Pondok A-Tent", available: Math.max(0, MAX_UNITS.tentA - unitCounts.tentA) },
+        { name: "Camp-Lot A", available: Math.max(0, MAX_UNITS.lotA - unitCounts.lotA) },
+        { name: "Camp-Lot B", available: Math.max(0, MAX_UNITS.lotB - unitCounts.lotB) },
+        { name: "Camp-Lot C", available: Math.max(0, MAX_UNITS.lotC - unitCounts.lotC) }
+      ];
+    }
+
+    function parseSheetDate(dateStr) {
+      const parts = dateStr.includes('-') ? dateStr.split('-') : dateStr.split('/');
+      if (parts.length !== 3) return null;
+      try {
+        if (dateStr.includes('-')) return new Date(`${parts[0]}-${parts[1]}-${parts[2]}`);
+        return new Date(`${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`);
+      } catch {
+        return null;
+      }
+    }
+
+    function formatDate(dateStr) {
+      const d = new Date(dateStr);
+      return d.toLocaleDateString("en-GB");
+    }
+  </script>
+</body>
+</html>

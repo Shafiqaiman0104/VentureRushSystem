@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Hold Unit Dates</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #f8fafc;
+    }
+    header {
+      background: white;
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+      flex-wrap: wrap;
+    }
+    .logo { font-weight: bold; }
+    .menu-toggle {
+      display: none;
+      font-size: 1.5rem;
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+    nav {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+
+
+.dropdown-btn {
+    margin: 0 4px;
+    padding: 8px 12px;
+    background-color: #f3f4f6;
+    border: none;
+    cursor: pointer;
+    font-size: 0.95rem;
+    width: 150px;
+  }
+  .dropdown {
+    position: relative;
+  }
+ .dropdown-content {
+    display: none;
+    position: absolute;
+    top: 110%;
+    left: 0;
+    background-color: white;
+    min-width: 100%;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    z-index: 999;
+    flex-direction: column;
+  }
+  .dropdown-content button {
+    padding: 10px;
+    width: 100%;
+    text-align: left;
+    background-color: #f3f4f6;
+    border: none;
+    border-top: 1px solid #ccc;
+    border-radius: 0px; /* ← square buttons */
+    white-space: nowrap;      
+  }
+  .dropdown-content button:hover {
+    background-color: white; 
+    color: #000; /* optional: make text darker for visibility */
+  }
+ .dropdown:hover .dropdown-content {
+    display: flex;
+  }
+
+
+    .mobile-menu {
+      display: none;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-top: 1rem;
+      width: 100%;
+    }
+    .mobile-menu.show {
+      display: flex;
+    }
+    .tab {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 5px;
+      background: #f3f4f6;
+      cursor: pointer;
+      font-size: 0.95rem;
+    }
+    .tab.active {
+      background: #ffffff;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+    .logout-btn {
+      padding: 0.5rem 1rem;
+      background: #ef4444;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .welcome-mobile {
+      display: none;
+      font-size: 0.8rem;
+      color: #334155;
+      margin-left: auto;
+      margin-right: 0.5rem;
+    }
+    main {
+      padding: 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1rem;
+    }
+    .card {
+      background: white;
+      padding: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      max-width: 500px;
+      width: 100%;
+    }
+    .form-group { margin-bottom: 1rem; }
+    .form-group label { display: block; margin-bottom: 0.5rem; }
+    .form-group input[type="date"], .form-group input[type="number"] {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid #d1d5db;
+      border-radius: 5px;
+    }
+    .btn {
+      background: #0ea5e9;
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 6px;
+      cursor: pointer;
+      width: 100%;
+    }
+    .btn:hover {
+      background: #0284c7;
+    }
+table {
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  overflow: hidden;
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+table th, table td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+table th {
+  background-color: #f1f5f9;
+  color: #1e293b;
+  font-weight: 600;
+}
+
+table tr:nth-child(even) {
+  background-color: #f8fafc;
+}
+
+table tr:hover {
+  background-color: #e2e8f0;
+}
+
+.release-btn {
+  background: #ef4444;
+  color: white;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+.release-btn:hover {
+  background: #dc2626;
+}
+
+    #loadingPopup {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0, 0, 0, 0.6);
+      color: white;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      font-size: 1.5rem;
+    }
+.table-container {
+  overflow-x: auto;
+  width: 100%;
+}
+
+.table-container table {
+  min-width: 600px; /* adjust based on your column widths */
+}
+#holdListTable td:nth-child(2) {
+  white-space: nowrap;
+  word-break: keep-all;
+}
+#holdListTable td:nth-child(3) {
+  white-space: nowrap;
+}
+#holdListTable td:nth-child(4) {
+  white-space: nowrap;
+}
+
+
+    @media (max-width: 768px) {
+      nav { display: none; }
+      .menu-toggle { display: block; }
+      .mobile-menu.show { display: flex; }
+      .welcome-mobile { display: block; }
+    }
+  </style>
+</head>
+<body>
+<header>
+    <div class="logo">🏕️ Campsite Admin Portal</div>
+    <div class="welcome-mobile" id="mobileWelcome"></div>
+    <button class="menu-toggle" onclick="toggleMenu()">☰</button>
+    <nav>
+      <span id="welcomeText" style="margin-right: 1rem; font-weight: bold;"></span>
+      <button class="tab" onclick="location.href='adminpage.html'">Dashboard</button>    
+      <button class="tab" onclick="location.href='apPendingCom.html'">Pending Commissions</button>
+
+      <div class="dropdown">
+      <button class="dropdown-btn">Block & Hold ▼</button>
+      <div class="dropdown-content">
+       <button class="tab" onclick="location.href='apBlockDate.html'">Block Dates</button>
+       <button class="tab active">Hold Unit</button>
+      </div>
+      </div>
+
+      <div class="dropdown">
+      <button class="dropdown-btn">Financials ▼</button>
+      <div class="dropdown-content">
+       <button class="tab" onclick="location.href='apExpenses.html'">Expense Tracker</button>
+       <button class="tab" onclick="location.href='apOtherIncome.html'">Other Income</button>
+       <button class="tab" onclick="location.href='apReport.html'">Monthly Report</button>
+      </div>
+      </div>
+      
+      <div class="dropdown">
+      <button class="dropdown-btn">C.O ▼</button>
+      <div class="dropdown-content">
+       <button class="tab" onclick="location.href='apCoView.html'">C.O View</button>
+       <button class="tab" onclick="location.href='apCoData.html'">C.O Data</button>
+      </div>
+      </div>
+
+      <button class="tab" onclick="location.href='apCheckAvailability.html'">Check Availability</button>
+      <button class="tab" onclick="location.href='apBooking.html'">New Booking</button>
+      <button class="tab" onclick="location.href='apAllBooking.html'">All Bookings</button>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </nav>
+    <div class="mobile-menu" id="mobileMenu">
+      <button class="tab" onclick="location.href='adminpage.html'">Dashboard</button> 
+      <button class="tab" onclick="location.href='apPendingCom.html'">Pending Commissions</button>
+      <button class="tab" onclick="location.href='apBlockDate.html'">Block Dates</button>
+      <button class="tab active">Hold Unit</button>
+      <button class="tab" onclick="location.href='apExpenses.html'">Expense Tracker</button>
+      <button class="tab" onclick="location.href='apOtherIncome.html'">Other Income</button>
+      <button class="tab" onclick="location.href='apReport.html'">Monthly Report</button>
+      <button class="tab" onclick="location.href='apCoView.html'">C.O View</button>
+      <button class="tab" onclick="location.href='apCoData.html'">C.O Data</button>
+      <button class="tab" onclick="location.href='apCheckAvailability.html'">Check Availability</button>
+      <button class="tab" onclick="location.href='apBooking.html'">New Booking</button>
+      <button class="tab" onclick="location.href='apAllBooking.html'">All Bookings</button>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+  </header>
+
+  <main>
+    <div id="loadingPopup">Processing...</div>
+
+    <div class="card">
+      <h2>Hold Units</h2>
+      <div class="form-group">
+        <label>Start Date (Check-in):</label>
+        <input type="date" id="startDate" />
+      </div>
+      <div class="form-group">
+        <label>End Date (Check-out):</label>
+        <input type="date" id="endDate" />
+      </div>
+      <div class="form-group">
+        <label>Unit Quantity to Hold:</label>
+        <label><input type="number" min="0" id="tentA" placeholder="Pondok A-Tent (max 7)" /></label>
+        <label><input type="number" min="0" id="lotA" placeholder="Lot A (max 1)" /></label>
+        <label><input type="number" min="0" id="lotB" placeholder="Lot B (max 3)" /></label>
+        <label><input type="number" min="0" id="lotC" placeholder="Lot C (max 5)" /></label>
+      </div>
+      <button class="btn" onclick="submitHold()">Hold Selected Units</button>
+    </div>
+<div class="card">
+  <h2>List of Held Units</h2>
+<div style="margin-bottom: 1rem;">
+  <input type="text" id="globalSearch" placeholder="🔍 Search..." oninput="filterHoldTable()" style="width:100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 5px;" />
+</div>
+<div class="table-container">
+  <table id="holdListTable">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>UNIT</th>
+        <th>DATE</th>
+        <th>ACTION</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td colspan="4">Loading...</td></tr>
+    </tbody>
+  </table>
+</div>
+</div>
+
+
+  </main>
+
+  <script>
+    const deploymentId = "AKfycbwsPIi_Zf7UtwTQJ8BPiLmNR87VxecATUOItw68loKglD60QRcRzeQoqIzyynvTXolipA";
+    const username = localStorage.getItem("username") || "Admin";
+    if (!localStorage.getItem("username") || localStorage.getItem("username") === "Admin") {
+      window.location.href = "index.html";
+    }
+    document.getElementById("welcomeText").textContent = `Welcome ${username} !!`;
+    document.getElementById("mobileWelcome").textContent = `Welcome ${username} !!`;
+
+function toggleMenu() {
+  document.getElementById("mobileMenu").classList.toggle("show");
+}
+
+    function logout() {
+      localStorage.clear();
+      window.location.href = "index.html";
+    }
+
+    function toDMY(date) {
+      return `${date.getDate().toString().padStart(2, '0')}/` +
+             `${(date.getMonth()+1).toString().padStart(2, '0')}/` +
+             `${date.getFullYear()}`;
+    }
+     
+    function parseSheetDate(dateStr) {
+  const parts = dateStr.includes("-") ? dateStr.split("-") : dateStr.split("/");
+  if (parts.length !== 3) return null;
+  try {
+    return dateStr.includes("-")
+      ? new Date(`${parts[0]}-${parts[1]}-${parts[2]}`)
+      : new Date(`${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`);
+  } catch { return null; }
+}
+
+    async function submitHold() {
+  const checkinStr = document.getElementById("startDate").value;
+  const checkoutStr = document.getElementById("endDate").value;
+  const tentA = parseInt(document.getElementById("tentA").value) || 0;
+  const lotA = parseInt(document.getElementById("lotA").value) || 0;
+  const lotB = parseInt(document.getElementById("lotB").value) || 0;
+  const lotC = parseInt(document.getElementById("lotC").value) || 0;
+
+  if (!checkinStr || !checkoutStr) {
+    alert("Please select both check-in and check-out date.");
+    return;
+  }
+
+  if (tentA + lotA + lotB + lotC === 0) {
+    alert("Please select at least one unit to hold.");
+    return;
+  }
+
+  const checkin = new Date(checkinStr);
+  const checkout = new Date(checkoutStr);
+
+if (checkin >= checkout) {
+  alert("End date must be after start date.");
+  return;
+}
+
+  const holdDates = [];
+  let current = new Date(checkin);
+  while (current < checkout) {
+    holdDates.push(new Date(current));
+    current.setDate(current.getDate() + 1);
+  }
+
+  document.getElementById("loadingPopup").style.display = "flex";
+
+  try {
+    const res = await fetch(`https://script.google.com/macros/s/${deploymentId}/exec`);
+    const data = await res.json();
+    const bookings = data.bookings || [];
+
+    const MAX_UNITS = { tentA: 7, lotA: 1, lotB: 3, lotC: 5 };
+
+    const errors = [];
+
+    holdDates.forEach(date => {
+      const unitCounts = { tentA: 0, lotA: 0, lotB: 0, lotC: 0 };
+
+      bookings.forEach(b => {
+        const bStart = parseSheetDate(b.checkin);
+        const bEnd = parseSheetDate(b.checkout);
+        if (!bStart || !bEnd) return;
+        if (bStart <= date && bEnd > date) {
+          const units = b.unit || "";
+          unitCounts.tentA += parseInt(units.match(/TentA:\s*(\d+)/)?.[1] || 0);
+          unitCounts.lotA += parseInt(units.match(/LotA:\s*(\d+)/)?.[1] || 0);
+          unitCounts.lotB += parseInt(units.match(/LotB:\s*(\d+)/)?.[1] || 0);
+          unitCounts.lotC += parseInt(units.match(/LotC:\s*(\d+)/)?.[1] || 0);
+        }
+      });
+
+      const dateStr = toDMY(date);
+      if (unitCounts.tentA + tentA > MAX_UNITS.tentA) {
+  const available = MAX_UNITS.tentA - unitCounts.tentA;
+  errors.push(`❌ Only ${available} Pondok A-Tent available on ${dateStr}. You requested ${tentA}.`);
+}
+if (unitCounts.lotA + lotA > MAX_UNITS.lotA) {
+  const available = MAX_UNITS.lotA - unitCounts.lotA;
+  errors.push(`❌ Only ${available} Camp-Lot A available on ${dateStr}. You requested ${lotA}.`);
+}
+if (unitCounts.lotB + lotB > MAX_UNITS.lotB) {
+  const available = MAX_UNITS.lotB - unitCounts.lotB;
+  errors.push(`❌ Only ${available} Camp-Lot B available on ${dateStr}. You requested ${lotB}.`);
+}
+if (unitCounts.lotC + lotC > MAX_UNITS.lotC) {
+  const available = MAX_UNITS.lotC - unitCounts.lotC;
+  errors.push(`❌ Only ${available} Camp-Lot C available on ${dateStr}. You requested ${lotC}.`);
+}
+
+    });
+
+    if (errors.length > 0) {
+      alert("Some units are already booked:\n\n" + errors.join("\n"));
+      document.getElementById("loadingPopup").style.display = "none";
+      return;
+    }
+
+    // ✅ Proceed to hold the units
+    const bookId = "HOLD" + Date.now();
+
+    const params = new URLSearchParams();
+    params.append("custName", "HOLD");
+    params.append("custPhone", "60123456789");
+    params.append("custEmail", "HOLD@GMAIL.COM");
+    params.append("quantityATent", tentA);
+    params.append("quantityLotA", lotA);
+    params.append("quantityLotB", lotB);
+    params.append("quantityLotC", lotC);
+    params.append("startDate", toDMY(checkin));
+    params.append("endDate", toDMY(checkout));
+    params.append("totalPax", 0);
+    params.append("extraPax", 0);
+    params.append("totalPrice", 0);
+    params.append("bookId", bookId);
+    params.append("userId", "HOLD");
+
+    await fetch(`https://script.google.com/macros/s/${deploymentId}/exec`, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: params.toString()
+    });
+
+    alert("✅ Units held successfully.");
+    location.reload();
+
+  } catch (err) {
+    alert("❌ Failed to hold units.");
+    console.error(err);
+  }
+
+  document.getElementById("loadingPopup").style.display = "none";
+}
+
+
+    async function releaseHold(bookId) {
+  if (!confirm("Are you sure you want to release this hold?")) return;
+
+  const params = new URLSearchParams();
+  params.append("action", "delete");
+  params.append("bookId", bookId);
+
+  try {
+    await fetch(`https://script.google.com/macros/s/${deploymentId}/exec`, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: params.toString()
+    });
+    alert("✅ Hold released.");
+    fetchHeldUnits();
+  } catch (err) {
+    alert("❌ Failed to release hold.");
+    console.error(err);
+  }
+}
+
+async function fetchHeldUnits() {
+  try {
+    const res = await fetch(`https://script.google.com/macros/s/${deploymentId}/exec`);
+    const data = await res.json();
+    const holdList = data.bookings.filter(b => b.name === "HOLD" && b.email === "HOLD@GMAIL.COM");
+
+    const tbody = document.querySelector("#holdListTable tbody");
+    tbody.innerHTML = "";
+
+    if (holdList.length === 0) {
+      tbody.innerHTML = "<tr><td colspan='4'>No held units found.</td></tr>";
+      return;
+    }
+
+    holdList.forEach(b => {
+      const tr = document.createElement("tr");
+
+      const tdId = document.createElement("td");
+      tdId.textContent = b.bookId;
+      console.log(data.bookings);
+
+      const tdUnit = document.createElement("td");
+
+if (b.unit) {
+  const mappings = {
+    "TentA": "Pondok A-Tent",
+    "LotA": "Lot A",
+    "LotB": "Lot B",
+    "LotC": "Lot C"
+  };
+
+  const unitList = b.unit.split(",")
+    .map(u => u.trim())
+    .filter(u => !u.endsWith(": 0"))
+    .map(u => {
+      const [key, val] = u.split(":").map(s => s.trim());
+      return `${mappings[key] || key} : ${val}`;
+    });
+
+  tdUnit.innerHTML = unitList.length ? unitList.join("<br>") : "<span style='color:#9ca3af;'>No unit</span>";
+} else {
+  tdUnit.innerHTML = "<span style='color:#9ca3af;'>No data</span>";
+}
+
+
+      const tdDate = document.createElement("td");
+      tdDate.textContent = `${toDMY(new Date(b.checkin))} to ${toDMY(new Date(b.checkout))}`;
+
+      const tdAction = document.createElement("td");
+      const btn = document.createElement("button");
+      btn.className = "release-btn";
+      btn.textContent = "Release this unit";
+      btn.onclick = () => releaseHold(b.bookId);
+      tdAction.appendChild(btn);
+
+      tr.appendChild(tdId);
+      tr.appendChild(tdUnit);
+      tr.appendChild(tdDate);
+      tr.appendChild(tdAction);
+
+      tbody.appendChild(tr);
+    });
+
+  } catch (err) {
+    console.error("❌ Failed to fetch HOLD data", err);
+    const tbody = document.querySelector("#holdListTable tbody");
+    tbody.innerHTML = "<tr><td colspan='4'>Error loading data.</td></tr>";
+  }
+}
+function filterHoldTable() {
+  const input = document.getElementById("globalSearch").value.toLowerCase();
+  const rows = document.querySelectorAll("#holdListTable tbody tr");
+
+  rows.forEach(row => {
+    const rowText = row.textContent.toLowerCase();
+    row.style.display = rowText.includes(input) ? "" : "none";
+  });
+}
+
+
+  // Load holds on page load
+  window.onload = fetchHeldUnits;
+  </script>
+</body>
+</html>

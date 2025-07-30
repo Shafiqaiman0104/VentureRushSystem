@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>C.O. Data View</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #f8fafc;
+    }
+    header {
+      background: white;
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+      flex-wrap: wrap;
+    }
+    .logo { font-weight: bold; }
+    .menu-toggle {
+      display: none;
+      font-size: 1.5rem;
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+    nav {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+
+
+.dropdown-btn {
+    margin: 0 4px;
+    padding: 8px 12px;
+    background-color: #f3f4f6;
+    border: none;
+    cursor: pointer;
+    font-size: 0.95rem;
+    width: 150px;
+  }
+  .dropdown {
+    position: relative;
+  }
+ .dropdown-content {
+    display: none;
+    position: absolute;
+    top: 110%;
+    left: 0;
+    background-color: white;
+    min-width: 100%;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    z-index: 999;
+    flex-direction: column;
+  }
+  .dropdown-content button {
+    padding: 10px;
+    width: 100%;
+    text-align: left;
+    background-color: #f3f4f6;
+    border: none;
+    border-top: 1px solid #ccc;
+    border-radius: 0px; /* ← square buttons */
+    white-space: nowrap;      
+  }
+  .dropdown-content button:hover {
+    background-color: white; 
+    color: #000; /* optional: make text darker for visibility */
+  }
+ .dropdown:hover .dropdown-content {
+    display: flex;
+  }
+
+
+    .mobile-menu {
+      display: none;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-top: 1rem;
+      width: 100%;
+    }
+    .mobile-menu.show {
+      display: flex;
+    }
+    .tab {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 5px;
+      background: #f3f4f6;
+      cursor: pointer;
+      font-size: 0.95rem;
+    }
+    .tab.active {
+      background: #ffffff;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+    .logout-btn {
+      padding: 0.5rem 1rem;
+      background: #ef4444;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .welcome-mobile {
+      display: none;
+      font-size: 0.8rem;
+      color: #334155;
+      margin-left: auto;
+      margin-right: 0.5rem;
+    }
+    main {
+      padding: 1.5rem;
+      max-width: 1000px;
+      margin: auto;
+    }
+.card {
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  width: 100%;
+  overflow-x: unset; /* Remove scroll from the whole card */
+}
+
+#table-container-wrapper {
+  overflow-x: auto;
+}
+    table {
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      overflow: hidden;
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.95rem;
+    }
+
+th, td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid #e2e8f0;
+  white-space: nowrap;         /* ✅ Prevents line breaks */
+  overflow: hidden;            /* ✅ Optional */
+  text-overflow: ellipsis;     /* ✅ Optional */
+}
+
+    th {
+      background-color: #f1f5f9;
+      color: #1e293b;
+      font-weight: 600;
+    }
+    tr:nth-child(even) { background-color: #f8fafc; }
+    tr:hover { background-color: #e2e8f0; }
+    .EditButton {
+      background-color: #0ea5e9;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+    .EditButtonBack {
+      background-color: #ef4444;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+    .EditButtonBack:hover {
+      background-color: #8b0000;
+    }
+    .EditButton:hover {
+      background-color: #0284c7;
+    }
+    #editModal {
+      display: none;
+      position: fixed;
+      top: 8%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+      z-index: 1000;
+      max-width: 500px;
+      width: 90%;
+    }
+    #editModal h3 {
+      margin-top: 0;
+      font-size: 1.3rem;
+      color: #0f172a;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 8px;
+      margin-bottom: 15px;
+    }
+    #editForm label {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 12px;
+      font-size: 0.95rem;
+      color: #334155;
+    }
+    #editForm input {
+      padding: 8px 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      margin-top: 5px;
+      font-size: 0.95rem;
+      width: 100%;
+    }
+    #editForm .button-group {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 15px;
+    }
+    #editForm .button-group button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    #editForm .button-group button:first-child {
+      background-color: #0ea5e9;
+      color: white;
+    }
+    #editForm .button-group button:first-child:hover {
+      background-color: #0284c7;
+    }
+    #editForm .button-group button:last-child {
+      background-color: #e2e8f0;
+      color: #334155;
+    }
+    #editForm .button-group button:last-child:hover {
+      background-color: #cbd5e1;
+    }
+    @media (max-width: 768px) {
+      nav { display: none; }
+      .menu-toggle { display: block; }
+      .mobile-menu.show { display: flex; }
+      .welcome-mobile { display: block; }
+      #editModal {
+        width: 90%;
+        left: 5%;
+        transform: none;
+        padding: 15px;
+        max-width: none;
+        overflow-y: auto;
+        max-height: 90vh;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">🏕️ Campsite Admin Portal</div>
+    <div class="welcome-mobile" id="mobileWelcome"></div>
+    <button class="menu-toggle" onclick="toggleMenu()">☰</button>
+    <nav>
+      <span id="welcomeText" style="margin-right: 1rem; font-weight: bold;"></span>
+      <button class="tab" onclick="location.href='adminpage.html'">Dashboard</button>
+      <button class="tab" onclick="location.href='apPendingCom.html'">Pending Commissions</button>
+
+      <div class="dropdown">
+      <button class="dropdown-btn">Block & Hold ▼</button>
+      <div class="dropdown-content">
+       <button class="tab" onclick="location.href='apBlockDate.html'">Block Dates</button>
+       <button class="tab" onclick="location.href='apHoldUnit.html'">Hold Unit</button>      
+      </div>
+      </div>
+
+      <div class="dropdown">
+      <button class="dropdown-btn">Financials ▼</button>
+      <div class="dropdown-content">
+       <button class="tab" onclick="location.href='apExpenses.html'">Expense Tracker</button>
+       <button class="tab" onclick="location.href='apOtherIncome.html'">Other Income</button>
+       <button class="tab" onclick="location.href='apReport.html'">Monthly Report</button>
+      </div>
+      </div>
+      
+      <div class="dropdown">
+      <button class="dropdown-btn">C.O ▼</button>
+      <div class="dropdown-content">
+       <button class="tab" onclick="location.href='apCoView.html'">C.O View</button>
+       <button class="tab active">C.O Data</button>
+      </div>
+      </div>
+
+      <button class="tab" onclick="location.href='apCheckAvailability.html'">Check Availability</button>
+      <button class="tab" onclick="location.href='apBooking.html'">New Booking</button>
+      <button class="tab" onclick="location.href='apAllBooking.html'">All Bookings</button>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </nav>
+    <div class="mobile-menu" id="mobileMenu">
+      <button class="tab" onclick="location.href='adminpage.html'">Dashboard</button>
+      <button class="tab" onclick="location.href='apPendingCom.html'">Pending Commissions</button>
+      <button class="tab" onclick="location.href='apBlockDate.html'">Block Dates</button>
+      <button class="tab" onclick="location.href='apHoldUnit.html'">Hold Unit</button>
+      <button class="tab" onclick="location.href='apExpenses.html'">Expense Tracker</button>
+      <button class="tab" onclick="location.href='apOtherIncome.html'">Other Income</button>
+      <button class="tab" onclick="location.href='apReport.html'">Monthly Report</button>
+      <button class="tab" onclick="location.href='apCoView.html'">C.O View</button>
+      <button class="tab active">C.O Data</button>
+      <button class="tab" onclick="location.href='apCheckAvailability.html'">Check Availability</button>
+      <button class="tab" onclick="location.href='apBooking.html'">New Booking</button>
+      <button class="tab" onclick="location.href='apAllBooking.html'">All Bookings</button>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+  </header>
+
+
+  <main>
+    <div class="card">
+      <h2>🗂️ C.O. Database Overview</h2>
+      <div>
+<div style="display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
+  <div style="flex: 1;">
+    <label style="font-weight: 500;">📅 Filter Check-in:</label>
+    <input type="date" id="filterCheckin" onchange="applyDateFilter()" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 5px;" />
+  </div>
+  <div style="flex: 1;">
+    <label style="font-weight: 500;">📅 Filter Check-out:</label>
+    <input type="date" id="filterCheckout" onchange="applyDateFilter()" style="width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 5px;" />
+  </div>
+</div>
+
+        <div style="margin-bottom: 1rem;">
+          <input type="text" id="globalSearch" placeholder="🔍 Search..." oninput="filterTable()" style="width:100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 5px;" />
+        </div>
+        <div id="table-container-wrapper" style="overflow-x: auto;">
+  <div id="table-container">Loading...</div>
+</div>
+
+      </div>
+
+      <!-- Edit Modal -->
+      <div id="editModal">
+        <h3>✏️ Edit C.O. Record</h3>
+        <form id="editForm">
+          <label>Book ID:<input type="text" id="editBookId" disabled></label>
+          <label>Unit:<input type="text" id="editUnit" disabled></label>
+          <label style="display: flex; flex-direction: column;">
+            Unit Use:
+            <div style="display: flex; gap: 8px;">
+              <input type="text" id="editUnitUse" style="flex: 1;" disabled/>
+              <button type="button" onclick="handleChangeUnitUse()" style="padding: 6px 12px; border-radius: 6px; background: #10b981; color: white; border: none; cursor: pointer;">Change</button>
+            </div>
+          </label>
+          <label>Check-in (BOOK):<input type="text" id="editCheckinBook" disabled></label>
+          <label>Check-out (BOOK):<input type="text" id="editCheckoutBook" disabled></label>
+          <label>Check-in (CO):<input type="datetime-local" id="editCheckinCO"></label>
+          <label>Check-out (CO):<input type="datetime-local" id="editCheckoutCO"></label>
+          <label>Remark:<input type="text" id="editRemark"></label>
+          <label>C.O Name:<input type="text" id="editCOName" disabled></label>
+          <div class="button-group">
+            <button type="submit">Save</button>
+            <button type="button" onclick="closeEditModal()">Cancel</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- 🔁 Multi-select Unit Use Modal -->
+      <div id="changeUnitModal" style="display: none; position: fixed; top: 12%; left: 50%; transform: translateX(-50%);
+        background: white; padding: 25px; border-radius: 12px; box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        z-index: 1050; max-width: 400px; width: 90%;">
+        <h3 style="margin-top: 0; font-size: 1.2rem; color: #0f172a;">🔁 Change Unit Use</h3>
+        <label style="display: flex; flex-direction: column; margin-top: 15px;">
+          Unit Use:
+        <select id="unitUseSelect" size="8" multiple style="
+  margin-top: 5px;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  min-height: 200px;
+  width: 100%;
+  font-size: 0.95rem;
+">
+
+            <!-- Options will be generated dynamically by JS -->
+          </select>
+        </label>
+        <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+          <button class="EditButton" onclick="applyUnitUseChange()">Apply</button>
+          <button class="EditButtonBack" onclick="closeChangeUnitModal()">X</button>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+<div id="loadingModal" style="
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  width: 100%; height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: white;
+">
+  <div style="
+    background: #1e293b;
+    padding: 20px 40px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  ">
+    🔄 Saving update...
+  </div>
+</div>
+<script>
+const coUrl = 'https://script.google.com/macros/s/AKfycbxwLq33J4Ud1P7bPVSZM86kr1CUmWeiEAVM9jjB3ffJtiCCfapZEAtVkpzU7v52tmo/exec';
+const bookingUrl = 'https://script.google.com/macros/s/AKfycbwsPIi_Zf7UtwTQJ8BPiLmNR87VxecATUOItw68loKglD60QRcRzeQoqIzyynvTXolipA/exec';
+
+let coRawData = [];
+let bookingRawData = [];
+
+const username = localStorage.getItem("username") || "Admin";
+if (!localStorage.getItem("username") || localStorage.getItem("username") === "Admin") {
+  window.location.href = "index.html";
+}
+document.getElementById("welcomeText").textContent = `Welcome ${username} !!`;
+document.getElementById("mobileWelcome").textContent = `Welcome ${username} !!`;
+
+function toggleMenu() {
+  document.getElementById("mobileMenu").classList.toggle("show");
+}
+
+function logout() {
+  localStorage.clear();
+  window.location.href = "index.html";
+}
+
+function formatDate(d) {
+  if (!d) return "";
+  try {
+    const dt = new Date(d);
+    const day = String(dt.getDate()).padStart(2, '0');
+    const month = String(dt.getMonth() + 1).padStart(2, '0');
+    const year = dt.getFullYear();
+    return `${day}/${month}/${year}`;
+  } catch {
+    return d;
+  }
+}
+
+function formatDateTime(d) {
+  if (!d) return "";
+  try {
+    const dt = new Date(d);
+    const day = String(dt.getDate()).padStart(2, '0');
+    const month = String(dt.getMonth() + 1).padStart(2, '0');
+    const year = dt.getFullYear();
+    const hours = String(dt.getHours()).padStart(2, '0');
+    const minutes = String(dt.getMinutes()).padStart(2, '0');
+    return `${day}/${month}/${year} ${hours}:${minutes}`;
+  } catch {
+    return d;
+  }
+}
+
+function toDateTimeLocalString(isoString) {
+  if (!isoString) return '';
+  const date = new Date(isoString);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
+function filterTable() {
+  const input = document.getElementById("globalSearch").value.toLowerCase();
+  const rows = document.querySelectorAll("#table-container table tbody tr");
+  rows.forEach(row => {
+    const rowText = row.textContent.toLowerCase();
+    row.style.display = rowText.includes(input) ? "" : "none";
+  });
+}
+
+function applyDateFilter() {
+  const checkinInput = document.getElementById("filterCheckin").value;
+  const checkoutInput = document.getElementById("filterCheckout").value;
+
+  const table = document.querySelector("#table-container table");
+  if (!table) return;
+
+  const rows = table.querySelectorAll("tbody tr");
+
+  // If both empty, show all
+  if (!checkinInput && !checkoutInput) {
+    rows.forEach(r => r.style.display = "");
+    return;
+  }
+
+  const userCheckin = new Date(checkinInput);
+  const userCheckout = new Date(checkoutInput);
+
+  rows.forEach(row => {
+    const bookCheckinStr = row.children[3].textContent.trim();
+    const bookCheckoutStr = row.children[4].textContent.trim();
+
+    const [ciDay, ciMonth, ciYear] = bookCheckinStr.split("/");
+    const [coDay, coMonth, coYear] = bookCheckoutStr.split("/");
+
+    const bookCheckin = new Date(`${ciYear}-${ciMonth}-${ciDay}`);
+    const bookCheckout = new Date(`${coYear}-${coMonth}-${coDay}`);
+
+    // Overlap condition: (bookCheckin < userCheckout) && (bookCheckout > userCheckin)
+    const isOverlapping = (!isNaN(userCheckin) && !isNaN(userCheckout)) &&
+      (bookCheckin < userCheckout) && (bookCheckout > userCheckin);
+
+    row.style.display = isOverlapping ? "" : "none";
+  });
+}
+
+
+async function fetchCOData() {
+  try {
+    const [coRes, bookRes] = await Promise.all([
+      fetch(coUrl),
+      fetch(bookingUrl)
+    ]);
+    const coData = await coRes.json();
+    const bookData = await bookRes.json();
+    coRawData = coData;
+    bookingRawData = bookData.bookings || [];
+
+    const bookMap = {};
+    for (const b of bookingRawData) {
+      bookMap[(b.bookId || "").trim()] = {
+        checkin: b.checkin,
+        checkout: b.checkout
+      };
+    }
+
+    buildTable(coRawData, bookMap);
+  } catch (err) {
+    console.error("Error loading data", err);
+    document.getElementById("table-container").textContent = "❌ Failed to load data.";
+  }
+}
+
+function buildTable(coData, bookMap) {
+  const headers = ["Book ID", "Unit", "Unit Use", "Check-in (BOOK)", "Check-out (BOOK)", "Check-in (CO)", "Check-out (CO)", "Remark", "C.O Name", "Action"];
+  let html = `<table><thead><tr>`;
+  headers.forEach(h => html += `<th>${h}</th>`);
+  html += `</tr></thead><tbody>`;
+
+  for (let row of coData) {
+    const bookId = row[0] || '';
+    const unit = (row[1] || '').split(',').map(s => s.trim()).join(',<br>');
+    const coCheckin = formatDateTime(row[2]);
+    const coCheckout = formatDateTime(row[3]);
+    const unitUse = row[4] || '';
+    const remark = row[5] || '';
+    const coName = row[6] || '';
+    const book = bookMap[bookId] || {};
+    const bookCheckin = formatDate(book.checkin);
+    const bookCheckout = formatDate(book.checkout);
+
+    html += `<tr>
+      <td>${bookId}</td>
+      <td>${unit}</td>
+      <td>${unitUse}</td>
+      <td>${bookCheckin}</td>
+      <td>${bookCheckout}</td>
+      <td>${coCheckin}</td>
+      <td>${coCheckout}</td>
+      <td>${remark}</td>
+      <td>${coName}</td>
+      <td><button class="EditButton" data-id="${bookId}" onclick="editRow('${bookId}')">Edit</button></td>
+    </tr>`;
+  }
+
+  html += `</tbody></table>`;
+  document.getElementById("table-container").innerHTML = html;
+}
+
+function editRow(bookId) {
+  const row = Array.from(document.querySelectorAll("#table-container table tbody tr")).find(tr => tr.children[0].textContent === bookId);
+  if (!row) return;
+
+  const cells = row.children;
+  document.getElementById("editBookId").value = cells[0].textContent;
+  document.getElementById("editUnit").value = cells[1].textContent;
+  document.getElementById("editUnitUse").value = cells[2].textContent;
+  document.getElementById("editCheckinBook").value = cells[3].textContent;
+  document.getElementById("editCheckoutBook").value = cells[4].textContent;
+
+  const rowData = coRawData.find(row => row[0] === bookId);
+  const rawCheckinCO = rowData?.[2] || '';
+  const rawCheckoutCO = rowData?.[3] || '';
+
+  document.getElementById("editCheckinCO").value = toDateTimeLocalString(rawCheckinCO);
+  document.getElementById("editCheckoutCO").value = toDateTimeLocalString(rawCheckoutCO);
+  document.getElementById("editRemark").value = cells[7].textContent;
+  document.getElementById("editCOName").value = cells[8].textContent;
+
+  document.getElementById("editModal").style.display = "block";
+}
+
+function closeEditModal() {
+  document.getElementById("editModal").style.display = "none";
+}
+
+function handleChangeUnitUse() {
+  document.getElementById("changeUnitModal").style.display = "block";
+  populateUnitDropdown();
+}
+
+function closeChangeUnitModal() {
+  document.getElementById("changeUnitModal").style.display = "none";
+  document.getElementById("editModal").style.display = "block";
+}
+
+function applyUnitUseChange() {
+  const select = document.getElementById("unitUseSelect");
+  const selectedUnits = Array.from(select.selectedOptions).map(o => o.value);
+  const required = getRequiredUnits();
+  if (!validateUnitUseSelection(selectedUnits, required)) return;
+  document.getElementById("editUnitUse").value = selectedUnits.join(', ');
+  closeChangeUnitModal();
+}
+
+function getRequiredUnits() {
+  const unit = document.getElementById("editUnit").value;
+  const requirements = {};
+  const parts = unit.split(',');
+  for (let part of parts) {
+    const [type, qty] = part.trim().split(' x');
+    if (type && qty) requirements[type.trim()] = parseInt(qty);
+  }
+  return requirements;
+}
+
+function validateUnitUseSelection(selected, required) {
+  const unitMap = {
+    "A-Tent": ["1A", "2A", "3A", "4A", "5A", "1B", "2B"],
+    "Lot A": ["A1"],
+    "Lot B": ["B1", "B2", "B3"],
+    "Lot C": ["C1", "C2", "C3", "C4", "C5"]
+  };
+
+  const selectedByType = {
+    "A-Tent": [],
+    "Lot A": [],
+    "Lot B": [],
+    "Lot C": []
+  };
+
+  for (const unit of selected) {
+    for (const [type, list] of Object.entries(unitMap)) {
+      if (list.includes(unit)) {
+        selectedByType[type].push(unit);
+        break;
+      }
+    }
+  }
+
+  for (const [type, requiredCount] of Object.entries(required)) {
+    const selectedCount = selectedByType[type]?.length || 0;
+
+    if (selectedCount < requiredCount) {
+      alert(`⚠️ You selected too few units for ${type}. Required: ${requiredCount}, Selected: ${selectedCount}`);
+      return false;
+    }
+    if (selectedCount > requiredCount) {
+      alert(`⚠️ You selected too many units for ${type}. Required: ${requiredCount}, Selected: ${selectedCount}`);
+      return false;
+    }
+  }
+
+  return true;
+}
+
+
+function populateUnitDropdown() {
+  const select = document.getElementById("unitUseSelect");
+  select.innerHTML = "";
+
+  const unitMap = {
+    'A-Tent': ['1A', '2A', '3A', '4A', '5A', '1B', '2B'],
+    'Lot A': ['A1'],
+    'Lot B': ['B1', 'B2', 'B3'],
+    'Lot C': ['C1', 'C2', 'C3', 'C4', 'C5'],
+  };
+
+  const bookId = document.getElementById("editBookId").value;
+  const booking = bookingRawData.find(b => (b.bookId || "").trim() === bookId);
+  if (!booking) return;
+
+  const start = new Date(booking.checkin);
+  const end = new Date(booking.checkout);
+
+  const usedUnits = new Set();
+  for (const row of coRawData) {
+    const otherBookId = row[0];
+    if (otherBookId === bookId) continue;
+
+    const otherBooking = bookingRawData.find(b => (b.bookId || "").trim() === otherBookId);
+    if (!otherBooking) continue;
+
+    const otherCheckin = new Date(otherBooking.checkin);
+    const otherCheckout = new Date(otherBooking.checkout);
+
+    if (start < otherCheckout && end > otherCheckin) {
+      const used = (row[4] || "").split(",").map(u => u.trim());
+      used.forEach(u => usedUnits.add(u));
+    }
+  }
+
+  const requirements = getRequiredUnits(); // e.g., { 'A-Tent': 4, 'Lot C': 2 }
+
+  for (const [type, quantityNeeded] of Object.entries(requirements)) {
+    const allUnits = unitMap[type] || [];
+
+    const group = document.createElement("optgroup");
+    group.label = `${type} (max ${quantityNeeded})`;
+
+    for (const unit of allUnits) {
+      const option = document.createElement("option");
+      option.value = unit;
+      option.textContent = unit;
+
+      if (usedUnits.has(unit)) {
+        option.disabled = true;
+        option.textContent += " ❌";
+        option.style.color = "gray";
+      }
+
+      group.appendChild(option);
+    }
+
+    select.appendChild(group);
+  }
+
+  // Preselect previously selected units
+  const currentValue = document.getElementById("editUnitUse").value || "";
+  const preselected = currentValue.split(',').map(u => u.trim()).filter(Boolean);
+  Array.from(select.options).forEach(opt => {
+    if (preselected.includes(opt.value) && !opt.disabled) {
+      opt.selected = true;
+    }
+  });
+}
+
+document.getElementById("editForm").addEventListener("submit", async function(e) {
+  e.preventDefault();
+  
+  const confirmUpdate = confirm("⚠️ Confirm to update this C.O. record?");
+  if (!confirmUpdate) return; // Cancelled by user  
+
+
+  // Show loading popup
+  document.getElementById("loadingModal").style.display = "flex";
+
+
+  const bookId = document.getElementById("editBookId").value.trim();
+  const unitUse = document.getElementById("editUnitUse").value.trim();
+  const remark = document.getElementById("editRemark").value.trim();
+  const checkinCo = document.getElementById("editCheckinCO").value;
+  const checkoutCo = document.getElementById("editCheckoutCO").value;
+  const coName = document.getElementById("editCOName").value.trim(); // still passed but unchanged
+
+  try {
+    const formData = new URLSearchParams();
+    formData.append("action", "coUpdate");
+    formData.append("bookId", bookId);
+    formData.append("unitUse", unitUse);
+    formData.append("remark", remark);
+    formData.append("checkinCo", checkinCo);
+    formData.append("checkoutCo", checkoutCo);
+    formData.append("coName", coName);
+
+    const response = await fetch("https://script.google.com/macros/s/AKfycbxwLq33J4Ud1P7bPVSZM86kr1CUmWeiEAVM9jjB3ffJtiCCfapZEAtVkpzU7v52tmo/exec", {
+      method: "POST",
+      body: formData
+    });
+
+    const result = await response.text();
+    alert(result);
+
+    if (result.includes("✅")) {
+      closeEditModal();
+      fetchCOData(); // Refresh the table
+    }
+  } catch (error) {
+    alert("❌ Failed to save data. Please try again.");
+    console.error(error);
+  } finally {
+    // Hide loading popup
+    document.getElementById("loadingModal").style.display = "none";
+  }
+});
+
+fetchCOData();
+</script>
+</body>
+</html>
