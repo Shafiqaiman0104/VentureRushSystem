@@ -20,6 +20,10 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
     flex-wrap: wrap;
   }
+.chartTitle h2 {
+  color: #0ea5e9;
+}
+
   .logo { font-weight: bold; }
   .menu-toggle {
     display: none;
@@ -206,11 +210,31 @@
     gap: 1rem;
     align-items: center;
   }
-  .charts-container {
-    display: flex;
-    gap: 2rem;
-    margin-top: 2rem;
-  }
+.card-container {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+  max-width: 1200px;
+  margin: 2rem auto;
+}
+
+.chart-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.charts-container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
   .chart-box {
     flex: 1;
   }
@@ -222,9 +246,9 @@
   }
 
   @media (max-width: 768px) {
-    .charts-container {
-      flex-direction: column;
-    }
+  .charts-container {
+    grid-template-columns: 1fr;
+  }
     .chart-box {
       flex-basis: 100% !important;
     }
@@ -349,16 +373,40 @@
       <tbody id="agentTable"></tbody>
     </table>
 </div>
-<div class="charts-container">
-  <div class="chart-box">
+<div class="card-container">
+<div class="chartTitle">
+  <h2>Chart Analytics Dashboard</h2>
+</div>
+<div class="charts-container" style="flex-direction: column;">
+  <div class="chart-box" style="margin-bottom: 2rem;">
     <h3>Top Agents Chart</h3>
     <canvas id="agentChart" style="width:100%;max-width:700px"></canvas>
   </div>
+
   <div class="chart-box">
+    <h3>Total Pax per Month</h3>
+    <canvas id="totalPaxChart" style="width:100%;max-width:900px; height:300px;"></canvas>
+  </div>
+
+<div class="chart-box">
+  <h3>Occupancy % per Month</h3>
+  <canvas id="occupancyChart" style="width:100%;max-width:900px; height:300px;"></canvas>
+</div>
+
+  <!-- Add this new chart below -->
+  <div class="chart-box" style="margin-bottom: 2rem;">
+    <h3>Total Monthly Sales</h3>
+    <canvas id="monthlySalesChart" style="width:100%;max-width:900px; height:300px;"></canvas>
+  </div>
+
+  <div class="chart-box" style="margin-bottom: 2rem;">
     <h3>Unit Sales Breakdown</h3>
     <canvas id="unitSalesChart" style="width:100%;max-width:500px"></canvas>
   </div>
 </div>
+</div>
+
+
   </main>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
@@ -402,6 +450,10 @@ async function fetchAll(){
   renderCommission();
   renderAgentTable();
   renderUnitSalesChart(); // move this here
+  renderTotalPaxChart();  // <-- add this call here
+  renderMonthlySalesChart();  // <-- add this here
+  renderOccupancyChart();
+
 }
 
 let unitSalesChartInstance;
@@ -453,6 +505,273 @@ function renderUnitSalesChart() {
     plugins: [ChartDataLabels]
   });
 }
+
+let totalPaxChartInstance;
+
+function renderTotalPaxChart() {
+  // Aggregate totalPax by month (YYYY-MM)
+  const paxByMonth = {};
+
+  bookings.forEach(b => {
+    if (b.userId === "BLOCK" || b.userId === "HOLD") return;
+    if (!b.checkin) return;
+
+    // Parse checkin date
+    const date = new Date(b.checkin);
+    if (isNaN(date)) return;
+
+    // Format month key YYYY-MM
+    const monthKey = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0');
+
+    // totalPax field - you might need to adjust this if your data structure differs
+    const pax = parseInt(b.totalPax) || 0;
+
+    if (!paxByMonth[monthKey]) paxByMonth[monthKey] = 0;
+    paxByMonth[monthKey] += pax;
+  });
+
+  // Sort months ascending
+  const sortedMonths = Object.keys(paxByMonth).sort();
+
+  const dataPoints = sortedMonths.map(m => paxByMonth[m]);
+
+  // Prepare chart
+  const ctx = document.getElementById('totalPaxChart').getContext('2d');
+
+  if (totalPaxChartInstance) totalPaxChartInstance.destroy();
+
+  totalPaxChartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: sortedMonths,
+      datasets: [{
+        label: 'Total Pax',
+        data: dataPoints,
+        fill: true,
+        borderColor: '#3b82f6',
+        backgroundColor: 'rgba(59, 130, 246, 0.5)', // more solid fill
+        tension: 0.3,
+        pointRadius: 5,
+        pointHoverRadius: 7,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top',
+        },
+        tooltip: {
+          mode: 'index',
+          intersect: false,
+        },
+      },
+      scales: {
+        x: {
+          title: {
+            display: true,
+            text: 'Month (YYYY-MM)'
+          }
+        },
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: 'Total Pax'
+          },
+          ticks: {
+            stepSize: 1,
+            precision: 0
+          }
+        }
+      }
+    }
+  });
+}
+
+let monthlySalesChartInstance;
+
+function renderMonthlySalesChart() {
+  // Aggregate total sales by month (YYYY-MM)
+  const salesByMonth = {};
+
+  bookings.forEach(b => {
+    if (b.userId === "BLOCK" || b.userId === "HOLD") return;
+    if (!b.checkin) return;
+
+    const date = new Date(b.checkin);
+    if (isNaN(date)) return;
+
+    // Format month key YYYY-MM
+    const monthKey = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0');
+
+    const total = parseFloat(b.total) || 0;
+
+    if (!salesByMonth[monthKey]) salesByMonth[monthKey] = 0;
+    salesByMonth[monthKey] += total;
+  });
+
+  // Sort months ascending
+  const sortedMonths = Object.keys(salesByMonth).sort();
+
+  const dataPoints = sortedMonths.map(m => salesByMonth[m]);
+
+  // Prepare chart
+  const ctx = document.getElementById('monthlySalesChart').getContext('2d');
+
+  if (monthlySalesChartInstance) monthlySalesChartInstance.destroy();
+
+  monthlySalesChartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: sortedMonths,
+      datasets: [{
+        label: 'Total Sales (RM)',
+        data: dataPoints,
+        backgroundColor: '#FE9900' // greenish bar color
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top',
+        },
+        tooltip: {
+          mode: 'index',
+          intersect: false,
+          callbacks: {
+            label: ctx => `RM ${ctx.parsed.y.toFixed(2)}`
+          }
+        },
+      },
+      scales: {
+        x: {
+          title: {
+            display: true,
+            text: 'Month (YYYY-MM)'
+          }
+        },
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: 'Sales (RM)'
+          }
+        }
+      }
+    }
+  });
+}
+
+let occupancyChartInstance;
+
+function renderOccupancyChart() {
+  const maxUnits = { TentA: 7, LotA: 1, LotB: 3, LotC: 5 };
+
+  function daysBetween(checkin, checkout) {
+    const msPerDay = 24 * 60 * 60 * 1000;
+    return Math.max(0, Math.floor((checkout - checkin) / msPerDay));
+  }
+
+  function daysInMonth(year, month) {
+    return new Date(year, month + 1, 0).getDate();
+  }
+
+  // Aggregate unit-days booked per month
+  const occupancyByMonth = {};
+  const totalUnits = Object.values(maxUnits).reduce((a, b) => a + b, 0);
+
+  bookings.forEach(b => {
+    if (b.userId === "BLOCK" || b.userId === "HOLD") return;
+    if (!b.checkin || !b.checkout) return;
+
+    const checkin = new Date(b.checkin);
+    const checkout = new Date(b.checkout);
+
+    const bookedDays = daysBetween(checkin, checkout);
+    if (bookedDays === 0) return;
+
+    // Parse units from b.unit string
+    const bookedUnits = { TentA: 0, LotA: 0, LotB: 0, LotC: 0 };
+    if (b.unit) {
+      b.unit.split(',').forEach(part => {
+        const [key, val] = part.split(':').map(s => s.trim());
+        if (key in bookedUnits) {
+          bookedUnits[key] = parseInt(val) || 0;
+        }
+      });
+    }
+
+    let totalUnitDays = 0;
+    Object.entries(bookedUnits).forEach(([unit, count]) => {
+      totalUnitDays += count * bookedDays;
+    });
+
+    const monthKey = checkin.getFullYear() + '-' + String(checkin.getMonth() + 1).padStart(2, '0');
+
+    if (!occupancyByMonth[monthKey]) occupancyByMonth[monthKey] = 0;
+    occupancyByMonth[monthKey] += totalUnitDays;
+  });
+
+  // Calculate occupancy percentage
+  const occupancyPercentByMonth = {};
+  Object.entries(occupancyByMonth).forEach(([month, bookedUnitDays]) => {
+    const [year, mon] = month.split('-');
+    const daysCount = daysInMonth(parseInt(year), parseInt(mon) - 1);
+    const totalAvailableUnitDays = totalUnits * daysCount;
+    occupancyPercentByMonth[month] = (bookedUnitDays / totalAvailableUnitDays) * 100;
+  });
+
+  // Prepare chart data
+  const sortedMonths = Object.keys(occupancyPercentByMonth).sort();
+  const dataPoints = sortedMonths.map(m => occupancyPercentByMonth[m]);
+
+  const ctx = document.getElementById('occupancyChart').getContext('2d');
+
+  if (occupancyChartInstance) occupancyChartInstance.destroy();
+
+  occupancyChartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: sortedMonths,
+      datasets: [{
+        label: 'Occupancy %',
+        data: dataPoints,
+        fill: true,
+        borderColor: '#ef4444',  // red color
+        backgroundColor: 'rgba(239, 68, 68, 0.3)', // transparent red fill
+        tension: 0.3,
+        pointRadius: 5,
+        pointHoverRadius: 7,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: true, position: 'top' },
+        tooltip: { mode: 'index', intersect: false },
+      },
+      scales: {
+        x: {
+          title: { display: true, text: 'Month (YYYY-MM)' }
+        },
+        y: {
+          beginAtZero: true,
+          max: 100,
+          title: { display: true, text: 'Occupancy %' },
+          ticks: {
+            callback: val => val + '%',
+            stepSize: 10,
+          }
+        }
+      }
+    }
+  });
+}
+
 
 function setupAgents(){
   const sel = document.getElementById("agentFilter");
