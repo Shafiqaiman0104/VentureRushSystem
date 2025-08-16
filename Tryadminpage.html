@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Dashboard – Campsite Portal</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: #f1f5f9;
+    color: #0f172a;
+  }
+
+  /* HEADER */
+  header {
+    position: sticky;
+    top: 0;
+    background: #ffffff;
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    z-index: 1000;
+    flex-wrap: wrap;
+  }
+  .logo {
+    font-weight: bold;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .menu-toggle {
+    display: none;
+    font-size: 1.5rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+  nav {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+  }
+  .tab, .dropdown-btn {
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: 0.2s;
+  }
+  .tab:hover, .dropdown-btn:hover {
+    background: #e2e8f0;
+  }
+  .tab.active {
+    background: #0ea5e9;
+    color: white;
+    border-color: #0ea5e9;
+  }
+  .logout-btn {
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  .logout-btn:hover {
+    background: #dc2626;
+  }
+
+  /* DROPDOWN */
+  .dropdown {
+    position: relative;
+  }
+  .dropdown-content {
+    display: none;
+    position: absolute;
+    top: 120%;
+    left: 0;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    min-width: 170px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    z-index: 1000;
+  }
+  .dropdown-content button {
+    padding: 0.75rem 1rem;
+    background: white;
+    border: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: 0.2s;
+  }
+  .dropdown-content button:hover {
+    background: #f1f5f9;
+  }
+  .dropdown:hover .dropdown-content {
+    display: block;
+  }
+
+  /* MOBILE MENU */
+  .mobile-menu {
+    display: none;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    width: 100%;
+  }
+  .mobile-menu.show {
+    display: flex;
+  }
+  .welcome-mobile {
+    display: none;
+    font-size: 0.8rem;
+    color: #334155;
+    margin-left: auto;
+    margin-right: 0.5rem;
+  }
+
+  /* MAIN */
+  main {
+    padding: 1.5rem;
+    max-width: 1200px;
+    margin: auto;
+  }
+  h2 {
+    margin-bottom: 1.5rem;
+    color: #0ea5e9;
+  }
+
+  /* CARDS */
+  .comm-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit,minmax(200px,1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .comm-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    transition: transform 0.2s;
+  }
+  .comm-card:hover {
+    transform: translateY(-3px);
+  }
+  .comm-card p {
+    font-size: 0.85rem;
+    color: #64748b;
+    margin-bottom: 0.25rem;
+  }
+  .comm-card h3 {
+    font-size: 1.5rem;
+    margin: 0;
+  }
+
+  /* FILTERS */
+  .filters-admin {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+  .action-button {
+    background: #0ea5e9;
+    color: white;
+    padding: 0.6rem 1.2rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  .action-button:hover {
+    background: #0284c7;
+  }
+
+  /* TABLE */
+  .table-wrapper {
+    overflow-x: auto;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    margin-bottom: 2rem;
+  }
+  .admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    font-size: 0.95rem;
+  }
+  th, td {
+    padding: 0.9rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  th {
+    background: #f8fafc;
+    font-weight: 600;
+  }
+  tr:nth-child(even) td {
+    background: #fafafa;
+  }
+
+  /* CHARTS */
+  .card-container {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+    margin: 2rem 0;
+  }
+  .charts-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit,minmax(320px,1fr));
+    gap: 2rem;
+    margin-top: 1rem;
+  }
+  .chart-box h3 {
+    margin-bottom: 0.75rem;
+    color: #1e293b;
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 768px) {
+    nav { display: none; }
+    .menu-toggle { display: block; }
+    .welcome-mobile { display: block; }
+    nav #welcomeText { display: none; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">🏕️ Campsite Admin Portal</div>
+  <div class="welcome-mobile" id="mobileWelcome"></div>
+  <button class="menu-toggle" onclick="toggleMenu()">☰</button>
+  <nav>
+    <span id="welcomeText" style="margin-right: 1rem; font-weight: bold;"></span>
+    <button class="tab active">Dashboard</button>
+    <button class="tab" onclick="location.href='apPendingCom.html'">Pending Commissions</button>
+    <div class="dropdown">
+      <button class="dropdown-btn">Block & Hold ▼</button>
+      <div class="dropdown-content">
+        <button onclick="location.href='apBlockDate.html'">Block Dates</button>
+        <button onclick="location.href='apHoldUnit.html'">Hold Unit</button>
+      </div>
+    </div>
+    <div class="dropdown">
+      <button class="dropdown-btn">Financials ▼</button>
+      <div class="dropdown-content">
+        <button onclick="location.href='apExpenses.html'">Expense Tracker</button>
+        <button onclick="location.href='apOtherIncome.html'">Other Income</button>
+        <button onclick="location.href='apReport.html'">Monthly Report</button>
+      </div>
+    </div>
+    <div class="dropdown">
+      <button class="dropdown-btn">C.O ▼</button>
+      <div class="dropdown-content">
+        <button onclick="location.href='apCoView.html'">C.O View</button>
+        <button onclick="location.href='apCoData.html'">C.O Data</button>
+      </div>
+    </div>
+    <button class="tab" onclick="location.href='apCheckAvailability.html'">Check Availability</button>
+    <button class="tab" onclick="location.href='apBooking.html'">New Booking</button>
+    <button class="tab" onclick="location.href='apAllBooking.html'">All Bookings</button>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+  </nav>
+  <div class="mobile-menu" id="mobileMenu">
+    <button class="tab active">Dashboard</button>
+    <button class="tab" onclick="location.href='apPendingCom.html'">Pending Commissions</button>
+    <button class="tab" onclick="location.href='apBlockDate.html'">Block Dates</button>
+    <button class="tab" onclick="location.href='apHoldUnit.html'">Hold Unit</button>
+    <button class="tab" onclick="location.href='apExpenses.html'">Expense Tracker</button>
+    <button class="tab" onclick="location.href='apOtherIncome.html'">Other Income</button>
+    <button class="tab" onclick="location.href='apReport.html'">Monthly Report</button>
+    <button class="tab" onclick="location.href='apCoView.html'">C.O View</button>
+    <button class="tab" onclick="location.href='apCoData.html'">C.O Data</button>
+    <button class="tab" onclick="location.href='apCheckAvailability.html'">Check Availability</button>
+    <button class="tab" onclick="location.href='apBooking.html'">New Booking</button>
+    <button class="tab" onclick="location.href='apAllBooking.html'">All Bookings</button>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+  </div>
+</header>
+
+<main>
+  <h2>Admin Dashboard</h2>
+
+  <!-- Summary Cards -->
+  <div class="comm-cards" id="commSummary">
+    <div class="comm-card"><p>Total Sales</p><h3 id="totalSales">RM 0.00</h3></div>
+    <div class="comm-card"><p>Total Commission</p><h3 id="totalComm">RM 0.00</h3></div>
+    <div class="comm-card"><p>Total Paid</p><h3 id="paidComm">RM 0.00</h3></div>
+    <div class="comm-card"><p>Total Pending</p><h3 id="pendComm">RM 0.00</h3></div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-admin">
+    <div><label>Agent:</label>
+      <select id="agentFilter" onchange="renderAgentTable()">
+        <option value="all">All Agents</option>
+      </select>
+    </div>
+    <div><label>Check-in:</label><input type="date" id="fromDate" onchange="renderAgentTable()"/></div>
+    <div><label>Check-out:</label><input type="date" id="toDate" onchange="renderAgentTable()"/></div>
+    <button class="action-button" onclick="refreshAll()">🔄 Refresh</button>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrapper">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Agent Name</th><th>#Bookings</th><th>Total Sales</th>
+          <th>Commission (10%)</th><th>Paid Commission</th><th>Pending Commission</th>
+        </tr>
+      </thead>
+      <tbody id="agentTable"></tbody>
+    </table>
+  </div>
+
+  <!-- Charts -->
+  <div class="card-container">
+    <h2>Chart Analytics Dashboard</h2>
+    <div class="charts-container">
+      <div class="chart-box">
+        <h3>Top Agents Chart</h3>
+        <canvas id="agentChart"></canvas>
+      </div>
+      <div class="chart-box">
+        <h3>Total Pax per Month</h3>
+        <canvas id="totalPaxChart"></canvas>
+      </div>
+      <div class="chart-box">
+        <h3>Occupancy % per Month</h3>
+        <canvas id="occupancyChart"></canvas>
+      </div>
+      <div class="chart-box">
+        <h3>Total Monthly Sales</h3>
+        <canvas id="monthlySalesChart"></canvas>
+      </div>
+      <div class="chart-box">
+        <h3>Unit Sales Breakdown</h3>
+        <canvas id="unitSalesChart"></canvas>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+<script>
+// Your existing JS logic (fetch, charts, etc.) goes here
+function toggleMenu(){document.getElementById("mobileMenu").classList.toggle("show");}
+function logout(){localStorage.clear();window.location.href="index.html";}
+</script>
+</body>
+  </html>
