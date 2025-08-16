@@ -361,6 +361,501 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
 <script>
+const username = localStorage.getItem("username") || "Admin";
+// 🔐 Redirect if not logged in (username missing or defaulted to "Admin")
+if (!localStorage.getItem("username") || localStorage.getItem("username") === "Admin") {
+  window.location.href = "index.html";
+}
+document.getElementById("welcomeText").textContent = `Welcome ${username} !!`;
+document.getElementById("mobileWelcome").textContent = `Welcome ${username} !!`;
+
+const agentId = "AKfycbwZYyoTqEYrTzk2mLPDer4RoLysmRVXakI4__TvENZ4GZRzMFvDcFOP8FX3xqG4hPv2TQ";
+const bookingId = "AKfycbwsPIi_Zf7UtwTQJ8BPiLmNR87VxecATUOItw68loKglD60QRcRzeQoqIzyynvTXolipA";
+let bookings = [], users = {}, userType = "staff";
+
+async function fetchAll(){
+  const ures = await fetch(`https://script.google.com/macros/s/${agentId}/exec`);
+  const dres = await fetch(`https://script.google.com/macros/s/${bookingId}/exec`);
+
+  const { users: udata } = await ures.json();
+  const { bookings: bdata } = await dres.json();
+
+  bookings = bdata;
+  users = {};
+  udata.forEach(u => {
+    users[u.userId] = { username: u.username, type: u.type };
+    if (u.username === username) userType = u.type;
+  });
+
+  setupAgents();
+  renderCommission();
+  renderAgentTable();
+  renderUnitSalesChart(); // move this here
+  renderTotalPaxChart();  // <-- add this call here
+  renderMonthlySalesChart();  // <-- add this here
+  renderOccupancyChart();
+
+}
+
+let unitSalesChartInstance;
+
+function renderUnitSalesChart() {
+  const unitSums = { TentA: 0, LotA: 0, LotB: 0, LotC: 0 };
+
+  bookings.forEach(b => {
+    if (b.userId === "BLOCK" || b.userId === "HOLD") return;
+    const unitStr = b.unit;
+    if (unitStr) {
+      unitStr.split(',').forEach(part => {
+        const [key, value] = part.split(':').map(s => s.trim());
+        if (unitSums.hasOwnProperty(key)) {
+          unitSums[key] += parseInt(value) || 0;
+        }
+      });
+    }
+  });
+
+  const ctx = document.getElementById('unitSalesChart').getContext('2d');
+  if (unitSalesChartInstance) unitSalesChartInstance.destroy();
+  unitSalesChartInstance = new Chart(ctx, {
+    type: 'pie',
+    data: {
+      labels: ['TentA', 'LotA', 'LotB', 'LotC'],
+      datasets: [{
+        data: [unitSums.TentA, unitSums.LotA, unitSums.LotB, unitSums.LotC],
+        backgroundColor: ['#f87171', '#facc15', '#4ade80', '#60a5fa']
+      }]
+    },
+    options: {
+      plugins: {
+        datalabels: {
+          formatter: (value, context) => {
+            const data = context.chart.data.datasets[0].data;
+            const sum = data.reduce((a, b) => a + b, 0);
+            const percentage = ((value / sum) * 100).toFixed(1) + "%";
+            return percentage;
+          },
+          color: '#fff',
+          font: {
+            weight: 'bold',
+            size: 14
+          }
+        }
+      }
+    },
+    plugins: [ChartDataLabels]
+  });
+}
+
+let totalPaxChartInstance;
+
+function renderTotalPaxChart() {
+  // Aggregate totalPax by month (YYYY-MM)
+  const paxByMonth = {};
+
+  bookings.forEach(b => {
+    if (b.userId === "BLOCK" || b.userId === "HOLD") return;
+    if (!b.checkin) return;
+
+    // Parse checkin date
+    const date = new Date(b.checkin);
+    if (isNaN(date)) return;
+
+    // Format month key YYYY-MM
+    const monthKey = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0');
+
+    // totalPax field - you might need to adjust this if your data structure differs
+    const pax = parseInt(b.totalPax) || 0;
+
+    if (!paxByMonth[monthKey]) paxByMonth[monthKey] = 0;
+    paxByMonth[monthKey] += pax;
+  });
+
+  // Sort months ascending
+  const sortedMonths = Object.keys(paxByMonth).sort();
+
+  const dataPoints = sortedMonths.map(m => paxByMonth[m]);
+
+  // Prepare chart
+  const ctx = document.getElementById('totalPaxChart').getContext('2d');
+
+  if (totalPaxChartInstance) totalPaxChartInstance.destroy();
+
+  totalPaxChartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: sortedMonths,
+      datasets: [{
+        label: 'Total Pax',
+        data: dataPoints,
+        fill: true,
+        borderColor: '#3b82f6',
+        backgroundColor: 'rgba(59, 130, 246, 0.5)', // more solid fill
+        tension: 0.3,
+        pointRadius: 5,
+        pointHoverRadius: 7,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top',
+        },
+        tooltip: {
+          mode: 'index',
+          intersect: false,
+        },
+      },
+      scales: {
+        x: {
+          title: {
+            display: true,
+            text: 'Month (YYYY-MM)'
+          }
+        },
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: 'Total Pax'
+          },
+          ticks: {
+            stepSize: 1,
+            precision: 0
+          }
+        }
+      }
+    }
+  });
+}
+
+let monthlySalesChartInstance;
+
+function renderMonthlySalesChart() {
+  // Aggregate total sales by month (YYYY-MM)
+  const salesByMonth = {};
+
+  bookings.forEach(b => {
+    if (b.userId === "BLOCK" || b.userId === "HOLD") return;
+    if (!b.checkin) return;
+
+    const date = new Date(b.checkin);
+    if (isNaN(date)) return;
+
+    // Format month key YYYY-MM
+    const monthKey = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0');
+
+    const total = parseFloat(b.total) || 0;
+
+    if (!salesByMonth[monthKey]) salesByMonth[monthKey] = 0;
+    salesByMonth[monthKey] += total;
+  });
+
+  // Sort months ascending
+  const sortedMonths = Object.keys(salesByMonth).sort();
+
+  const dataPoints = sortedMonths.map(m => salesByMonth[m]);
+
+  // Prepare chart
+  const ctx = document.getElementById('monthlySalesChart').getContext('2d');
+
+  if (monthlySalesChartInstance) monthlySalesChartInstance.destroy();
+
+  monthlySalesChartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: sortedMonths,
+      datasets: [{
+        label: 'Total Sales (RM)',
+        data: dataPoints,
+        backgroundColor: '#FE9900' // greenish bar color
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top',
+        },
+        tooltip: {
+          mode: 'index',
+          intersect: false,
+          callbacks: {
+            label: ctx => `RM ${ctx.parsed.y.toFixed(2)}`
+          }
+        },
+      },
+      scales: {
+        x: {
+          title: {
+            display: true,
+            text: 'Month (YYYY-MM)'
+          }
+        },
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: 'Sales (RM)'
+          }
+        }
+      }
+    }
+  });
+}
+
+let occupancyChartInstance;
+
+function renderOccupancyChart() {
+  const maxUnits = { TentA: 7, LotA: 1, LotB: 3, LotC: 5 };
+
+  function daysBetween(checkin, checkout) {
+    const msPerDay = 24 * 60 * 60 * 1000;
+    return Math.max(0, Math.floor((checkout - checkin) / msPerDay));
+  }
+
+  function daysInMonth(year, month) {
+    return new Date(year, month + 1, 0).getDate();
+  }
+
+  // Aggregate unit-days booked per month
+  const occupancyByMonth = {};
+  const totalUnits = Object.values(maxUnits).reduce((a, b) => a + b, 0);
+
+  bookings.forEach(b => {
+    if (b.userId === "BLOCK" || b.userId === "HOLD") return;
+    if (!b.checkin || !b.checkout) return;
+
+    const checkin = new Date(b.checkin);
+    const checkout = new Date(b.checkout);
+
+    const bookedDays = daysBetween(checkin, checkout);
+    if (bookedDays === 0) return;
+
+    // Parse units from b.unit string
+    const bookedUnits = { TentA: 0, LotA: 0, LotB: 0, LotC: 0 };
+    if (b.unit) {
+      b.unit.split(',').forEach(part => {
+        const [key, val] = part.split(':').map(s => s.trim());
+        if (key in bookedUnits) {
+          bookedUnits[key] = parseInt(val) || 0;
+        }
+      });
+    }
+
+    let totalUnitDays = 0;
+    Object.entries(bookedUnits).forEach(([unit, count]) => {
+      totalUnitDays += count * bookedDays;
+    });
+
+    const monthKey = checkin.getFullYear() + '-' + String(checkin.getMonth() + 1).padStart(2, '0');
+
+    if (!occupancyByMonth[monthKey]) occupancyByMonth[monthKey] = 0;
+    occupancyByMonth[monthKey] += totalUnitDays;
+  });
+
+  // Calculate occupancy percentage
+  const occupancyPercentByMonth = {};
+  Object.entries(occupancyByMonth).forEach(([month, bookedUnitDays]) => {
+    const [year, mon] = month.split('-');
+    const daysCount = daysInMonth(parseInt(year), parseInt(mon) - 1);
+    const totalAvailableUnitDays = totalUnits * daysCount;
+    occupancyPercentByMonth[month] = (bookedUnitDays / totalAvailableUnitDays) * 100;
+  });
+
+  // Prepare chart data
+  const sortedMonths = Object.keys(occupancyPercentByMonth).sort();
+  const dataPoints = sortedMonths.map(m => occupancyPercentByMonth[m]);
+
+  const ctx = document.getElementById('occupancyChart').getContext('2d');
+
+  if (occupancyChartInstance) occupancyChartInstance.destroy();
+
+  occupancyChartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: sortedMonths,
+      datasets: [{
+        label: 'Occupancy %',
+        data: dataPoints,
+        fill: true,
+        borderColor: '#ef4444',  // red color
+        backgroundColor: 'rgba(239, 68, 68, 0.3)', // transparent red fill
+        tension: 0.3,
+        pointRadius: 5,
+        pointHoverRadius: 7,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: true, position: 'top' },
+        tooltip: { mode: 'index', intersect: false },
+      },
+      scales: {
+        x: {
+          title: { display: true, text: 'Month (YYYY-MM)' }
+        },
+        y: {
+          beginAtZero: true,
+          max: 50,
+          title: { display: true, text: 'Occupancy %' },
+          ticks: {
+            callback: val => val + '%',
+            stepSize: 10,
+          }
+        }
+      }
+    }
+  });
+}
+
+
+function setupAgents(){
+  const sel = document.getElementById("agentFilter");
+  sel.innerHTML = `<option value="all">All Agents</option>`;
+  Object.values(users).forEach(u => {
+    sel.innerHTML += `<option value="${u.username}">${u.username}</option>`;
+  });
+}
+
+function renderCommission() {
+  const agentName = document.getElementById("agentFilter").value;
+  const from = document.getElementById("fromDate").value;
+  const to = document.getElementById("toDate").value;
+
+  let totalSales = 0, totalComm = 0, paid = 0, pending = 0;
+
+  bookings.forEach(b => {
+    if (b.userId === "BLOCK" || b.userId === "HOLD") return;
+    const [rawName] = b.userId.split(" - ");
+    const agent = rawName || "Unknown";
+
+    if (agentName !== "all" && agent !== agentName) return;
+
+    if (from || to) {
+      const checkinDate = new Date(b.checkin);
+      const checkoutDate = new Date(b.checkout);
+      checkinDate.setHours(0, 0, 0, 0);
+      checkoutDate.setHours(0, 0, 0, 0);
+      if (from && to) {
+        const fromDate = new Date(from);
+        const toDate = new Date(to);
+        fromDate.setHours(0, 0, 0, 0);
+        toDate.setHours(0, 0, 0, 0);
+        if (checkoutDate <= fromDate || checkinDate >= toDate) return;
+      }
+    }
+
+    const amt = parseFloat(b.total) || 0;
+const extraPaxCharge = (parseInt(b.extraPax) || 0) * 5;
+const net = amt - extraPaxCharge;
+totalSales += amt;
+
+const uEntry = Object.entries(users).find(([id, u]) => u.username === agent);
+if (uEntry && uEntry[1].type === "staff") {
+  const comm = net * 0.10;
+  totalComm += comm;
+  if (b.userId.includes("paid")) paid += comm;
+  else pending += comm;
+}
+
+  });
+
+  document.getElementById("totalSales").textContent = `RM ${totalSales.toFixed(2)}`;
+  document.getElementById("totalComm").textContent = `RM ${totalComm.toFixed(2)}`;
+  document.getElementById("paidComm").textContent = `RM ${paid.toFixed(2)}`;
+  document.getElementById("pendComm").textContent = `RM ${pending.toFixed(2)}`;
+}
+
+
+let agentChartInstance;
+
+function renderAgentChart(stats) {
+  const labels = Object.keys(stats);
+  const bookings = Object.values(stats).map(s => s.count);
+  const sales = Object.values(stats).map(s => s.total);
+  const ctx = document.getElementById('agentChart').getContext('2d');
+  if (agentChartInstance) agentChartInstance.destroy();
+  agentChartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [
+        { label: 'Bookings', data: bookings, backgroundColor: '#0ea5e9' },
+        { label: 'Total Sales', data: sales, backgroundColor: '#34d399' }
+      ]
+    }
+  });
+}
+
+function renderAgentTable() {
+  const agentName = document.getElementById("agentFilter").value;
+  const from = document.getElementById("fromDate").value;
+  const to = document.getElementById("toDate").value;
+  const stats = {};
+
+  bookings.forEach(b => {
+    if (b.userId === "BLOCK" || b.userId === "HOLD") return;
+    const [rawName] = b.userId.split(" - ");
+    const agent = rawName || "Unknown";
+    if (agentName !== "all" && agent !== agentName) return;
+
+    if (from || to) {
+      const checkinDate = new Date(b.checkin);
+      const checkoutDate = new Date(b.checkout);
+      checkinDate.setHours(0, 0, 0, 0);
+      checkoutDate.setHours(0, 0, 0, 0);
+      if (from && to) {
+        const fromDate = new Date(from);
+        const toDate = new Date(to);
+        fromDate.setHours(0, 0, 0, 0);
+        toDate.setHours(0, 0, 0, 0);
+        if (checkoutDate <= fromDate || checkinDate >= toDate) return;
+      }
+    }
+
+    const obj = stats[agent] || { count: 0, total: 0, comm: 0, paid: 0 };
+const amt = parseFloat(b.total) || 0;
+const extraPaxCharge = (parseInt(b.extraPax) || 0) * 5;
+const net = amt - extraPaxCharge;
+const cm = net * 0.10;
+
+obj.count++;
+obj.total += amt;
+obj.comm += cm;
+if (b.userId.includes("paid")) obj.paid += cm;
+stats[agent] = obj;
+
+  });
+
+  const tbody = document.getElementById("agentTable");
+  tbody.innerHTML = "";
+  Object.entries(stats).forEach(([agent, obj]) => {
+    const pend = obj.comm - obj.paid;
+    const agentUserEntry = Object.entries(users).find(([id, u]) => u.username === agent);
+    const agentIsAdmin = agentUserEntry && agentUserEntry[1].type === "admin";
+
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${agent}</td>
+      <td>${obj.count}</td>
+      <td>RM ${obj.total.toFixed(2)}</td>
+      <td>${agentIsAdmin ? "N/A" : `RM ${obj.comm.toFixed(2)}`}</td>
+      <td>${agentIsAdmin ? "N/A" : `RM ${obj.paid.toFixed(2)}`}</td>
+      <td>${agentIsAdmin ? "N/A" : `RM ${pend.toFixed(2)}`}</td>
+    `;
+    tbody.appendChild(row);
+  });
+renderAgentChart(stats);
+renderCommission(); // 👈 add this here
+}
+
+function refreshAll(){ fetchAll(); }
+window.onload = fetchAll;
 // Your existing JS logic (fetch, charts, etc.) goes here
 function toggleMenu(){document.getElementById("mobileMenu").classList.toggle("show");}
 function logout(){localStorage.clear();window.location.href="index.html";}
