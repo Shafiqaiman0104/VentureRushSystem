@@ -16,6 +16,8 @@
       align-items: center;
       box-shadow: 0 2px 4px rgba(0,0,0,0.06);
       flex-wrap: wrap;
+	  z-index: 101; /* Ensure header stays above overlay */
+      position: relative;
     }
  .logo { font-weight: bold; }
 
@@ -95,12 +97,37 @@ td {
     th,td { padding:.75rem; border:1px solid #e2e8f0; }
     th { background:#f1f5f9; }
 
+	/* ===== Closed Hours Overlay ===== */
+#closedOverlay {
+  position: fixed;
+  top: 80px; /* Adjust based on your header height */
+  left: 0;
+  width: 100%;
+  height: calc(100% - 80px); /* Subtract header height */
+  background: white;
+  z-index: 100;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 2rem;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #333;
+}
+
     @media (max-width: 768px) {
       nav { display: none; }
       .menu-toggle { display: block; }
       .mobile-menu.show { display: flex; }
       .welcome-mobile { display: block; }
       #welcomeText { display: none; }
+	  #closedOverlay {
+        top: 70px; /* Adjust for mobile header height */
+        height: calc(100% - 70px);
+        font-size: 1.1rem;
+        padding: 1rem;
+      }
     }
 
     @media (max-width: 600px) {
@@ -110,6 +137,10 @@ td {
 <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 </head>
 <body>
+	<div id="closedOverlay">
+  🚫 Sorry, this page is closed from 12:00 AM until 8:00 AM.<br>
+  Please come back after 8:00 AM MYT.
+  </div>
 <header>
     <div class="logo">🏕️ Campsite Agent Portal</div>
     <div class="welcome-mobile" id="mobileWelcome"></div>
@@ -746,7 +777,21 @@ function closeQRScanner() {
   }
 }
 
+ // ===== Closed Hours Check =====
+(function() {
+  const nowMYT = new Date().toLocaleString("en-US", { timeZone: "Asia/Kuala_Lumpur" });
+  const now = new Date(nowMYT);
+  const hour = now.getHours();
+
+  if (hour >= 0 && hour < 8) {
+    document.getElementById("closedOverlay").style.display = "flex";
+    // Optionally prevent scrolling/interactions
+    document.body.style.overflow = "hidden";
+  }
+})();
+	
   window.onload = refreshTable;
 </script>
 </body>
 </html>
+
