@@ -526,8 +526,8 @@ function generateToyyibpayLink(name, phone, email, amount, checkin, checkout, se
   const categoryCode = "4sakuukl";
   const billName = "Booking Payment";
   const billDescription = "Camp Booking via MK Rimba Admin Portal";
-  const returnUrl = "https://yourwebsite.com/thankyou";
-  const callbackUrl = "https://hook.us2.make.com/ev1j0v3qhnpraitj9am9s69sm6dp7qhb";
+  const returnUrl = "https://venturerush-typ.up.railway.app/";
+  const callbackUrl = "https://script.google.com/macros/s/AKfycbwsPIi_Zf7UtwTQJ8BPiLmNR87VxecATUOItw68loKglD60QRcRzeQoqIzyynvTXolipA/exec";
 
   const amountInSen = parseInt(parseFloat(amount) * 100); 
   const nowUtc = new Date();
@@ -548,6 +548,7 @@ function generateToyyibpayLink(name, phone, email, amount, checkin, checkout, se
   params.append("billEmail", email || "test@example.com");
   params.append("billPhone", formatPhone(phone || "0123456789"));
   params.append("billExpiryDate", formattedExpiry);
+  params.append("billExternalReferenceNo", `${formatPhone(phone || "0123456789")}|${formatPhone(phone || "0123456789")}`);
 
   fetch("https://toyyibpay.com/index.php/api/createBill", {
     method: "POST",
@@ -694,3 +695,4 @@ function checkPaxSummary() {
 </script>
 </body>
 </html>
+
