@@ -560,6 +560,17 @@ function buildTable(coData, bookMap) {
   headers.forEach(h => html += `<th>${h}</th>`);
   html += `</tr></thead><tbody>`;
 
+    // 🔽 Sort coData by BOOK check-in date (descending)
+  coData.sort((a, b) => {
+    const bookA = bookMap[a[0]] || {};
+    const bookB = bookMap[b[0]] || {};
+
+    const dateA = bookA.checkin ? new Date(bookA.checkin) : new Date(0);
+    const dateB = bookB.checkin ? new Date(bookB.checkin) : new Date(0);
+
+    return dateB - dateA; // latest first
+  });
+
   for (let row of coData) {
     const bookId = row[0] || '';
     const unit = (row[1] || '').split(',').map(s => s.trim()).join(',<br>');
@@ -811,3 +822,4 @@ fetchCOData();
 </script>
 </body>
 </html>
+
