@@ -315,20 +315,33 @@ if (!localStorage.getItem("username") || localStorage.getItem("username") === "U
     }
 
     function fetchBookings() {
-      fetch(`https://script.google.com/macros/s/${deploymentId}/exec`)
-        .then(res => res.json())
-        .then(data => {
-          if (!data.bookings) throw new Error("No bookings data found.");
-          const usernameVariants = [
-            username,
-            `${username} - paid`,
-            `${username} - pending`
-          ];
-          cachedBookings = data.bookings.filter(b => usernameVariants.includes(b.userId));
-          renderBookings(cachedBookings);
-        })
-        .catch(err => alert("Error fetching data: " + err));
-    }
+  fetch(`https://script.google.com/macros/s/${deploymentId}/exec`)
+    .then(res => res.json())
+    .then(data => {
+      if (!data.bookings) throw new Error("No bookings data found.");
+
+      const usernameVariants = [
+        username,
+        `${username} - paid`,
+        `${username} - pending`
+      ];
+
+      // Keep only this user's bookings
+      cachedBookings = data.bookings.filter(b => usernameVariants.includes(b.userId));
+
+      // 🔽 Sort by check-in date (latest first)
+      cachedBookings.sort((a, b) => {
+        const dateA = a.checkin ? new Date(a.checkin.split("/").reverse().join("-")) : new Date(0);
+        const dateB = b.checkin ? new Date(b.checkin.split("/").reverse().join("-")) : new Date(0);
+        return dateB - dateA;
+      });
+
+      renderBookings(cachedBookings);
+    })
+    .catch(err => alert("Error fetching data: " + err));
+}
+
+
 function renderBookings(bookings) {
   const tbody = document.getElementById("bookingTableBody");
   const filter = document.getElementById("filterStatus").value;
@@ -442,3 +455,4 @@ if (searchQuery && !visibleText.includes(searchQuery)) return;
   </script>
 </body>
 </html>
+
