@@ -607,20 +607,27 @@ function fetchCOData() {
         });
     }
 
-    function fetchBookings() {
-      fetchAdminList()
-        .then(() => {
-          return fetch(`https://script.google.com/macros/s/${deploymentId}/exec`);
-        })
-        .then(res => res.json())
-        .then(data => {
-          if (!data.bookings) throw new Error("No bookings data found.");
-          cachedBookings = data.bookings;
-          populateAgentFilter(cachedBookings);
-          renderBookings(cachedBookings);
-        })
-        .catch(err => alert("Error fetching data: " + err));
-    }
+function fetchBookings() {
+  fetchAdminList()
+    .then(() => {
+      return fetch(`https://script.google.com/macros/s/${deploymentId}/exec`);
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (!data.bookings) throw new Error("No bookings data found.");
+
+      // 🔽 Sort bookings by checkin date (latest first)
+      cachedBookings = data.bookings.sort((a, b) => {
+        const dateA = new Date(a.checkin.split("/").reverse().join("-")); 
+        const dateB = new Date(b.checkin.split("/").reverse().join("-"));
+        return dateB - dateA; // newest date first
+      });
+
+      populateAgentFilter(cachedBookings);
+      renderBookings(cachedBookings);
+    })
+    .catch(err => alert("Error fetching data: " + err));
+}
 
 function populateAgentFilter(bookings) {
   const agentDropdown = document.getElementById("agentFilter");
@@ -1036,4 +1043,5 @@ function updateExtraPax() {
   Updating booking...
 </div>
 </body>
+
 </html>
