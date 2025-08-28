@@ -507,7 +507,7 @@ Click OK to confirm & proceed.
 
 // === 🔔 Send notification to notification DB ===
 const notifyData = new URLSearchParams();
-notifyData.append("message", `New booking by ${name} !!`);   // 👈 include customer's name
+notifyData.append("message", `New booking by ${name} ${formattedPhone} !!`);   // 👈 include customer's name
 notifyData.append("from", "Admin Portal");                  // 👈 fixed source
 notifyData.append("agent", username);                       // 👈 actual logged-in username
 
@@ -708,6 +708,7 @@ function checkPaxSummary() {
 </script>
 </body>
 </html>
+
 
 
 
