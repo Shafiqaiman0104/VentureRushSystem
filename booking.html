@@ -421,6 +421,19 @@ Click OK to confirm & proceed.
   })
     .then(res => res.text())
     .then(() => {
+
+  // === 🔔 Send notification to notification DB ===
+  const notifyData = new URLSearchParams();
+  notifyData.append("message", `New booking by ${name} !!`);
+  notifyData.append("from", "Agent Portal");
+  notifyData.append("agent", username);
+
+  fetch("https://script.google.com/macros/s/AKfycbxsqetZ_iRLnZ3mhRcbxX09q4c0aXU_xHzO5JaPkocr0syDM52DsPsGI-raZi2GCpl5/exec", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: notifyData.toString()
+  }).catch(err => console.error("❌ Notification error:", err));
+
       document.getElementById("loadingOverlay").style.display = "none";
       alert("✅ Booking submitted successfully!");
       setTimeout(() => location.reload(), 7000);
@@ -611,5 +624,4 @@ function checkPaxSummary() {
 </script>
 </body>
 </html>
-
 
