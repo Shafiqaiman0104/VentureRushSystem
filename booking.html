@@ -424,7 +424,7 @@ Click OK to confirm & proceed.
 
   // === 🔔 Send notification to notification DB ===
   const notifyData = new URLSearchParams();
-  notifyData.append("message", `New booking by ${name} !!`);
+  notifyData.append("message", `New booking by ${name} ${formattedPhone} !!`);
   notifyData.append("from", "Agent Portal");
   notifyData.append("agent", username);
 
@@ -624,4 +624,5 @@ function checkPaxSummary() {
 </script>
 </body>
 </html>
+
 
