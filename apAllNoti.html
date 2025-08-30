@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>All Notifications</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- ✅ Mobile responsive -->
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f4f6f8;
+      color: #333;
+      margin: 0;
+    }
+    h2 {
+      margin-bottom: 15px;
+      font-size: 24px;
+      color: #0073e6;
+      text-align: center;
+    }
+    .filters {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .filters input {
+      margin: 5px;
+      padding: 8px 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    .date-group {
+      margin-bottom: 25px;
+    }
+    .date-title {
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: #555;
+      font-size: 16px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 15px 20px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .message {
+      font-size: 15px;
+      margin-bottom: 8px;
+      word-wrap: break-word;
+    }
+    .meta {
+      font-size: 13px;
+      color: #666;
+    }
+    .meta span {
+      display: inline-block;
+      margin-right: 12px;
+    }
+    .time {
+      float: right;
+      color: #999;
+      font-size: 12px;
+    }
+    /* ✅ Back button */
+    .back-btn {
+      display: inline-block;
+      margin-bottom: 15px;
+      padding: 8px 14px;
+      background: #0073e6;
+      color: #fff;
+      border-radius: 6px;
+      text-decoration: none;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+    .back-btn:hover {
+      background: #005bb5;
+    }
+    /* ✅ Responsive tweaks */
+    @media (max-width: 600px) {
+      body {
+        padding: 15px;
+      }
+      .card {
+        padding: 12px 15px;
+      }
+      .meta span {
+        display: block;
+        margin-bottom: 5px;
+      }
+      .time {
+        float: none;
+        display: block;
+        margin-top: 5px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a class="back-btn" onclick="history.back()">⬅ Back</a> <!-- ✅ Back button -->
+  <h2>📜 All Notifications</h2>
+
+  <!-- ✅ Filters (search + date only, no category buttons) -->
+  <div class="filters">
+    <input type="text" id="searchInput" placeholder="🔎 Search...">
+    <br>
+    <label>From: <input type="date" id="fromDate"></label>
+    <label>To: <input type="date" id="toDate"></label>
+  </div>
+
+  <div id="notificationsContainer"></div>
+
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbxsqetZ_iRLnZ3mhRcbxX09q4c0aXU_xHzO5JaPkocr0syDM52DsPsGI-raZi2GCpl5/exec";
+    let allData = []; // store original data
+
+    async function loadAll() {
+      const res = await fetch(API_URL);
+      let data = await res.json();
+      data.sort((a, b) => new Date(b.Timestamp) - new Date(a.Timestamp));
+      allData = data;
+      renderData();
+    }
+
+    function renderData() {
+      const container = document.getElementById("notificationsContainer");
+      container.innerHTML = "";
+
+      const searchValue = document.getElementById("searchInput").value.toLowerCase();
+      const fromDate = document.getElementById("fromDate").value ? new Date(document.getElementById("fromDate").value) : null;
+      const toDate = document.getElementById("toDate").value ? new Date(document.getElementById("toDate").value + "T23:59:59") : null;
+
+      // Group by date
+      const grouped = {};
+      allData.forEach(item => {
+        const ts = new Date(item.Timestamp);
+        const dateStr = ts.toLocaleDateString();
+
+        // ✅ Apply date filter
+        if (fromDate && ts < fromDate) return;
+        if (toDate && ts > toDate) return;
+
+        // ✅ Apply search filter (global: Message, From, Agent)
+        const combined = `${item.Message} ${item.From} ${item.Agent}`.toLowerCase();
+        if (searchValue && !combined.includes(searchValue)) return;
+
+        if (!grouped[dateStr]) grouped[dateStr] = [];
+        grouped[dateStr].push(item);
+      });
+
+      for (const date in grouped) {
+        const groupDiv = document.createElement("div");
+        groupDiv.className = "date-group";
+        groupDiv.innerHTML = `<div class="date-title">${date}</div>`;
+
+        grouped[date].forEach(item => {
+          const timeStr = new Date(item.Timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          const card = document.createElement("div");
+          card.className = "card";
+          card.innerHTML = `
+            <div class="message">🔔 ${item.Message}</div>
+            <div class="meta">
+              <span><strong>From:</strong> ${item.From}</span>
+              <span><strong>Agent:</strong> ${item.Agent}</span>
+              <span class="time">${timeStr}</span>
+            </div>
+          `;
+          groupDiv.appendChild(card);
+        });
+
+        container.appendChild(groupDiv);
+      }
+    }
+
+    // ✅ Filter functions
+    document.getElementById("searchInput").addEventListener("input", renderData);
+    document.getElementById("fromDate").addEventListener("change", renderData);
+    document.getElementById("toDate").addEventListener("change", renderData);
+
+    loadAll();
+  </script>
+</body>
+</html>
