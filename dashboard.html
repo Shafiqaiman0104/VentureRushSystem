@@ -166,12 +166,58 @@
       box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
     }
 
+    .bell {
+      position: relative; font-size: 22px; cursor: pointer;
+    }
+    .badge {
+      position: absolute; top: -8px; right: -10px;
+      background: red; color: white; border-radius: 50%;
+      padding: 2px 6px; font-size: 12px;
+    }
+    .dropdownNoti {
+      display: none;
+      position: absolute; left: 20px; top: 50px;
+      background: white; width: 320px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      border-radius: 8px; 
+      overflow-y: auto;       /* enable vertical scroll */
+      max-height: 60vh;       /* limit height to 60% of screen */
+      z-index: 999;
+    }
+    .dropdownNoti.active { display: block; }
+    .notification {
+      padding: 10px; border-bottom: 1px solid #ddd;
+      cursor: pointer;
+    }
+    .notification strong { color: #0073e6; display: block; margin-bottom: 5px; }
+    .notification button {
+      margin-top: 6px; padding: 5px 10px;
+      background: #0073e6; color: white; border: none;
+      border-radius: 4px; cursor: pointer; font-size: 12px;
+    }
+    .notification button:hover { background: #005bb5; }
+
+
     @media (max-width: 768px) {
       nav { display: none; }
       .menu-toggle { display: block; }
       .mobile-menu.show { display: flex; }
       .welcome-mobile { display: block; }
       #welcomeText { display: none; }
+      .dropdownNoti {
+      display: none;
+      position: absolute; right: 20px; top: 50px;
+      left: auto;
+      background: white; width: 320px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      border-radius: 8px; 
+      overflow-y: auto;       /* enable vertical scroll */
+      max-height: 60vh;       /* limit height to 60% of screen */
+      z-index: 999;
+    }
+  .dropdownNoti.active {
+    display: block;
+  } 
     }
 
     @media (max-width: 600px) {
@@ -183,6 +229,9 @@
   <header>
     <div class="logo">🏕️ Campsite Agent Portal</div>
     <div class="welcome-mobile" id="mobileWelcome"></div>
+    <div class="bell" onclick="handleBellClick()">
+     🔔 <span id="badge" class="badge" style="display:none">0</span>
+    </div>
     <button class="menu-toggle" onclick="toggleMenu()">☰</button>
     <nav>
       <span id="welcomeText" style="margin-right: 1rem; font-weight: bold;"></span>
@@ -249,6 +298,13 @@
     <div class="loading-popup">Loading...</div>
   </div>
 
+  <div id="dropdownNoti" class="dropdownNoti"></div>
+
+<audio id="dingSound" preload="auto">
+    <source src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" type="audio/ogg">
+    <source src="https://actions.google.com/sounds/v1/alarms/beep_short.mp3" type="audio/mpeg">
+</audio>
+  
   <script>
     const username = localStorage.getItem("username") || "User";
 // 🔐 Redirect if not logged in (username missing or defaulted to "User")
@@ -272,7 +328,7 @@ if (!localStorage.getItem("username") || localStorage.getItem("username") === "U
     }
 
     function logout() {
-      localStorage.clear();
+      localStorage.removeItem("username");
       window.location.href = "index.html";
     }
 
@@ -414,6 +470,113 @@ if (!localStorage.getItem("username") || localStorage.getItem("username") === "U
       const d = new Date(dateStr);
       return d.toLocaleDateString("en-GB");
     }
+
+const API_URL = "https://script.google.com/macros/s/AKfycbxsqetZ_iRLnZ3mhRcbxX09q4c0aXU_xHzO5JaPkocr0syDM52DsPsGI-raZi2GCpl5/exec";
+
+    let unread = JSON.parse(localStorage.getItem("unread") || "[]");
+    let lastSeenTime = localStorage.getItem("lastSeenTime") ? new Date(localStorage.getItem("lastSeenTime")) : null;
+
+    function saveState() {
+      localStorage.setItem("unread", JSON.stringify(unread));
+      if (lastSeenTime) {
+        localStorage.setItem("lastSeenTime", lastSeenTime.toISOString());
+      }
+    }
+
+    function handleBellClick() {
+      const badge = document.getElementById("badge");
+      if (badge.style.display === "none" || badge.innerText === "0") {
+        // No unread → go to allNoti.html
+        window.location.href = "allNoti.html";
+      } else {
+        // Toggle dropdown
+        document.getElementById("dropdownNoti").classList.toggle("active");
+      }
+    }
+
+    async function fetchNotifications() {
+      try {
+        const res = await fetch(API_URL);
+        let data = await res.json();
+
+        // sort newest first
+        data.sort((a,b)=> new Date(b.Timestamp) - new Date(a.Timestamp));
+
+        if (!lastSeenTime && data.length > 0) {
+          // first load: set lastSeenTime but do not trigger sound
+          lastSeenTime = new Date(data[0].Timestamp);
+          saveState();
+          return;
+        }
+
+        let newOnes = data.filter(n => new Date(n.Timestamp) > lastSeenTime);
+
+        if (newOnes.length > 0) {
+          // play sound once for new arrivals
+          document.getElementById("dingSound").play().catch(()=>{});
+          
+          // prepend new ones
+          unread = [...newOnes, ...unread];
+
+          // update last seen time to newest
+          lastSeenTime = new Date(newOnes[0].Timestamp);
+
+          updateUI();
+          saveState();
+        }
+      } catch(err) {
+        console.error("Fetch error", err);
+      }
+    }
+
+    function updateUI() {
+      const badge = document.getElementById("badge");
+      const dropdownNoti = document.getElementById("dropdownNoti");
+
+      if (unread.length > 0) {
+        badge.innerText = unread.length;
+        badge.style.display = "inline";
+      } else {
+        badge.style.display = "none";
+      }
+
+      dropdownNoti.innerHTML = "";
+      unread.forEach((n, idx) => {
+        const div = document.createElement("div");
+        div.className = "notification";
+        div.innerHTML = `
+          <strong>🔔 New Notification</strong>
+          <div>"${n.Message}"</div>
+          <div>From: ${n.From} | Agent: ${n.Agent}</div>
+          <button>See more...</button>
+        `;
+
+        // click on card removes it
+        div.addEventListener("click", () => {
+          unread.splice(idx, 1);
+          updateUI();
+          saveState();
+        });
+
+        // prevent button from removing notification, go to allNoti.html
+        div.querySelector("button").addEventListener("click", (e) => {
+          e.stopPropagation();
+          window.location.href = "allNoti.html";
+        });
+
+        dropdownNoti.appendChild(div);
+      });
+    }
+
+    // restore UI from storage on load
+    updateUI();
+
+    // initial fetch
+    fetchNotifications();
+    // poll every 10s
+    setInterval(fetchNotifications, 10000);
+
   </script>
 </body>
 </html>
+
