@@ -578,7 +578,7 @@ async function blockSelectedWeekdays() {
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: new URLSearchParams({
           Message: `Date blocked: ${dmy}`,
-          From: Admin Portal,
+          From: "Admin Portal",
           Agent: username
         }).toString()
       });
@@ -802,5 +802,6 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxsqetZ_iRLnZ3mhRcbxX09
   </script>
 </body>
 </html>
+
 
 
