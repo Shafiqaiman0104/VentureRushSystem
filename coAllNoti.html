@@ -114,6 +114,21 @@
     <br>
     <label>From: <input type="date" id="fromDate"></label>
     <label>To: <input type="date" id="toDate"></label>
+    <br>
+<label>
+  Filter Message:
+  <select id="messageFilter">
+    <option value="">-- All --</option>
+    <option>New booking</option>
+    <option>💰 Payment received</option>
+    <option>❌ Booking auto-cancelled</option>
+    <option>Payment failed / cancel</option>
+    <option>Date blocked</option>
+    <option>Block date released</option>
+    <option>Hold units</option>
+    <option>Unit released</option>
+  </select>
+</label>
   </div>
 
   <div id="notificationsContainer"></div>
@@ -137,6 +152,8 @@
       const searchValue = document.getElementById("searchInput").value.toLowerCase();
       const fromDate = document.getElementById("fromDate").value ? new Date(document.getElementById("fromDate").value) : null;
       const toDate = document.getElementById("toDate").value ? new Date(document.getElementById("toDate").value + "T23:59:59") : null;
+      const messageFilter = document.getElementById("messageFilter").value;
+
 
       // Group by date
       const grouped = {};
@@ -151,6 +168,9 @@
         // ✅ Apply search filter (global: Message, From, Agent)
         const combined = `${item.Message} ${item.From} ${item.Agent}`.toLowerCase();
         if (searchValue && !combined.includes(searchValue)) return;
+        
+        // ✅ Apply message type filter
+        if (messageFilter && !(String(item.Message).includes(messageFilter))) return;
 
         if (!grouped[dateStr]) grouped[dateStr] = [];
         grouped[dateStr].push(item);
@@ -184,6 +204,7 @@
     document.getElementById("searchInput").addEventListener("input", renderData);
     document.getElementById("fromDate").addEventListener("change", renderData);
     document.getElementById("toDate").addEventListener("change", renderData);
+    document.getElementById("messageFilter").addEventListener("change", renderData);
 
     loadAll();
   </script>
