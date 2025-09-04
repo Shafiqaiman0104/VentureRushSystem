@@ -403,6 +403,7 @@ tbody tr:hover {
           <select name="category" id="categorySelect" required>
              <option value="">-- Select --</option>
              <option value="Gazebo">Gazebo</option>  
+             <option value="Sea View">Sea View</option>
              <option value="Other Income">Other Income</option> 
              <option value="Rental Items">Rental Items</option> 
              <option value="Rental Scooter">Rental Scooter</option> 
@@ -472,6 +473,7 @@ tbody tr:hover {
         <select id="editCategory" required>
         <option value="">-- Select --</option>
         <option value="Gazebo">Gazebo</option>  
+        <option value="Sea View">Sea View</option>
         <option value="Other Income">Other Income</option> 
         <option value="Rental Items">Rental Items</option> 
         <option value="Rental Scooter">Rental Scooter</option> 
@@ -524,6 +526,7 @@ const customDescription = document.getElementById("customDescription");
 
 const options = {
   "Gazebo": ["Gazebo Usage", "Event Space", "Other"],
+  "Sea View": ["Sea View usage", "Event Space", "Other"],
   "Other Income": ["BBQ Pit Set", "Rental Tent (S)", "Rental Tent (M)", "Other"],
   "Rental Items": ["Table Fan", "Air Mattress Single", "Other"],
   "Rental Scooter": ["ATV (40)", "Scooter 2 wheel (20)", "Scooter 3 wheel (30)", "Stand-up (10)", "Fidoo (20)", "Other"],
@@ -954,4 +957,5 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxsqetZ_iRLnZ3mhRcbxX09
 </script>
 </body>
 </html>
+
 
