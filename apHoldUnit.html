@@ -565,7 +565,7 @@ await fetch(API_URL, {
 }
 
 
-    async function releaseHold(bookId) {
+    async function releaseHold(bookId, unitStr, dateRange) {
   if (!confirm("Are you sure you want to release this hold?")) return;
 
   const params = new URLSearchParams();
@@ -578,6 +578,18 @@ await fetch(API_URL, {
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: params.toString()
     });
+
+    // ✅ Trigger release notification
+    await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        message: `Unit released: ${unitStr}, Date: ${dateRange}, HOLD ID: ${bookId}`,
+        from: "Admin Portal",
+        agent: username
+      }).toString()
+    });
+    
     alert("✅ Hold released.");
     fetchHeldUnits();
   } catch (err) {
@@ -638,7 +650,7 @@ if (b.unit) {
       const btn = document.createElement("button");
       btn.className = "release-btn";
       btn.textContent = "Release this unit";
-      btn.onclick = () => releaseHold(b.bookId);
+      btn.onclick = () => releaseHold(b.bookId, tdUnit.innerText, tdDate.textContent);
       tdAction.appendChild(btn);
 
       tr.appendChild(tdId);
@@ -776,6 +788,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxsqetZ_iRLnZ3mhRcbxX09
   </script>
 </body>
 </html>
+
 
 
 
