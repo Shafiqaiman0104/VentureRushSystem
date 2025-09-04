@@ -533,6 +533,26 @@ if (unitCounts.lotC + lotC > MAX_UNITS.lotC) {
       body: params.toString()
     });
 
+    // ✅ Add this block to trigger notification
+const units = [];
+if (tentA > 0) units.push(`Pondok A-Tent x ${tentA}`);
+if (lotA > 0) units.push(`Lot A x ${lotA}`);
+if (lotB > 0) units.push(`Lot B x ${lotB}`);
+if (lotC > 0) units.push(`Lot C x ${lotC}`);
+
+const unitStr = units.length ? units.join(", ") : "No units";
+const dateRange = `${toDMY(checkin)} to ${toDMY(checkout)}`;
+
+await fetch(API_URL, {
+  method: "POST",
+  headers: { "Content-Type": "application/x-www-form-urlencoded" },
+  body: new URLSearchParams({
+    message: `Hold units : ${unitStr}, Date : ${dateRange}, HOLD ID : ${bookId}`,
+    from: "Admin Portal",
+    agent: username
+  }).toString()
+});
+
     alert("✅ Units held successfully.");
     location.reload();
 
@@ -756,4 +776,5 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxsqetZ_iRLnZ3mhRcbxX09
   </script>
 </body>
 </html>
+
 
