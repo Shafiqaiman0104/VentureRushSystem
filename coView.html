@@ -217,7 +217,7 @@ td {
 <div class="card">
   <div class="form-group">
     <label for="lookupId">Enter Book ID to Load:</label>
-    <input type="text" id="lookupId" placeholder="e.g. ABC123" />
+    <input type="text" id="lookupId" placeer="e.g. ABC123" />
     <button type="button" class="btn" onclick="openQRScanner()">📷 Scan QR</button>
     <button type="button" class="btn" onclick="lookup()">Lookup</button> 
   </div>
@@ -331,9 +331,9 @@ td {
     <source src="https://actions.google.com/sounds/v1/alarms/beep_short.mp3" type="audio/mpeg">
 </audio>
 <script>
-    const username = localStorage.getItem("username") || "CO";
-// 🔐 Redirect if not logged in (username missing or defaulted to "CO")
-if (!localStorage.getItem("username") || localStorage.getItem("username") === "CO") {
+    const username = localStorage.getItem("username") || "Agent";
+// 🔐 Redirect if not logged in (username missing or defaulted to "Agent")
+if (!localStorage.getItem("username") || localStorage.getItem("username") === "Agent") {
   window.location.href = "index.html";
 }
     document.getElementById("welcomeText").textContent = `Welcome ${username} !!`;
@@ -719,7 +719,7 @@ async function refreshTable() {
 
   db1Data.forEach(book => {
     const bookId = book.bookId;
-    if (bookId.startsWith("HOLD") || bookId.startsWith("BLOCK")) return;
+    if (bookId.startsWith("pending payment") || bookId.startsWith("BLOCK")) return;
 
     const checkinDate = parseDateLocal(book.checkin);
     const checkoutDate = parseDateLocal(book.checkout);
@@ -751,7 +751,7 @@ async function refreshTable() {
   db1Data.forEach(book => {
     const bookId = book.bookId;
     const phone = book.phone;
-    if (bookId.startsWith("HOLD") || bookId.startsWith("BLOCK")) return;
+    if (bookId.startsWith("pending payment") || bookId.startsWith("BLOCK")) return;
 
     const checkinDate = parseDateLocal(book.checkin);
     const checkoutDate = parseDateLocal(book.checkout);
@@ -954,5 +954,6 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxsqetZ_iRLnZ3mhRcbxX09
 </script>
 </body>
 </html>
+
 
 
