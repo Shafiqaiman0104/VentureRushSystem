@@ -799,7 +799,7 @@ async function refreshTable() {
 
   db1Data.forEach(book => {
     const bookId = book.bookId;
-    if (bookId.startsWith("HOLD") || bookId.startsWith("BLOCK")) return;
+    if (bookId.startsWith("pending payment") || bookId.startsWith("BLOCK")) return;
 
     const checkinDate = parseDateLocal(book.checkin);
     const checkoutDate = parseDateLocal(book.checkout);
@@ -831,7 +831,7 @@ async function refreshTable() {
   db1Data.forEach(book => {
     const bookId = book.bookId;
     const phone = book.phone;
-    if (bookId.startsWith("HOLD") || bookId.startsWith("BLOCK")) return;
+    if (bookId.startsWith("pending payment") || bookId.startsWith("BLOCK")) return;
 
     const checkinDate = parseDateLocal(book.checkin);
     const checkoutDate = parseDateLocal(book.checkout);
@@ -1034,4 +1034,5 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxsqetZ_iRLnZ3mhRcbxX09
 </script>
 </body>
 </html>
+
 
