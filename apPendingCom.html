@@ -366,7 +366,7 @@ async function markAllAsPaid() {
     return;
   }
 
-  if (filteredPending.some(b => b.bookId === "pending payment")) {
+  if (filteredPending.some(b => b.bookId.startsWith("pending payment"))) {
   alert("⚠️ One or more customers have not paid yet. Cannot mark commission as paid because no payment was received.");
   return;
   }
@@ -404,7 +404,7 @@ function sleep(ms) {
 }
 
   function markPaid(bookId) {
-    if (bookId === "pending payment") {
+    if (bookId.startsWith("pending payment")) {
     alert("⚠️ This customer has not paid yet. Cannot mark commission as paid because no payment was received.");
     return;
   }
@@ -554,4 +554,5 @@ function toggleMenu() {
 </div>
 </body>
 </html>
+
 
