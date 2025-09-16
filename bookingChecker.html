@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Double Booking Checker</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    body { font-family: system-ui, Arial, sans-serif; background:#f8fafc; margin:0; padding:20px; }
+    h1 { margin:0 0 12px 0; }
+    .card { background:#fff; padding:16px; border-radius:10px; box-shadow:0 6px 18px rgba(2,6,23,0.06); margin-bottom:16px; }
+    label { display:block; margin-top:8px; font-size:14px; color:#334155; }
+    input[type="date"] { padding:8px; border-radius:6px; border:1px solid #d1d5db; }
+    button { margin-top:12px; padding:10px 14px; border-radius:8px; border:0; background:#0ea5e9; color:#fff; cursor:pointer; }
+    button + button { margin-left:8px; background:#06b6d4; }
+    table { width:100%; border-collapse:collapse; margin-top:12px; font-size:14px; }
+    th, td { border:1px solid #e6eef6; padding:8px; text-align:left; }
+    th { background:#f1f5f9; }
+    tr:nth-child(even){ background:#fbfdff; }
+    #popup { position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.45); z-index:9999; }
+    #popupInner { width:92%; max-width:900px; max-height:86vh; overflow:auto; background:#fff; border-radius:10px; padding:16px; }
+    #closeBtn { float:right; cursor:pointer; color:#ef4444; font-weight:700; }
+    .muted { color:#64748b; font-size:13px; }
+    .pill { display:inline-block; padding:6px 10px; border-radius:999px; background:#eef2ff; color:#3730a3; font-size:13px; margin-right:8px; }
+  </style>
+</head>
+<body>
+  <h1>🔎 Double Booking Checker</h1>
+
+  <div class="card">
+    <div class="muted">Filter bookings by check-in/check-out. Note: checkout date is <strong>excluded</strong> (we count nights from check-in up to day before checkout).</div>
+
+    <label>Check-in (start):</label>
+    <input type="date" id="filterStart" />
+
+    <label>Check-out (end):</label>
+    <input type="date" id="filterEnd" />
+
+    <div style="margin-top:12px;">
+      <button onclick="checkFiltered()">Check This Range</button>
+      <button onclick="checkAll()">Check All Dates (scan entire dataset)</button>
+    </div>
+  </div>
+
+  <div id="popup" aria-hidden="true">
+    <div id="popupInner">
+      <span id="closeBtn" onclick="closePopup()">✖</span>
+      <h2>Results</h2>
+      <div id="results"></div>
+    </div>
+  </div>
+
+  <script>
+    // ---------- CONFIG ----------
+    const deploymentId = "AKfycbwsPIi_Zf7UtwTQJ8BPiLmNR87VxecATUOItw68loKglD60QRcRzeQoqIzyynvTXolipA";
+    const API_URL = `https://script.google.com/macros/s/${deploymentId}/exec`;
+    const MAX_UNITS = { tentA: 7, lotA: 1, lotB: 3, lotC: 5 };
+
+    // ---------- DATE HELPERS ----------
+    function makeLocalDate(y,m,d) { return new Date(y, m-1, d); }
+    function startOfDay(d) { const x=new Date(d); x.setHours(0,0,0,0); return x; }
+
+    // Format to YYYY-MM-DD (LOCAL, not UTC)
+    function localIsoDate(d){
+      const y = d.getFullYear();
+      const m = String(d.getMonth()+1).padStart(2,"0");
+      const day = String(d.getDate()).padStart(2,"0");
+      return `${y}-${m}-${day}`;
+    }
+
+    // Format for display dd/mm/yyyy
+    function formatDMY(d){
+      const day = String(d.getDate()).padStart(2,"0");
+      const m = String(d.getMonth()+1).padStart(2,"0");
+      const y = d.getFullYear();
+      return `${day}/${m}/${y}`;
+    }
+
+    function parseSheetDate(v){
+      if(!v && v!==0) return null;
+      if(v instanceof Date) return startOfDay(v);
+      let s=String(v).trim();
+      if(s==="") return null;
+
+      if(/^\d{4}[-/]\d{1,2}[-/]\d{1,2}$/.test(s)){
+        const [yy,mm,dd]=s.split(/[-/]/).map(Number);
+        return startOfDay(makeLocalDate(yy,mm,dd));
+      } else if(/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(s)){
+        const [dd,mm,yy]=s.split("/").map(Number);
+        return startOfDay(makeLocalDate(yy,mm,dd));
+      } else {
+        const x=new Date(s);
+        if(!isNaN(x)) return startOfDay(x);
+        return null;
+      }
+    }
+
+    function parseUnits(unitStr){
+      const res={tentA:0,lotA:0,lotB:0,lotC:0};
+      if(!unitStr) return res;
+      const m1=unitStr.match(/TentA:\s*(\d+)/i); if(m1) res.tentA=+m1[1];
+      const m2=unitStr.match(/LotA:\s*(\d+)/i); if(m2) res.lotA=+m2[1];
+      const m3=unitStr.match(/LotB:\s*(\d+)/i); if(m3) res.lotB=+m3[1];
+      const m4=unitStr.match(/LotC:\s*(\d+)/i); if(m4) res.lotC=+m4[1];
+      return res;
+    }
+
+    function expandDates(checkin, checkout, filterStart=null, filterEnd=null){
+      const dates=[];
+      let cur=startOfDay(checkin);
+      const end=startOfDay(checkout);
+      while(cur<end){
+        if(!filterStart||!filterEnd||(cur>=filterStart && cur<filterEnd)) dates.push(new Date(cur));
+        cur.setDate(cur.getDate()+1);
+      }
+      return dates;
+    }
+
+    // ---------- CORE ----------
+    function findConflicts(bookings,filterStart=null,filterEnd=null){
+      const fs=filterStart?startOfDay(filterStart):null;
+      const fe=filterEnd?startOfDay(filterEnd):null;
+      if(fs&&fe&&fe<=fs) throw new Error("Filter end must be after start");
+
+      const dayMap={};
+      bookings.forEach(b=>{
+        const ci=parseSheetDate(b.checkin);
+        const co=parseSheetDate(b.checkout);
+        if(!ci||!co) return;
+        if(fs&&fe&&(co<=fs||ci>=fe)) return;
+        const units=parseUnits(b.unit);
+        expandDates(ci,co,fs,fe).forEach(d=>{
+          const key=localIsoDate(d);
+          if(!dayMap[key]) dayMap[key]={tentA:[],lotA:[],lotB:[],lotC:[]};
+          for(const k of ["tentA","lotA","lotB","lotC"]){
+            if(units[k]>0) dayMap[key][k].push({customer:b.name||"(no name)",qty:units[k],bookId:b.bookId||"(no id)"});
+          }
+        });
+      });
+
+      const conflicts=[];
+      for(const day in dayMap){
+        for(const unit of ["tentA","lotA","lotB","lotC"]){
+          const total=dayMap[day][unit].reduce((s,x)=>s+(x.qty||0),0);
+          if(total>(MAX_UNITS[unit]||0)){
+            conflicts.push({date:day,unit,total,capacity:MAX_UNITS[unit],details:dayMap[day][unit]});
+          }
+        }
+      }
+      return {conflicts,dayMap};
+    }
+
+    function calculateAvailability(bookings,currentDate){
+      const current=startOfDay(currentDate);
+      const counts={tentA:0,lotA:0,lotB:0,lotC:0};
+      bookings.forEach(b=>{
+        const ci=parseSheetDate(b.checkin), co=parseSheetDate(b.checkout);
+        if(!ci||!co) return;
+        if(ci<=current && co>current){
+          const u=parseUnits(b.unit||"");
+          counts.tentA+=u.tentA; counts.lotA+=u.lotA; counts.lotB+=u.lotB; counts.lotC+=u.lotC;
+        }
+      });
+      return [
+        {key:"tentA",name:"Pondok A-Tent",available:Math.max(0,MAX_UNITS.tentA-counts.tentA)},
+        {key:"lotA",name:"Camp-Lot A",available:Math.max(0,MAX_UNITS.lotA-counts.lotA)},
+        {key:"lotB",name:"Camp-Lot B",available:Math.max(0,MAX_UNITS.lotB-counts.lotB)},
+        {key:"lotC",name:"Camp-Lot C",available:Math.max(0,MAX_UNITS.lotC-counts.lotC)}
+      ];
+    }
+
+    // ---------- NETWORK ----------
+    async function fetchBookings(){
+      const res=await fetch(API_URL);
+      if(!res.ok) throw new Error("Fetch failed: "+res.status);
+      const data=await res.json();
+      return data.bookings||[];
+    }
+
+    // ---------- UI ----------
+    function showPopup(html){document.getElementById("results").innerHTML=html;document.getElementById("popup").style.display="flex";}
+    function closePopup(){document.getElementById("popup").style.display="none";}
+
+    function renderConflictsTable(conflicts){
+      if(!conflicts.length) return "<p class='pill'>✅ No double bookings found in this range.</p>";
+      let html="<table><thead><tr><th>Date</th><th>Unit</th><th>Total</th><th>Capacity</th><th>Customers</th></tr></thead><tbody>";
+      conflicts.sort((a,b)=>a.date.localeCompare(b.date)||a.unit.localeCompare(b.unit));
+      conflicts.forEach(c=>{
+        const custs=c.details.map(d=>`${d.customer} (x${d.qty}) [${d.bookId}]`).join("<br>");
+        const d=new Date(c.date);
+        html+=`<tr><td>${formatDMY(d)}</td><td>${c.unit}</td><td>${c.total}</td><td>${c.capacity}</td><td>${custs}</td></tr>`;
+      });
+      html+="</tbody></table>"; return html;
+    }
+
+    function renderAvailabilityTable(bookings,start,end){
+      if(!start||!end) return "";
+      let html="<h3>Availability per night</h3><table><thead><tr><th>Date</th><th>Pondok A-Tent</th><th>Camp-Lot A</th><th>Camp-Lot B</th><th>Camp-Lot C</th></tr></thead><tbody>";
+      let cur=new Date(start);
+      while(cur<end){
+        const av=calculateAvailability(bookings,cur);
+        html+=`<tr><td>${formatDMY(cur)}</td>
+          <td>${av.find(x=>x.key==='tentA').available}</td>
+          <td>${av.find(x=>x.key==='lotA').available}</td>
+          <td>${av.find(x=>x.key==='lotB').available}</td>
+          <td>${av.find(x=>x.key==='lotC').available}</td></tr>`;
+        cur.setDate(cur.getDate()+1);
+      }
+      html+="</tbody></table>"; return html;
+    }
+
+    // ---------- ACTIONS ----------
+    async function checkAll(){
+      try{
+        const bookings=await fetchBookings();
+        const {conflicts}=findConflicts(bookings);
+        showPopup("<p class='muted'>Scanned entire dataset.</p>"+renderConflictsTable(conflicts));
+      }catch(e){showPopup("<p style='color:red'>"+e.message+"</p>");}
+    }
+
+    async function checkFiltered(){
+      const startStr=document.getElementById("filterStart").value;
+      const endStr=document.getElementById("filterEnd").value;
+      if(!startStr||!endStr){alert("Please select both dates.");return;}
+      const [sy,sm,sd]=startStr.split("-").map(Number);
+      const [ey,em,ed]=endStr.split("-").map(Number);
+      const start=startOfDay(makeLocalDate(sy,sm,sd));
+      const end=startOfDay(makeLocalDate(ey,em,ed));
+      if(end<=start){alert("Checkout must be after checkin.");return;}
+      try{
+        const bookings=await fetchBookings();
+        const {conflicts}=findConflicts(bookings,start,end);
+        let html=`<div class="muted">Range: <strong>${formatDMY(start)}</strong> → <strong>${formatDMY(end)}</strong> (checkout excluded)</div>`;
+        html+=renderConflictsTable(conflicts);
+        html+=renderAvailabilityTable(bookings,start,end);
+        showPopup(html);
+      }catch(e){showPopup("<p style='color:red'>"+e.message+"</p>");}
+    }
+
+    window.addEventListener("keydown",(e)=>{if(e.key==="Escape") closePopup();});
+  </script>
+</body>
+</html>
