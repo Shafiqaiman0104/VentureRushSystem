@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
     body { font-family: system-ui, Arial, sans-serif; background:#f8fafc; margin:0; padding:20px; }
-    h1 { margin:0 0 12px 0; }
+    h1 { margin:0 0 12px 0; display:inline-block; }
     .card { background:#fff; padding:16px; border-radius:10px; box-shadow:0 6px 18px rgba(2,6,23,0.06); margin-bottom:16px; }
     label { display:block; margin-top:8px; font-size:14px; color:#334155; }
     input[type="date"] { padding:8px; border-radius:6px; border:1px solid #d1d5db; }
@@ -21,9 +21,29 @@
     #closeBtn { float:right; cursor:pointer; color:#ef4444; font-weight:700; }
     .muted { color:#64748b; font-size:13px; }
     .pill { display:inline-block; padding:6px 10px; border-radius:999px; background:#eef2ff; color:#3730a3; font-size:13px; margin-right:8px; }
+
+    /* Loading overlay */
+    #loading {
+      position:fixed; inset:0; background:rgba(255,255,255,0.85);
+      display:none; align-items:center; justify-content:center;
+      flex-direction:column; z-index:10000;
+    }
+    .spinner {
+      border:4px solid #e5e7eb;
+      border-top:4px solid #0ea5e9;
+      border-radius:50%;
+      width:48px; height:48px;
+      animation:spin 1s linear infinite;
+    }
+    @keyframes spin { 100% { transform: rotate(360deg);} }
+    #backBtn {
+      background:#64748b; color:#fff; border:none; border-radius:8px;
+      padding:8px 12px; cursor:pointer; margin-bottom:12px;
+    }
   </style>
 </head>
 <body>
+  <button id="backBtn" onclick="history.back()">⬅ Back</button>
   <h1>🔎 Double Booking Checker</h1>
 
   <div class="card">
@@ -49,6 +69,12 @@
     </div>
   </div>
 
+  <!-- Loading overlay -->
+  <div id="loading">
+    <div class="spinner"></div>
+    <p class="muted" style="margin-top:12px;">Loading, please wait...</p>
+  </div>
+
   <script>
     // ---------- CONFIG ----------
     const deploymentId = "AKfycbwsPIi_Zf7UtwTQJ8BPiLmNR87VxecATUOItw68loKglD60QRcRzeQoqIzyynvTXolipA";
@@ -58,29 +84,14 @@
     // ---------- DATE HELPERS ----------
     function makeLocalDate(y,m,d) { return new Date(y, m-1, d); }
     function startOfDay(d) { const x=new Date(d); x.setHours(0,0,0,0); return x; }
-
-    // Format to YYYY-MM-DD (LOCAL, not UTC)
-    function localIsoDate(d){
-      const y = d.getFullYear();
-      const m = String(d.getMonth()+1).padStart(2,"0");
-      const day = String(d.getDate()).padStart(2,"0");
-      return `${y}-${m}-${day}`;
-    }
-
-    // Format for display dd/mm/yyyy
-    function formatDMY(d){
-      const day = String(d.getDate()).padStart(2,"0");
-      const m = String(d.getMonth()+1).padStart(2,"0");
-      const y = d.getFullYear();
-      return `${day}/${m}/${y}`;
-    }
+    function localIsoDate(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
+    function formatDMY(d){ return `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")}/${d.getFullYear()}`; }
 
     function parseSheetDate(v){
       if(!v && v!==0) return null;
       if(v instanceof Date) return startOfDay(v);
       let s=String(v).trim();
       if(s==="") return null;
-
       if(/^\d{4}[-/]\d{1,2}[-/]\d{1,2}$/.test(s)){
         const [yy,mm,dd]=s.split(/[-/]/).map(Number);
         return startOfDay(makeLocalDate(yy,mm,dd));
@@ -89,8 +100,7 @@
         return startOfDay(makeLocalDate(yy,mm,dd));
       } else {
         const x=new Date(s);
-        if(!isNaN(x)) return startOfDay(x);
-        return null;
+        return isNaN(x)?null:startOfDay(x);
       }
     }
 
@@ -105,9 +115,7 @@
     }
 
     function expandDates(checkin, checkout, filterStart=null, filterEnd=null){
-      const dates=[];
-      let cur=startOfDay(checkin);
-      const end=startOfDay(checkout);
+      const dates=[]; let cur=startOfDay(checkin); const end=startOfDay(checkout);
       while(cur<end){
         if(!filterStart||!filterEnd||(cur>=filterStart && cur<filterEnd)) dates.push(new Date(cur));
         cur.setDate(cur.getDate()+1);
@@ -120,11 +128,9 @@
       const fs=filterStart?startOfDay(filterStart):null;
       const fe=filterEnd?startOfDay(filterEnd):null;
       if(fs&&fe&&fe<=fs) throw new Error("Filter end must be after start");
-
       const dayMap={};
       bookings.forEach(b=>{
-        const ci=parseSheetDate(b.checkin);
-        const co=parseSheetDate(b.checkout);
+        const ci=parseSheetDate(b.checkin), co=parseSheetDate(b.checkout);
         if(!ci||!co) return;
         if(fs&&fe&&(co<=fs||ci>=fe)) return;
         const units=parseUnits(b.unit);
@@ -136,7 +142,6 @@
           }
         });
       });
-
       const conflicts=[];
       for(const day in dayMap){
         for(const unit of ["tentA","lotA","lotB","lotC"]){
@@ -179,6 +184,8 @@
     // ---------- UI ----------
     function showPopup(html){document.getElementById("results").innerHTML=html;document.getElementById("popup").style.display="flex";}
     function closePopup(){document.getElementById("popup").style.display="none";}
+    function showLoading(){document.getElementById("loading").style.display="flex";}
+    function hideLoading(){document.getElementById("loading").style.display="none";}
 
     function renderConflictsTable(conflicts){
       if(!conflicts.length) return "<p class='pill'>✅ No double bookings found in this range.</p>";
@@ -210,11 +217,13 @@
 
     // ---------- ACTIONS ----------
     async function checkAll(){
+      showLoading();
       try{
         const bookings=await fetchBookings();
         const {conflicts}=findConflicts(bookings);
         showPopup("<p class='muted'>Scanned entire dataset.</p>"+renderConflictsTable(conflicts));
       }catch(e){showPopup("<p style='color:red'>"+e.message+"</p>");}
+      hideLoading();
     }
 
     async function checkFiltered(){
@@ -226,6 +235,7 @@
       const start=startOfDay(makeLocalDate(sy,sm,sd));
       const end=startOfDay(makeLocalDate(ey,em,ed));
       if(end<=start){alert("Checkout must be after checkin.");return;}
+      showLoading();
       try{
         const bookings=await fetchBookings();
         const {conflicts}=findConflicts(bookings,start,end);
@@ -234,6 +244,7 @@
         html+=renderAvailabilityTable(bookings,start,end);
         showPopup(html);
       }catch(e){showPopup("<p style='color:red'>"+e.message+"</p>");}
+      hideLoading();
     }
 
     window.addEventListener("keydown",(e)=>{if(e.key==="Escape") closePopup();});
