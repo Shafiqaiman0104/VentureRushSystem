@@ -1,0 +1,955 @@
+<!-- full updated version with generateToyyibpayLink and delayed reload -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>New Booking</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #eef2f7; }
+    header {
+      background: #ffffff;
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+      flex-wrap: wrap;
+    }
+    .logo { font-weight: bold; }
+    .menu-toggle {
+      display: none;
+      font-size: 1.5rem;
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+    nav { display: flex; gap: 1rem; align-items: center; }
+    .tab {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 5px;
+      background: #f3f4f6;
+      cursor: pointer;
+      font-size: 0.95rem;
+    }
+
+
+.dropdown-btn {
+    margin: 0 4px;
+    padding: 8px 12px;
+    background-color: #f3f4f6;
+    border: none;
+    cursor: pointer;
+    font-size: 0.95rem;
+    width: 150px;
+  }
+  .dropdown {
+    position: relative;
+  }
+ .dropdown-content {
+    display: none;
+    position: absolute;
+    top: 110%;
+    left: 0;
+    background-color: white;
+    min-width: 100%;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    z-index: 999;
+    flex-direction: column;
+  }
+  .dropdown-content button {
+    padding: 10px;
+    width: 100%;
+    text-align: left;
+    background-color: #f3f4f6;
+    border: none;
+    border-top: 1px solid #ccc;
+    border-radius: 0px; /* ← square buttons */
+    white-space: nowrap;      
+  }
+  .dropdown-content button:hover {
+    background-color: white; 
+    color: #000; /* optional: make text darker for visibility */
+  }
+ .dropdown:hover .dropdown-content {
+    display: flex;
+  }
+
+
+    .tab.active {
+      background: #ffffff;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+    .logout-btn {
+      padding: 0.5rem 1rem;
+      background: #ef4444;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .mobile-menu {
+      display: none;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-top: 1rem;
+      width: 100%;
+    }
+    .welcome-mobile {
+      display: none;
+      font-size: 0.8rem;
+      color: #334155;
+      margin-left: auto;
+      margin-right: 0.5rem;
+    }
+    main { padding: 1rem; max-width: 800px; margin: auto; }
+    .card {
+      background: white;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .form-group { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem; }
+    .form-group label {
+      flex: 1;
+      min-width: 45%;
+      display: flex;
+      flex-direction: column;
+      font-size: 0.95rem;
+    }
+    .form-group input {
+      margin-top: 0.3rem;
+      padding: 0.5rem;
+      border: 1px solid #cbd5e1;
+      border-radius: 5px;
+      font-size: 1rem;
+    }
+    .btn-main {
+      width: 100%;
+      padding: 0.75rem;
+      font-size: 1rem;
+      background: #0d9488;
+      border: none;
+      border-radius: 6px;
+      color: white;
+      cursor: pointer;
+      margin-top: 0.5rem;
+      transition: background 0.2s;
+    }
+    .btn-main:hover { background: #0f766e; }
+    #loadingOverlay {
+      display: none;
+      position: fixed;
+      z-index: 9999;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.4);
+      justify-content: center;
+      align-items: center;
+    }
+    .loading-popup {
+      background: white;
+      padding: 1.5rem 2rem;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 1.2rem;
+      box-shadow: 0 0 20px rgba(0,0,0,0.3);
+    }
+        .bell {
+      position: relative; font-size: 22px; cursor: pointer;
+    }
+    .badge {
+      position: absolute; top: -8px; right: -10px;
+      background: red; color: white; border-radius: 50%;
+      padding: 2px 6px; font-size: 12px;
+    }
+    .dropdownNoti {
+      display: none;
+      position: absolute; left: 20px; top: 50px;
+      background: white; width: 320px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      border-radius: 8px; 
+      overflow-y: auto;       /* enable vertical scroll */
+      max-height: 60vh;       /* limit height to 60% of screen */
+      z-index: 999;
+    }
+    .dropdownNoti.active { display: block; }
+    .notification {
+      padding: 10px; border-bottom: 1px solid #ddd;
+      cursor: pointer;
+    }
+    .notification strong { color: #0073e6; display: block; margin-bottom: 5px; }
+    .notification button {
+      margin-top: 6px; padding: 5px 10px;
+      background: #0073e6; color: white; border: none;
+      border-radius: 4px; cursor: pointer; font-size: 12px;
+    }
+    .notification button:hover { background: #005bb5; }
+
+    @media (max-width: 768px) {
+      nav { display: none; }
+      .menu-toggle { display: block; }
+      .mobile-menu.show { display: flex; }
+      .welcome-mobile { display: block; }
+      #welcomeText { display: none; }
+      .dropdownNoti {
+      display: none;
+      position: absolute; right: 20px; top: 50px;
+      left: auto;
+      background: white; width: 320px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      border-radius: 8px; 
+      overflow-y: auto;       /* enable vertical scroll */
+      max-height: 60vh;       /* limit height to 60% of screen */
+      z-index: 999;
+    }
+  .dropdownNoti.active {
+    display: block;
+  } 
+    }
+    @media (max-width: 600px) {
+      .form-group label { min-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+<header>
+    <div class="logo">🏕️ Campsite Admin Portal</div>
+    <div class="welcome-mobile" id="mobileWelcome"></div>
+    <div class="bell" onclick="handleBellClick()">
+     🔔 <span id="badge" class="badge" style="display:none">0</span>
+    </div>
+    <button class="menu-toggle" onclick="toggleMenu()">☰</button>
+    <nav>
+      <span id="welcomeText" style="margin-right: 1rem; font-weight: bold;"></span>
+      <button class="tab" onclick="location.href='adminpage.html'">Dashboard</button>
+      <button class="tab" onclick="location.href='apPendingCom.html'">Pending Commissions</button>
+
+      <div class="dropdown">
+      <button class="dropdown-btn">Block & Hold ▼</button>
+      <div class="dropdown-content">
+       <button class="tab" onclick="location.href='apBlockDate.html'">Block Dates</button>
+       <button class="tab" onclick="location.href='apHoldUnit.html'">Hold Unit</button>      
+      </div>
+      </div>
+
+      <div class="dropdown">
+      <button class="dropdown-btn">Financials ▼</button>
+      <div class="dropdown-content">
+       <button class="tab" onclick="location.href='apExpenses.html'">Expense Tracker</button>
+       <button class="tab" onclick="location.href='apOtherIncome.html'">Other Income</button>
+       <button class="tab" onclick="location.href='apReport.html'">Monthly Report</button>
+      </div>
+      </div>
+      
+      <div class="dropdown">
+      <button class="dropdown-btn">C.O ▼</button>
+      <div class="dropdown-content">
+       <button class="tab" onclick="location.href='apCoView.html'">C.O View</button>
+       <button class="tab" onclick="location.href='apCoData.html'">C.O Data</button>
+      </div>
+      </div>
+
+      <button class="tab" onclick="location.href='apCheckAvailability.html'">Check Availability</button>
+      <button class="tab active">New Booking</button>
+      <button class="tab" onclick="location.href='apAllBooking.html'">All Bookings</button>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </nav>
+    <div class="mobile-menu" id="mobileMenu">
+      <button class="tab" onclick="location.href='adminpage.html'">Dashboard</button>
+      <button class="tab" onclick="location.href='apPendingCom.html'">Pending Commissions</button>
+      <button class="tab" onclick="location.href='apBlockDate.html'">Block Dates</button>
+      <button class="tab" onclick="location.href='apHoldUnit.html'">Hold Unit</button>
+      <button class="tab" onclick="location.href='apExpenses.html'">Expense Tracker</button>
+      <button class="tab" onclick="location.href='apOtherIncome.html'">Other Income</button>
+      <button class="tab" onclick="location.href='apReport.html'">Monthly Report</button>
+      <button class="tab" onclick="location.href='apCoView.html'">C.O View</button>
+      <button class="tab" onclick="location.href='apCoData.html'">C.O Data</button>
+      <button class="tab" onclick="location.href='apCheckAvailability.html'">Check Availability</button>
+      <button class="tab active">New Booking</button>
+      <button class="tab" onclick="location.href='apAllBooking.html'">All Bookings</button>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+  </header>
+<main>
+  <h2>New Booking</h2>
+  <div class="card">
+    <div class="form-group">
+      <label>Check-in Date <input type="date" id="checkin" /></label>
+      <label>Check-out Date <input type="date" id="checkout" /></label>
+    </div>
+    <div class="form-group">
+      <label>Pondok A‑Tent <input type="number" id="qtyTentA" value="0" min="0" /></label>
+      <label>Camp‑Lot A <input type="number" id="qtyLotA" value="0" min="0" /></label>
+    </div>
+    <div class="form-group">
+      <label>Camp‑Lot B <input type="number" id="qtyLotB" value="0" min="0" /></label>
+      <label>Camp‑Lot C <input type="number" id="qtyLotC" value="0" min="0" /></label>
+    </div>
+    <div class="form-group">
+      <label>Total Pax <input type="number" id="totalPax" value="0" min="0" /></label>
+      <button onclick="checkPaxSummary()" style="background:#4f46e5;color:white;padding:0.5rem 1rem;border:none;border-radius:6px;cursor:pointer;height:42px;align-self:flex-end">Check Total Pax</button>
+    </div>
+    <div class="form-group">
+      <label>Name <input type="text" id="name" /></label>
+      <label>Phone <input type="text" id="phone" /></label>
+    </div>
+    <div class="form-group">
+      <label>Email <input type="email" id="email" /></label>
+      <label>Total Price (RM) <input type="text" id="total" /></label>
+    </div>
+<div class="form-group">
+  <label style="flex:1">
+    <input type="radio" name="paymentMethod" value="fpx" checked /> Pay by FPX (Toyyibpay)
+  </label>
+  <label style="flex:1">
+    <input type="radio" name="paymentMethod" value="card" /> Pay by Card (HitPay)
+  </label>
+</div>
+
+    <button class="btn-main" onclick="submitBooking()">Submit Booking</button>
+    <div id="paymentLinkContainer" style="margin-top: 1rem;"></div>
+  </div>
+</main>
+<div id="loadingOverlay"><div class="loading-popup">Double Checking Availability...</div></div>
+<div id="paymentLoadingOverlay" style="display: none; position: fixed; z-index: 9999; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); justify-content: center; align-items: center;">
+  <div class="loading-popup">Generating payment link...</div>
+</div>
+  <div id="dropdownNoti" class="dropdownNoti"></div>
+
+<audio id="dingSound" preload="auto">
+    <source src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" type="audio/ogg">
+    <source src="https://actions.google.com/sounds/v1/alarms/beep_short.mp3" type="audio/mpeg">
+</audio>
+<script>
+const username = localStorage.getItem("username") || "Admin";
+
+// 🔐 Redirect if not logged in
+if (!localStorage.getItem("username") || localStorage.getItem("username") === "Admin") {
+  window.location.href = "index.html";
+} else {
+  // Check user's type
+  fetch("https://script.google.com/macros/s/AKfycbwZYyoTqEYrTzk2mLPDer4RoLysmRVXakI4__TvENZ4GZRzMFvDcFOP8FX3xqG4hPv2TQ/exec")
+    .then(res => res.json())
+    .then(data => {
+      const users = data.users || [];
+      const currentUser = users.find(u => u.username === username);
+      if (!currentUser) {
+        alert("⚠️ Username not recognized. Please log in again.");
+        localStorage.removeItem("username");
+        window.location.href = "index.html";
+        return;
+      }
+
+      if (["staff", "co"].includes(currentUser.type.toLowerCase())) {
+      alert("⚠️ This booking page is for admin only. Please use your own ID and sign in again.");
+      localStorage.removeItem("username");
+      window.location.href = "index.html";
+      return;
+      }
+
+      if (currentUser.type.toLowerCase() === "admin") {
+      alert("⚠️ Remember: You are logged in as Admin. No commission will be applied to this booking.");
+      }
+    })
+    .catch(() => {
+      alert("⚠️ Failed to verify user type. Please try again.");
+      localStorage.removeItem("username");
+      window.location.href = "index.html";
+    });
+}
+
+document.getElementById("welcomeText").textContent = `Welcome ${username} !!`;
+document.getElementById("mobileWelcome").textContent = `Welcome ${username} !!`;
+
+
+const deploymentId = "AKfycbwsPIi_Zf7UtwTQJ8BPiLmNR87VxecATUOItw68loKglD60QRcRzeQoqIzyynvTXolipA";
+const MAX_UNITS = { tentA: 7, lotA: 1, lotB: 3, lotC: 5 };
+function formatPhone(p) {
+  const cleaned = p.replace(/\D/g, '');
+
+  // ❌ Reject any number starting with 0
+  if (cleaned.startsWith('0')) {
+    alert("❌ Please enter valid international format. Example: +60123456789");
+    throw new Error("Phone number must be in international format.");
+  }
+
+  // ✅ Accept numbers like 60123456789
+  if (/^6\d{8,12}$/.test(cleaned)) return cleaned;
+
+  // ✅ Accept international format with + (e.g., +60123456789 or +6581234567)
+  if (/^\+\d{8,15}$/.test(p)) return p.replace('+', '');
+
+  // 🚫 Everything else: reject
+  alert("❌ Please enter valid international format. Example: +60123456789");
+  throw new Error("Invalid phone number format");
+}
+
+function toggleMenu() {
+  document.getElementById("mobileMenu").classList.toggle("show");
+}
+
+function logout() {
+  localStorage.removeItem("username");
+  window.location.href = "index.html";
+}
+
+function toDMY(dateStr) {
+  const [y, m, d] = dateStr.split("-");
+  return `${d}/${m}/${y}`;
+}
+
+// ... previous code ...
+
+function submitBooking() {
+  const checkinStr = document.getElementById("checkin").value;
+  const checkoutStr = document.getElementById("checkout").value;
+  const total = document.getElementById("total").value.trim();
+  const name = document.getElementById("name").value.trim();
+  const phone = document.getElementById("phone").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const totalPax = parseInt(document.getElementById("totalPax").value) || 0;
+  const validTotalPattern = /^\d+(\.\d{2})?$/;
+
+  const selectedQty = {
+    tentA: parseInt(document.getElementById("qtyTentA").value) || 0,
+    lotA: parseInt(document.getElementById("qtyLotA").value) || 0,
+    lotB: parseInt(document.getElementById("qtyLotB").value) || 0,
+    lotC: parseInt(document.getElementById("qtyLotC").value) || 0,
+  };
+
+  const errors = [];
+  let formattedPhone;
+
+  if (!checkinStr || !checkoutStr) {
+    errors.push("❌ Please select both check-in and check-out dates.");
+  } else if (new Date(checkoutStr) <= new Date(checkinStr)) {
+    errors.push("❌ Checkout date must be after check-in date.");
+  }
+
+  const totalUnits = selectedQty.tentA + selectedQty.lotA + selectedQty.lotB + selectedQty.lotC;
+  if (totalUnits === 0) errors.push("❌ Please select at least one unit to book.");
+  if (totalPax === 0) errors.push("❌ Please insert total pax.");
+  if (!name) errors.push("❌ Please enter your name.");
+  if (!phone) errors.push("❌ Please enter your phone number.");
+  else {
+    try {
+      formattedPhone = formatPhone(phone);
+    } catch {
+      errors.push("❌ Invalid phone format. Use international format like +60123456789.");
+    }
+  }
+  if (!email || !email.includes("@") || !email.includes(".")) {
+    errors.push("❌ Please enter a valid email address.");
+  }
+  if (!total || !validTotalPattern.test(total)) {
+    errors.push("❌ Please enter a valid total price (e.g., 1547 or 1547.00).");
+  }
+
+  if (errors.length > 0) {
+    alert(errors.join("\n"));
+    return;
+  }
+
+  // PAX validation
+  const unitRules = {
+    tentA: { base: 4, addon: 3 },
+    lotA: { base: 6, addon: 4 },
+    lotB: { base: 4, addon: 3 },
+    lotC: { base: 2, addon: 2 },
+  };
+
+  const basePax =
+    selectedQty.tentA * unitRules.tentA.base +
+    selectedQty.lotA * unitRules.lotA.base +
+    selectedQty.lotB * unitRules.lotB.base +
+    selectedQty.lotC * unitRules.lotC.base;
+
+  const maxPax =
+    selectedQty.tentA * (unitRules.tentA.base + unitRules.tentA.addon) +
+    selectedQty.lotA * (unitRules.lotA.base + unitRules.lotA.addon) +
+    selectedQty.lotB * (unitRules.lotB.base + unitRules.lotB.addon) +
+    selectedQty.lotC * (unitRules.lotC.base + unitRules.lotC.addon);
+
+  if (totalPax > maxPax) {
+    return alert(`❌ Total pax (${totalPax}) exceeds maximum allowed (${maxPax}).`);
+  }
+
+  const extraPax = Math.max(0, totalPax - basePax);
+  const extraCharge = extraPax * 5;
+
+  // ✅ All validation passed. Now show booking summary popup.
+  const summary = `
+✅ Please review your booking:\n
+📅 Check-in: ${checkinStr}
+📅 Check-out: ${checkoutStr}
+👤 Name: ${name}
+📞 Phone: ${formattedPhone}
+📧 Email: ${email}
+
+🏕️ Units:
+- Pondok A‑Tent: ${selectedQty.tentA}
+- Camp‑Lot A: ${selectedQty.lotA}
+- Camp‑Lot B: ${selectedQty.lotB}
+- Camp‑Lot C: ${selectedQty.lotC}
+
+🧍 Total Pax: ${totalPax}
+🧍‍♀️ Included Pax: ${basePax}
+➕ Extra Pax: ${extraPax}
+💵 Total Price: RM${total}
+
+Click OK to confirm & proceed.
+`;
+
+  if (!confirm(summary)) return;
+
+  // Proceed with availability check & submission
+  const checkin = new Date(checkinStr);
+  const checkout = new Date(checkoutStr);
+  const dates = [];
+  let current = new Date(checkin);
+  while (current < checkout) {
+    dates.push(new Date(current));
+    current.setDate(current.getDate() + 1);
+  }
+
+  document.querySelector(".btn-main").disabled = true;
+  document.getElementById("loadingOverlay").style.display = "flex";
+
+  fetch(`https://script.google.com/macros/s/${deploymentId}/exec`)
+    .then(res => res.json())
+    .then(data => {
+      if (!data.bookings) throw new Error("Missing bookings in response");
+      const warnings = [];
+
+      dates.forEach(date => {
+        const units = calculateAvailability(data.bookings, date);
+        units.forEach(unit => {
+          const want = selectedQty[unit.key] || 0;
+          if (want > 0 && unit.available < want) {
+            warnings.push(`${unit.name} only has ${unit.available} left on ${formatDate(date.toISOString())}`);
+          }
+        });
+      });
+
+      if (warnings.length > 0) {
+        document.getElementById("loadingOverlay").style.display = "none";
+        document.querySelector(".btn-main").disabled = false;
+        alert("Limited availability:\n" + warnings.join("\n"));
+        return;
+      }
+
+      const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+
+      if (paymentMethod === "fpx") {
+        generateToyyibpayLink(name, phone, email, total, toDMY(checkinStr), toDMY(checkoutStr), selectedQty, totalPax, afterPayment);
+      } else {
+        generateHitpayLink(name, phone, email, total, toDMY(checkinStr), toDMY(checkoutStr), selectedQty, totalPax, afterPayment);
+      }
+
+      function afterPayment(success) {
+        if (!success) {
+          document.getElementById("loadingOverlay").style.display = "none";
+          document.querySelector(".btn-main").disabled = false;
+          return;
+        }
+        
+        // ✅ proceed with booking save + notifications
+        const postData = new URLSearchParams();
+        postData.append("userId", `${username}`);
+        postData.append("custName", name);
+        postData.append("custPhone", formattedPhone);
+        postData.append("custEmail", email);
+        postData.append("totalPrice", total);
+        postData.append("startDate", toDMY(checkinStr));
+        postData.append("endDate", toDMY(checkoutStr));
+        postData.append("quantityATent", selectedQty.tentA);
+        postData.append("quantityLotA", selectedQty.lotA);
+        postData.append("quantityLotB", selectedQty.lotB);
+        postData.append("quantityLotC", selectedQty.lotC);
+        postData.append("totalPax", totalPax);
+        postData.append("extraPax", extraPax);
+
+        fetch(`https://script.google.com/macros/s/${deploymentId}/exec`, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: postData.toString()
+        })
+          .then(res => res.text())
+          .then(() => {
+            // === 🔔 Send notification to notification DB ===
+            const notifyData = new URLSearchParams();
+            notifyData.append("message", `New booking by ${name} ${formattedPhone} !!`);
+            notifyData.append("from", "Admin Portal");
+            notifyData.append("agent", username);
+
+            fetch("https://script.google.com/macros/s/AKfycbxsqetZ_iRLnZ3mhRcbxX09q4c0aXU_xHzO5JaPkocr0syDM52DsPsGI-raZi2GCpl5/exec", {
+              method: "POST",
+              headers: { "Content-Type": "application/x-www-form-urlencoded" },
+              body: notifyData.toString()
+            }).catch(err => console.error("❌ Notification error:", err));
+
+            document.getElementById("loadingOverlay").style.display = "none";
+            alert("✅ Booking submitted successfully!");
+            setTimeout(() => location.reload(), 7000);
+          })
+          .catch(err => {
+            document.getElementById("loadingOverlay").style.display = "none";
+            document.querySelector(".btn-main").disabled = false;
+            alert("❌ Failed to submit booking: " + err);
+          });
+      }
+    })
+    .catch(err => {
+      document.getElementById("loadingOverlay").style.display = "none";
+      document.querySelector(".btn-main").disabled = false;
+      alert("❌ Failed to check availability: " + err);
+    });
+} // ← This closing brace was missing
+
+// ... rest of your code ...
+
+let lastPaymentLink = ""; // ✅ store generated link for copy
+
+function generateToyyibpayLink(name, phone, email, amount, checkin, checkout, selectedQty, totalPax, callback) {
+  document.getElementById("paymentLoadingOverlay").style.display = "flex";
+
+  const userSecretKey = "xgyiyiwb-ij8m-48ll-p1g6-24sqtt00kpwl";
+  const categoryCode = "4sakuukl";
+  const billName = "Booking Payment";
+  const billDescription = "Camp Booking via MK Rimba Admin Portal";
+  const returnUrl = "https://payment.mkrimbacamp-vr.com";
+  const callbackUrl = "https://script.google.com/macros/s/AKfycbwsPIi_Zf7UtwTQJ8BPiLmNR87VxecATUOItw68loKglD60QRcRzeQoqIzyynvTXolipA/exec";
+
+  const amountInSen = parseInt(parseFloat(amount) * 100); 
+  const nowUtc = new Date();
+  const expiryMyTime = new Date(nowUtc.getTime() + (5 + 480) * 60 * 1000);
+  const formattedExpiry = expiryMyTime.toISOString().split('.')[0].replace('T', ' ');
+
+  const params = new URLSearchParams();
+  params.append("userSecretKey", userSecretKey);
+  params.append("categoryCode", categoryCode);
+  params.append("billName", billName);
+  params.append("billDescription", billDescription);
+  params.append("billPriceSetting", "1");
+  params.append("billPayorInfo", "1");
+  params.append("billAmount", amountInSen.toString());
+  params.append("billReturnUrl", returnUrl);
+  params.append("billCallbackUrl", callbackUrl);
+  params.append("billTo", name || "Customer");
+  params.append("billEmail", email || "test@example.com");
+  params.append("billPhone", formatPhone(phone || "0123456789"));
+  params.append("billExpiryDate", formattedExpiry);
+  params.append("billExternalReferenceNo", `${formatPhone(phone || "0123456789")}|${formatPhone(phone || "0123456789")}`);
+
+  fetch("https://toyyibpay.com/index.php/api/createBill", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: params.toString()
+  })
+    .then(res => res.json())
+    .then(data => {
+      document.getElementById("paymentLoadingOverlay").style.display = "none";
+      if (Array.isArray(data) && data[0]?.BillCode) {
+        const link = `https://toyyibpay.com/${data[0].BillCode}`;
+        lastPaymentLink = link;
+        window.open(link, "_blank");
+
+        const qrLink = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${data[0].BillCode}`;
+
+ // 🏕️ Unit Breakdown
+        const units = `
+- Pondok A‑Tent: ${selectedQty.tentA}
+- Camp‑Lot A: ${selectedQty.lotA}
+- Camp‑Lot B: ${selectedQty.lotB}
+- Camp‑Lot C: ${selectedQty.lotC}
+        `.trim();
+
+const msg = `Here is your payment link: ${link}
+
+⚠️ Important: This payment link will expire in 5 minutes ⏰. If payment is not completed, your booking will be cancelled and the unit will be released to the next customer.
+
+Here is your QR code: ${qrLink}
+
+📲 After making payment, please show this QR to our camp officer during your check-in.
+
+Booking Detail:
+
+🆔 Booking Id: ${data[0].BillCode}
+👤 Name: ${name}
+📞 Phone: ${phone}
+📧 Email: ${email}
+
+📅 Check-in: ${checkin}
+📅 Check-out: ${checkout}
+🏕️ Units:
+${units}
+🧍 Total Pax: ${totalPax}
+💵 Total Price: RM${amount}
+`;
+
+        const container = document.getElementById("paymentLinkContainer");
+        container.innerHTML = `
+          <button onclick="copyPaymentMessage()" style="margin-top: 10px; background: #f59e0b; color: white; border: none; padding: 0.7rem; border-radius: 6px; cursor: pointer;">
+            📋 Send payment link to customer
+          </button>
+        `;
+        window.copyPaymentMessage = () => {
+          navigator.clipboard.writeText(msg).then(() => {
+            alert("Payment message copied to clipboard!");
+          });
+        };
+
+        callback(true);
+      } else {
+        alert("❌ Error generating payment link. Please try again later.");
+        document.querySelector(".btn-main").disabled = false;
+        callback(false);
+      }
+    })
+    .catch(err => {
+      document.getElementById("paymentLoadingOverlay").style.display = "none";
+      alert("❌ Payment error: " + err.message);
+      document.querySelector(".btn-main").disabled = false;
+      callback(false);
+    });
+}
+
+function generateHitpayLink(name, phone, email, amount, checkin, checkout, selectedQty, totalPax, callback) {
+  document.getElementById("paymentLoadingOverlay").style.display = "flex";
+
+  const apiKey = "test_278603db184930b3c1fb4798b0d79fd51c006fb6e8ea5e3a18e633b18f005bc7"; // replace with your real API key
+  const redirectUrl = "https://payment.mkrimbacamp-vr.com";
+  const webhookUrl  = "https://your-server.com/hitpay-webhook"; 
+
+  const payload = {
+    amount: parseFloat(amount).toFixed(2),
+    currency: "MYR",
+    name: name || "Customer",
+    email: email || "test@example.com",
+    phone: phone,
+    reference_number: `BOOKING-${Date.now()}`,
+    redirect_url: redirectUrl,
+    webhook: webhookUrl,
+    payment_methods: ["card"]
+  };
+
+  fetch("https://api.sandbox.hit-pay.com/v1/payment-requests", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-BUSINESS-API-KEY": apiKey
+    },
+    body: JSON.stringify(payload)
+  })
+    .then(res => res.json())
+    .then(data => {
+      document.getElementById("paymentLoadingOverlay").style.display = "none";
+      if (data.url) {
+        window.open(data.url, "_blank");
+        lastPaymentLink = data.url;
+
+        const msg = `Here is your card payment link: ${data.url}\n\n💵 Total Price: RM${amount}\n📅 Check-in: ${checkin}\n📅 Check-out: ${checkout}`;
+        const container = document.getElementById("paymentLinkContainer");
+        container.innerHTML = `
+          <button onclick="navigator.clipboard.writeText(\`${msg}\`).then(()=>alert('Copied!'))"
+            style="margin-top: 10px; background: #f59e0b; color: white; border: none; padding: 0.7rem; border-radius: 6px; cursor: pointer;">
+            📋 Send payment link to customer
+          </button>`;
+        callback(true);
+      } else {
+        alert("❌ Error generating HitPay link: " + (data.message || "Unknown error"));
+        callback(false);
+      }
+    })
+    .catch(err => {
+      document.getElementById("paymentLoadingOverlay").style.display = "none";
+      alert("❌ HitPay error: " + err.message);
+      callback(false);
+    });
+}
+
+// ... other existing code remains unchanged
+function calculateAvailability(bookings, currentDate) {
+  const unitCounts = { tentA: 0, lotA: 0, lotB: 0, lotC: 0 };
+  bookings.forEach(booking => {
+    const bStart = parseSheetDate(booking.checkin);
+    const bEnd = parseSheetDate(booking.checkout);
+    if (!bStart || !bEnd) return;
+    if (bStart <= currentDate && bEnd > currentDate) {
+      const units = booking.unit || "";
+      unitCounts.tentA += parseInt(units.match(/TentA:\s*(\d+)/)?.[1] || 0);
+      unitCounts.lotA += parseInt(units.match(/LotA:\s*(\d+)/)?.[1] || 0);
+      unitCounts.lotB += parseInt(units.match(/LotB:\s*(\d+)/)?.[1] || 0);
+      unitCounts.lotC += parseInt(units.match(/LotC:\s*(\d+)/)?.[1] || 0);
+    }
+  });
+  return [
+    { key: "tentA", name: "Pondok A-Tent", available: Math.max(0, MAX_UNITS.tentA - unitCounts.tentA) },
+    { key: "lotA", name: "Camp-Lot A", available: Math.max(0, MAX_UNITS.lotA - unitCounts.lotA) },
+    { key: "lotB", name: "Camp-Lot B", available: Math.max(0, MAX_UNITS.lotB - unitCounts.lotB) },
+    { key: "lotC", name: "Camp-Lot C", available: Math.max(0, MAX_UNITS.lotC - unitCounts.lotC) }
+  ];
+}
+
+function parseSheetDate(dateStr) {
+  const parts = dateStr.includes("-") ? dateStr.split("-") : dateStr.split("/");
+  if (parts.length !== 3) return null;
+  try {
+    return dateStr.includes("-")
+      ? new Date(`${parts[0]}-${parts[1]}-${parts[2]}`)
+      : new Date(`${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`);
+  } catch { return null; }
+}
+
+function formatDate(dateStr) {
+  const d = new Date(dateStr);
+  return d.toLocaleDateString("en-GB");
+}
+function checkPaxSummary() {
+  const totalPax = parseInt(document.getElementById("totalPax").value) || 0;
+  const selectedQty = {
+    tentA: parseInt(document.getElementById("qtyTentA").value) || 0,
+    lotA: parseInt(document.getElementById("qtyLotA").value) || 0,
+    lotB: parseInt(document.getElementById("qtyLotB").value) || 0,
+    lotC: parseInt(document.getElementById("qtyLotC").value) || 0,
+  };
+  const unitRules = {
+    tentA: { base: 4, addon: 3 },
+    lotA: { base: 6, addon: 4 },
+    lotB: { base: 4, addon: 3 },
+    lotC: { base: 2, addon: 2 },
+  };
+  const basePax =
+    selectedQty.tentA * unitRules.tentA.base +
+    selectedQty.lotA * unitRules.lotA.base +
+    selectedQty.lotB * unitRules.lotB.base +
+    selectedQty.lotC * unitRules.lotC.base;
+  const maxPax =
+    selectedQty.tentA * (unitRules.tentA.base + unitRules.tentA.addon) +
+    selectedQty.lotA * (unitRules.lotA.base + unitRules.lotA.addon) +
+    selectedQty.lotB * (unitRules.lotB.base + unitRules.lotB.addon) +
+    selectedQty.lotC * (unitRules.lotC.base + unitRules.lotC.addon);
+  if (totalPax > maxPax) {
+    alert(`❌ Total pax (${totalPax}) exceeds the maximum allowed (${maxPax}). Please reduce total pax.`);
+    return;
+  }
+  const extraPax = Math.max(0, totalPax - basePax);
+  const extraCharge = extraPax * 5;
+  alert(`Pax Summary:\nTotal Pax: ${totalPax}\nIncluded Pax: ${basePax}\nExtra Pax: ${extraPax}\nAdditional Payment: RM${extraCharge}`);
+}
+
+const API_URL = "https://script.google.com/macros/s/AKfycbxsqetZ_iRLnZ3mhRcbxX09q4c0aXU_xHzO5JaPkocr0syDM52DsPsGI-raZi2GCpl5/exec";
+
+    let unread = JSON.parse(localStorage.getItem("unread") || "[]");
+    let lastSeenTime = localStorage.getItem("lastSeenTime") ? new Date(localStorage.getItem("lastSeenTime")) : null;
+
+    function saveState() {
+      localStorage.setItem("unread", JSON.stringify(unread));
+      if (lastSeenTime) {
+        localStorage.setItem("lastSeenTime", lastSeenTime.toISOString());
+      }
+    }
+
+    function handleBellClick() {
+      const badge = document.getElementById("badge");
+      if (badge.style.display === "none" || badge.innerText === "0") {
+        // No unread → go to apAllNoti.html
+        window.location.href = "apAllNoti.html";
+      } else {
+        // Toggle dropdown
+        document.getElementById("dropdownNoti").classList.toggle("active");
+      }
+    }
+
+    async function fetchNotifications() {
+      try {
+        const res = await fetch(API_URL);
+        let data = await res.json();
+
+        // sort newest first
+        data.sort((a,b)=> new Date(b.Timestamp) - new Date(a.Timestamp));
+
+        if (!lastSeenTime && data.length > 0) {
+          // first load: set lastSeenTime but do not trigger sound
+          lastSeenTime = new Date(data[0].Timestamp);
+          saveState();
+          return;
+        }
+
+        let newOnes = data.filter(n => new Date(n.Timestamp) > lastSeenTime);
+
+        if (newOnes.length > 0) {
+          // play sound once for new arrivals
+          document.getElementById("dingSound").play().catch(()=>{});
+          
+          // prepend new ones
+          unread = [...newOnes, ...unread];
+
+          // update last seen time to newest
+          lastSeenTime = new Date(newOnes[0].Timestamp);
+
+          updateUI();
+          saveState();
+        }
+      } catch(err) {
+        console.error("Fetch error", err);
+      }
+    }
+
+    function updateUI() {
+      const badge = document.getElementById("badge");
+      const dropdownNoti = document.getElementById("dropdownNoti");
+
+      if (unread.length > 0) {
+        badge.innerText = unread.length;
+        badge.style.display = "inline";
+      } else {
+        badge.style.display = "none";
+      }
+
+      dropdownNoti.innerHTML = "";
+      unread.forEach((n, idx) => {
+        const div = document.createElement("div");
+        div.className = "notification";
+        div.innerHTML = `
+          <strong>🔔 New Notification</strong>
+          <div>"${n.Message}"</div>
+          <div>From: ${n.From} | Agent: ${n.Agent}</div>
+          <button>See more...</button>
+        `;
+
+        // click on card removes it
+        div.addEventListener("click", () => {
+          unread.splice(idx, 1);
+          updateUI();
+          saveState();
+        });
+
+        // prevent button from removing notification, go to apAllNoti.html
+        div.querySelector("button").addEventListener("click", (e) => {
+          e.stopPropagation();
+          window.location.href = "apAllNoti.html";
+        });
+
+        dropdownNoti.appendChild(div);
+      });
+    }
+
+    // restore UI from storage on load
+    updateUI();
+
+    // initial fetch
+    fetchNotifications();
+    // poll every 10s
+    setInterval(fetchNotifications, 10000);
+
+</script>
+</body>
+</html>
+
+
+
+
