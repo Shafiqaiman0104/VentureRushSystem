@@ -720,53 +720,106 @@ ${units}
 function generateHitpayLink(name, phone, email, amount, checkin, checkout, selectedQty, totalPax, callback) {
   document.getElementById("paymentLoadingOverlay").style.display = "flex";
 
-  const apiKey = "test_278603db184930b3c1fb4798b0d79fd51c006fb6e8ea5e3a18e633b18f005bc7"; // replace with your real API key
+  const apiKey = "test_278603db184930b3c1fb4798b0d79fd51c006fb6e8ea5e3a18e633b18f005bc7";
   const redirectUrl = "https://payment.mkrimbacamp-vr.com";
-  const webhookUrl  = "https://your-server.com/hitpay-webhook"; 
+  const webhookUrl = "https://script.google.com/macros/s/AKfycbwsPIi_Zf7UtwTQJ8BPiLmNR87VxecATUOItw68loKglD60QRcRzeQoqIzyynvTXolipA/exec";
 
-  const payload = {
-    amount: parseFloat(amount).toFixed(2),
-    currency: "MYR",
-    name: name || "Customer",
-    email: email || "test@example.com",
-    phone: phone,
-    reference_number: `BOOKING-${Date.now()}`,
-    redirect_url: redirectUrl,
-    webhook: webhookUrl,
-    payment_methods: ["card"]
-  };
+  // Format phone number properly
+  let formattedPhone;
+  try {
+    formattedPhone = formatPhone(phone);
+  } catch {
+    formattedPhone = "60123456789";
+  }
 
-  fetch("https://api.sandbox.hit-pay.com/v1/payment-requests", {
+  // Use CORS proxy
+  const proxyUrl = 'https://corsproxy.io/?';
+  const targetUrl = 'https://api.sandbox.hit-pay.com/v1/payment-requests';
+
+  const formData = new URLSearchParams();
+  formData.append("amount", parseFloat(amount).toFixed(2));
+  formData.append("currency", "MYR");
+  formData.append("name", name || "Customer");
+  formData.append("email", email || "test@example.com");
+  formData.append("phone", formattedPhone);
+  formData.append("reference_number", `BOOKING-${Date.now()}`);
+  formData.append("redirect_url", redirectUrl);
+  formData.append("webhook", webhookUrl);
+  formData.append("payment_methods[]", "card");
+
+  fetch(proxyUrl + encodeURIComponent(targetUrl), {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
+      "Content-Type": "application/x-www-form-urlencoded",
       "X-BUSINESS-API-KEY": apiKey
     },
-    body: JSON.stringify(payload)
+    body: formData.toString()
   })
-    .then(res => res.json())
+    .then(res => {
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+      return res.json();
+    })
     .then(data => {
       document.getElementById("paymentLoadingOverlay").style.display = "none";
+      console.log("HitPay response:", data);
+      
       if (data.url) {
         window.open(data.url, "_blank");
         lastPaymentLink = data.url;
 
-        const msg = `Here is your card payment link: ${data.url}\n\n💵 Total Price: RM${amount}\n📅 Check-in: ${checkin}\n📅 Check-out: ${checkout}`;
+        // Create comprehensive message like ToyyibPay
+        const units = `
+- Pondok A‑Tent: ${selectedQty.tentA}
+- Camp‑Lot A: ${selectedQty.lotA}
+- Camp‑Lot B: ${selectedQty.lotB}
+- Camp‑Lot C: ${selectedQty.lotC}
+        `.trim();
+
+        const msg = `Here is your card payment link: ${data.url}
+
+⚠️ Important: This payment link will expire in 5 minutes ⏰. If payment is not completed, your booking will be cancelled and the unit will be released to the next customer.
+
+Booking Detail:
+
+👤 Name: ${name}
+📞 Phone: ${formattedPhone}
+📧 Email: ${email}
+
+📅 Check-in: ${checkin}
+📅 Check-out: ${checkout}
+🏕️ Units:
+${units}
+🧍 Total Pax: ${totalPax}
+💵 Total Price: RM${amount}
+`;
+
         const container = document.getElementById("paymentLinkContainer");
         container.innerHTML = `
-          <button onclick="navigator.clipboard.writeText(\`${msg}\`).then(()=>alert('Copied!'))"
-            style="margin-top: 10px; background: #f59e0b; color: white; border: none; padding: 0.7rem; border-radius: 6px; cursor: pointer;">
+          <button onclick="copyHitpayMessage()" style="margin-top: 10px; background: #f59e0b; color: white; border: none; padding: 0.7rem; border-radius: 6px; cursor: pointer;">
             📋 Send payment link to customer
-          </button>`;
+          </button>
+        `;
+        
+        window.copyHitpayMessage = () => {
+          navigator.clipboard.writeText(msg).then(() => {
+            alert("Payment message copied to clipboard!");
+          });
+        };
+
         callback(true);
       } else {
-        alert("❌ Error generating HitPay link: " + (data.message || "Unknown error"));
+        alert("❌ Error generating HitPay link: " + (data.message || JSON.stringify(data)));
+        document.querySelector(".btn-main").disabled = false;
         callback(false);
       }
     })
     .catch(err => {
       document.getElementById("paymentLoadingOverlay").style.display = "none";
+      console.error("HitPay error:", err);
       alert("❌ HitPay error: " + err.message);
+      document.querySelector(".btn-main").disabled = false;
       callback(false);
     });
 }
@@ -949,7 +1002,6 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxsqetZ_iRLnZ3mhRcbxX09
 </script>
 </body>
 </html>
-
 
 
 
