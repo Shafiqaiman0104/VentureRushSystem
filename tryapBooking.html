@@ -640,9 +640,9 @@ function generateToyyibpayLink(name, phone, email, amount, checkin, checkout, se
   params.append("billCallbackUrl", callbackUrl);
   params.append("billTo", name || "Customer");
   params.append("billEmail", email || "test@example.com");
-  params.append("billPhone", formatPhone(phone || "0123456789"));
+  params.append("billPhone", formatPhone(phone || "60123456789"));
   params.append("billExpiryDate", formattedExpiry);
-  params.append("billExternalReferenceNo", `${formatPhone(phone || "0123456789")}|${formatPhone(phone || "0123456789")}`);
+  params.append("billExternalReferenceNo", `${formatPhone(phone || "60123456789")}|${formatPhone(phone || "60123456789")}`);
 
   fetch("https://toyyibpay.com/index.php/api/createBill", {
     method: "POST",
@@ -723,14 +723,11 @@ function generateHitpayLink(name, phone, email, amount, checkin, checkout, selec
   const apiKey = "test_278603db184930b3c1fb4798b0d79fd51c006fb6e8ea5e3a18e633b18f005bc7";
   const redirectUrl = "https://payment.mkrimbacamp-vr.com";
   const webhookUrl = "https://script.google.com/macros/s/AKfycbwsPIi_Zf7UtwTQJ8BPiLmNR87VxecATUOItw68loKglD60QRcRzeQoqIzyynvTXolipA/exec";
+  const purposeDescription = "Camp Booking via MK Rimba Admin Portal";
 
-  // Format phone number properly
-  let formattedPhone;
-  try {
-    formattedPhone = formatPhone(phone);
-  } catch {
-    formattedPhone = "60123456789";
-  }
+  const nowUtc = new Date();
+  const expiryMyTime = new Date(nowUtc.getTime() + (5 + 480) * 60 * 1000);
+  const formattedExpiry = expiryMyTime.toISOString().split('.')[0].replace('T', ' ');
 
   // Use CORS proxy
   const proxyUrl = 'https://corsproxy.io/?';
@@ -741,11 +738,15 @@ function generateHitpayLink(name, phone, email, amount, checkin, checkout, selec
   formData.append("currency", "MYR");
   formData.append("name", name || "Customer");
   formData.append("email", email || "test@example.com");
-  formData.append("phone", formattedPhone);
-  formData.append("reference_number", `BOOKING-${Date.now()}`);
+  formData.append("phone", formatPhone(phone || "60123456789"));
+  formData.append("purpose", purposeDescription);
+  formData.append("reference_number", `${formatPhone(phone || "60123456789")}|${formatPhone(phone || "60123456789")}`);
   formData.append("redirect_url", redirectUrl);
   formData.append("webhook", webhookUrl);
   formData.append("payment_methods[]", "card");
+  formData.append("allow_repeated_payments", "false");
+  formData.append("expiry_date", formattedExpiry);
+  formData.append("send_email", "true");
 
   fetch(proxyUrl + encodeURIComponent(targetUrl), {
     method: "POST",
@@ -769,6 +770,8 @@ function generateHitpayLink(name, phone, email, amount, checkin, checkout, selec
         window.open(data.url, "_blank");
         lastPaymentLink = data.url;
 
+const qrLink = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${data.id}`;
+
         // Create comprehensive message like ToyyibPay
         const units = `
 - Pondok A‑Tent: ${selectedQty.tentA}
@@ -781,10 +784,15 @@ function generateHitpayLink(name, phone, email, amount, checkin, checkout, selec
 
 ⚠️ Important: This payment link will expire in 5 minutes ⏰. If payment is not completed, your booking will be cancelled and the unit will be released to the next customer.
 
+Here is your QR code: ${qrLink}
+
+📲 After making payment, please show this QR to our camp officer during your check-in.
+
 Booking Detail:
 
+🆔 Booking Id: ${data.id}
 👤 Name: ${name}
-📞 Phone: ${formattedPhone}
+📞 Phone: ${phone}
 📧 Email: ${email}
 
 📅 Check-in: ${checkin}
@@ -1002,6 +1010,3 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxsqetZ_iRLnZ3mhRcbxX09
 </script>
 </body>
 </html>
-
-
-
