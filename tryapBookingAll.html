@@ -307,6 +307,9 @@
   <label style="flex:1">
     <input type="radio" name="paymentMethod" value="card" /> Pay by Card (HitPay)
   </label>
+  <label style="flex:1">
+    <input type="radio" name="paymentMethod" value="cash" /> Pay by Cash
+  </label>
 </div>
 
     <button class="btn-main" onclick="submitBooking()">Submit Booking</button>
@@ -399,6 +402,89 @@ function logout() {
 function toDMY(dateStr) {
   const [y, m, d] = dateStr.split("-");
   return `${d}/${m}/${y}`;
+}
+
+function submitCashBooking(name, phone, email, total, checkin, checkout, selectedQty, totalPax, extraPax, callback) {
+  // Generate cash booking ID
+  const cashBookId = "cash_" + Date.now();
+  
+  const postData = new URLSearchParams();
+  postData.append("userId", username);
+  postData.append("custName", name);
+  postData.append("custPhone", phone);
+  postData.append("custEmail", email);
+  postData.append("totalPrice", total);
+  postData.append("startDate", checkin);
+  postData.append("endDate", checkout);
+  postData.append("quantityATent", selectedQty.tentA);
+  postData.append("quantityLotA", selectedQty.lotA);
+  postData.append("quantityLotB", selectedQty.lotB);
+  postData.append("quantityLotC", selectedQty.lotC);
+  postData.append("totalPax", totalPax);
+  postData.append("extraPax", extraPax);
+  postData.append("bookId", cashBookId);
+
+  fetch(`https://script.google.com/macros/s/${deploymentId}/exec`, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: postData.toString()
+  })
+    .then(res => res.text())
+    .then(() => {
+      // Simulate webhook after 5 seconds
+      setTimeout(() => {
+        simulateCashWebhook(phone, total, cashBookId);
+      }, 5000);
+      
+      // Send notification
+      const notifyData = new URLSearchParams();
+      notifyData.append("message", `New CASH booking by ${name} ${phone} - Booking ID: ${cashBookId}`);
+      notifyData.append("from", "Admin Portal");
+      notifyData.append("agent", username);
+
+      fetch("https://script.google.com/macros/s/AKfycbxsqetZ_iRLnZ3mhRcbxX09q4c0aXU_xHzO5JaPkocr0syDM52DsPsGI-raZi2GCpl5/exec", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: notifyData.toString()
+      });
+
+      callback(true);
+    })
+    .catch(err => {
+      console.error("Cash booking error:", err);
+      callback(false);
+    });
+}
+
+function simulateCashWebhook(phone, amount, billCode) {
+  const webhookData = {
+    status: "1",
+    order_id: `${phone}|${phone}`,
+    billCode: billCode,
+    amount: parseFloat(amount)
+  };
+
+  // Use URLSearchParams instead of JSON to avoid CORS preflight
+  const formData = new URLSearchParams();
+  formData.append("status", "1");
+  formData.append("order_id", `${phone}|${phone}`);
+  formData.append("billCode", billCode);
+  formData.append("amount", parseFloat(amount).toString());
+
+  // Send to your Google Apps Script webhook URL using form data
+  fetch(`https://script.google.com/macros/s/${deploymentId}/exec`, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: formData.toString()
+  })
+  .then(response => response.text())
+  .then(result => {
+    console.log("Cash webhook simulated successfully for:", billCode);
+    console.log("Response:", result);
+  })
+  .catch(error => {
+    console.error("Error simulating cash webhook:", error);
+  });
 }
 
 // ... previous code ...
@@ -545,8 +631,10 @@ Click OK to confirm & proceed.
 
       if (paymentMethod === "fpx") {
         generateToyyibpayLink(name, phone, email, total, toDMY(checkinStr), toDMY(checkoutStr), selectedQty, totalPax, afterPayment);
-      } else {
+      } else if (paymentMethod === "card") {
         generateHitpayLink(name, phone, email, total, toDMY(checkinStr), toDMY(checkoutStr), selectedQty, totalPax, afterPayment);
+      } else if (paymentMethod === "cash") {
+        submitCashBooking(name, formattedPhone, email, total, toDMY(checkinStr), toDMY(checkoutStr), selectedQty, totalPax, extraPax, afterPayment);
       }
 
       function afterPayment(success) {
@@ -556,50 +644,62 @@ Click OK to confirm & proceed.
           return;
         }
         
-        // ✅ proceed with booking save + notifications
-        const postData = new URLSearchParams();
-        postData.append("userId", `${username}`);
-        postData.append("custName", name);
-        postData.append("custPhone", formattedPhone);
-        postData.append("custEmail", email);
-        postData.append("totalPrice", total);
-        postData.append("startDate", toDMY(checkinStr));
-        postData.append("endDate", toDMY(checkoutStr));
-        postData.append("quantityATent", selectedQty.tentA);
-        postData.append("quantityLotA", selectedQty.lotA);
-        postData.append("quantityLotB", selectedQty.lotB);
-        postData.append("quantityLotC", selectedQty.lotC);
-        postData.append("totalPax", totalPax);
-        postData.append("extraPax", extraPax);
+        const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+        
+if (paymentMethod === "cash") {
+    // For cash: Show non-blocking success message
+    document.getElementById("loadingOverlay").style.display = "none";
+    
+    // Create a custom notification that doesn't block execution
+    showCustomNotification("✅ Cash booking submitted successfully! Status will update to 'paid' automatically in 5 seconds.");
+    
+    setTimeout(() => location.reload(), 7000);
+} else {
+          // For online payments, save booking after payment link generation
+          const postData = new URLSearchParams();
+          postData.append("userId", `${username}`);
+          postData.append("custName", name);
+          postData.append("custPhone", formattedPhone);
+          postData.append("custEmail", email);
+          postData.append("totalPrice", total);
+          postData.append("startDate", toDMY(checkinStr));
+          postData.append("endDate", toDMY(checkoutStr));
+          postData.append("quantityATent", selectedQty.tentA);
+          postData.append("quantityLotA", selectedQty.lotA);
+          postData.append("quantityLotB", selectedQty.lotB);
+          postData.append("quantityLotC", selectedQty.lotC);
+          postData.append("totalPax", totalPax);
+          postData.append("extraPax", extraPax);
 
-        fetch(`https://script.google.com/macros/s/${deploymentId}/exec`, {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: postData.toString()
-        })
-          .then(res => res.text())
-          .then(() => {
-            // === 🔔 Send notification to notification DB ===
-            const notifyData = new URLSearchParams();
-            notifyData.append("message", `New booking by ${name} ${formattedPhone} !!`);
-            notifyData.append("from", "Admin Portal");
-            notifyData.append("agent", username);
-
-            fetch("https://script.google.com/macros/s/AKfycbxsqetZ_iRLnZ3mhRcbxX09q4c0aXU_xHzO5JaPkocr0syDM52DsPsGI-raZi2GCpl5/exec", {
-              method: "POST",
-              headers: { "Content-Type": "application/x-www-form-urlencoded" },
-              body: notifyData.toString()
-            }).catch(err => console.error("❌ Notification error:", err));
-
-            document.getElementById("loadingOverlay").style.display = "none";
-            alert("✅ Booking submitted successfully!");
-            setTimeout(() => location.reload(), 7000);
+          fetch(`https://script.google.com/macros/s/${deploymentId}/exec`, {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: postData.toString()
           })
-          .catch(err => {
-            document.getElementById("loadingOverlay").style.display = "none";
-            document.querySelector(".btn-main").disabled = false;
-            alert("❌ Failed to submit booking: " + err);
-          });
+            .then(res => res.text())
+            .then(() => {
+              // === 🔔 Send notification to notification DB ===
+              const notifyData = new URLSearchParams();
+              notifyData.append("message", `New booking by ${name} ${formattedPhone} !!`);
+              notifyData.append("from", "Admin Portal");
+              notifyData.append("agent", username);
+
+              fetch("https://script.google.com/macros/s/AKfycbxsqetZ_iRLnZ3mhRcbxX09q4c0aXU_xHzO5JaPkocr0syDM52DsPsGI-raZi2GCpl5/exec", {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: notifyData.toString()
+              }).catch(err => console.error("❌ Notification error:", err));
+
+              document.getElementById("loadingOverlay").style.display = "none";
+              alert("✅ Booking submitted successfully!");
+              setTimeout(() => location.reload(), 7000);
+            })
+            .catch(err => {
+              document.getElementById("loadingOverlay").style.display = "none";
+              document.querySelector(".btn-main").disabled = false;
+              alert("❌ Failed to submit booking: " + err);
+            });
+        }
       }
     })
     .catch(err => {
@@ -607,7 +707,35 @@ Click OK to confirm & proceed.
       document.querySelector(".btn-main").disabled = false;
       alert("❌ Failed to check availability: " + err);
     });
-} // ← This closing brace was missing
+}
+
+function showCustomNotification(message) {
+    // Create a custom notification div
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #10b981;
+        color: white;
+        padding: 15px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 10000;
+        font-weight: bold;
+        max-width: 400px;
+    `;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+        }
+    }, 5000);
+}
 
 // ... rest of your code ...
 
