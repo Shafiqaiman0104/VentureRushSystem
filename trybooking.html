@@ -431,7 +431,7 @@ function submitCashBooking(name, phone, email, total, checkin, checkout, selecte
       // Send notification
       const notifyData = new URLSearchParams();
       notifyData.append("message", `New booking by ${name} ${phone} !!`);
-      notifyData.append("from", "Admin Portal");
+      notifyData.append("from", "Agent Portal");
       notifyData.append("agent", username);
 
       fetch("https://script.google.com/macros/s/AKfycbxsqetZ_iRLnZ3mhRcbxX09q4c0aXU_xHzO5JaPkocr0syDM52DsPsGI-raZi2GCpl5/exec", {
@@ -682,7 +682,7 @@ if (paymentMethod === "cash") {
               // === 🔔 Send notification to notification DB ===
               const notifyData = new URLSearchParams();
               notifyData.append("message", `New booking by ${name} ${formattedPhone} !!`);
-              notifyData.append("from", "Admin Portal");
+              notifyData.append("from", "Agent Portal");
               notifyData.append("agent", username);
 
               fetch("https://script.google.com/macros/s/AKfycbxsqetZ_iRLnZ3mhRcbxX09q4c0aXU_xHzO5JaPkocr0syDM52DsPsGI-raZi2GCpl5/exec", {
@@ -870,7 +870,7 @@ function generateToyyibpayLink(name, phone, email, amount, checkin, checkout, se
   const userSecretKey = "xgyiyiwb-ij8m-48ll-p1g6-24sqtt00kpwl";
   const categoryCode = "4sakuukl";
   const billName = "Booking Payment";
-  const billDescription = "Camp Booking via MK Rimba Admin Portal";
+  const billDescription = "Camp Booking via MK Rimba Agent Portal";
   const returnUrl = "https://payment.mkrimbacamp-vr.com";
   const callbackUrl = "https://script.google.com/macros/s/AKfycbwsPIi_Zf7UtwTQJ8BPiLmNR87VxecATUOItw68loKglD60QRcRzeQoqIzyynvTXolipA/exec";
 
@@ -974,7 +974,7 @@ function generateHitpayLink(name, phone, email, amount, checkin, checkout, selec
   const apiKey = "test_278603db184930b3c1fb4798b0d79fd51c006fb6e8ea5e3a18e633b18f005bc7";
   const redirectUrl = "https://payment.mkrimbacamp-vr.com";
   const webhookUrl = "https://script.google.com/macros/s/AKfycbwsPIi_Zf7UtwTQJ8BPiLmNR87VxecATUOItw68loKglD60QRcRzeQoqIzyynvTXolipA/exec";
-  const purposeDescription = "Camp Booking via MK Rimba Admin Portal";
+  const purposeDescription = "Camp Booking via MK Rimba Agent Portal";
 
   const nowUtc = new Date();
   const expiryMyTime = new Date(nowUtc.getTime() + (5 + 480) * 60 * 1000);
