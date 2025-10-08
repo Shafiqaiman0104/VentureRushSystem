@@ -323,6 +323,7 @@
             <th>Extra Pax</th>
             <th>Total Sales</th>
             <th>Book Id</th>
+            <th>Plate Number</th>
             <th>Total Commission</th>
             <th>Commission Status</th>
           </tr>
@@ -487,6 +488,7 @@ function renderBookings(bookings) {
       <td>${booking.extraPax || '-'}</td>
       <td>RM ${totalAmount.toFixed(2)}</td>
       <td>${booking.bookId || ""}</td>
+      <td>${booking.remark || ""}</td>
       <td>RM ${commission.toFixed(2)}</td>
       <td>
         <span style="color: white; background-color: ${statusColor}; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem;">
@@ -615,5 +617,6 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxsqetZ_iRLnZ3mhRcbxX09
   </script>
 </body>
 </html>
+
 
 
