@@ -503,6 +503,7 @@
             <th>Extra Pax</th>
             <th>Total Sales</th>
             <th>Book Id</th>
+            <th>Plate Number</th>
             <th>Total Commission</th>
             <th>Agent</th>
             <th>Commission Status</th>
@@ -526,6 +527,10 @@
       </div>
       <div style="flex: 1 1 100%;">
         <label>Email:<input type="email" id="editEmail" required></label>
+      </div>
+     <!-- ✅ NEW FIELD: Plate Number -->
+      <div style="flex: 1 1 100%;">
+        <label>Plate Number:<input type="text" id="editPlate" required></label>
       </div>
       <div style="flex: 1 1 100%; display: flex; gap: 10px;">
         <label style="flex: 1;">Tent A:<input type="number" id="editTentA" min="0"></label>
@@ -713,6 +718,7 @@ function openEditPopup(data) {
   document.getElementById('editName').value = data.name || '';
   document.getElementById('editPhone').value = data.phone || '';
   document.getElementById('editEmail').value = data.email || '';
+  document.getElementById('editPlate').value = data.remark || '';
   document.getElementById('editTentA').value = data.unit.match(/TentA:\s?(\d+)/)?.[1] || 0;
   document.getElementById('editLotA').value = data.unit.match(/LotA:\s?(\d+)/)?.[1] || 0;
   document.getElementById('editLotB').value = data.unit.match(/LotB:\s?(\d+)/)?.[1] || 0;
@@ -796,6 +802,7 @@ function formatPhone(p) {
 
 function submitEdit() {
 const bookId = document.getElementById('editBookId').value;
+const plateNumber = document.getElementById('editPlate').value.trim();
 
 const tentA = parseInt(document.getElementById('editTentA').value) || 0;
       const lotA = parseInt(document.getElementById('editLotA').value) || 0;
@@ -912,6 +919,7 @@ try {
   payload.append("extraPax", document.getElementById('editExtraPax').value || 0);
   payload.append("total", document.getElementById('editTotal').value || 0);
   payload.append("bookId", document.getElementById('editBookId').value);
+  payload.append("remark", plateNumber);
   payload.append("userId", document.getElementById('editUserId').value);
 
 document.getElementById("loadingOverlay").style.display = "flex"; // Show loading
@@ -1029,6 +1037,7 @@ if (statusLabel === "N/A") {
           <td>${booking.extraPax || '-'}</td>
           <td>RM ${totalAmount.toFixed(2)}</td>
           <td>${booking.bookId || ""}</td>
+          <td>${booking.remark || ""}</td>
           <td>${commissionDisplay}</td>
           <td>${agentName}</td>
           <td>
@@ -1204,4 +1213,3 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxsqetZ_iRLnZ3mhRcbxX09
 </body>
 
 </html>
-
