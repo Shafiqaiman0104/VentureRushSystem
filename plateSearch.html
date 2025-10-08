@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Plate Search - Guests Staying Today</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #eef2f7;
+      margin: 0;
+      padding: 0;
+    }
+
+    main {
+      max-width: 950px;
+      margin: 1rem auto;
+      background: white;
+      padding: 1.2rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    h2 { margin-top: 0; }
+
+    /* 🔙 Back Button */
+    .back-btn {
+      background-color: #0078d7;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      margin-bottom: 1rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s ease;
+    }
+
+    .back-btn:hover { background-color: #005fa3; }
+
+    /* 🔍 Search Bar */
+.search-container {
+  margin: 1rem 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+#searchInput {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: 0.2s;
+  box-sizing: border-box; /* ✅ Prevent overflow */
+  display: block;
+}
+
+
+    #searchInput:focus {
+      border-color: #0078d7;
+      outline: none;
+      box-shadow: 0 0 3px rgba(0,120,215,0.3);
+    }
+
+    /* 🧾 Table */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      font-size: 0.95rem;
+    }
+
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid #ccc;
+      text-align: left;
+      vertical-align: middle;
+    }
+
+    th { background: #f3f4f6; }
+
+    button.action-btn {
+      border: none;
+      border-radius: 6px;
+      padding: 6px 10px;
+      margin: 3px 0;
+      cursor: pointer;
+      color: white;
+      font-size: 0.85rem;
+      transition: 0.2s ease;
+      width: 100%;
+    }
+
+    .call-btn { background-color: #34a853; }
+    .call-btn:hover { background-color: #2e8b47; }
+
+    .wa-btn { background-color: #25D366; }
+    .wa-btn:hover { background-color: #1da851; }
+
+    #loadingOverlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.4);
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    .loading-popup {
+      background: white;
+      padding: 1rem 2rem;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 1.2rem;
+    }
+
+    /* 📱 Responsive Design */
+    @media (max-width: 768px) {
+      main {
+        margin: 0.5rem;
+        padding: 1rem;
+      }
+
+      h2 {
+        font-size: 1.25rem;
+      }
+
+      table, thead, tbody, th, td, tr {
+        display: block;
+      }
+
+      thead {
+        display: none;
+      }
+
+      tr {
+        background: #eef2f7;
+        margin-bottom: 1rem;
+        border-radius: 10px;
+        padding: 0.8rem;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+      }
+
+      td {
+        border: none;
+        padding: 6px 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      td::before {
+        content: attr(data-label);
+        font-weight: bold;
+        color: #333;
+      }
+
+      td:last-child {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      button.action-btn {
+        font-size: 0.9rem;
+        padding: 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <button class="back-btn" onclick="window.history.back()">⬅️ Back</button>
+
+    <h2 id="pageTitle">Guests Staying Today</h2>
+    <p>This shows all vehicles with bookings overlapping today’s date.</p>
+
+    <div class="search-container">
+      <input type="text" id="searchInput" placeholder="🔍 Search plate number...">
+    </div>
+
+    <table id="plateTable">
+      <thead>
+        <tr>
+          <th>No.</th>
+          <th>Name</th>
+          <th>Book Id</th>
+          <th>Check-In</th>
+          <th>Check-Out</th>
+          <th>Plate Number</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="plateBody">
+        <tr><td colspan="7">Loading...</td></tr>
+      </tbody>
+    </table>
+  </main>
+
+  <div id="loadingOverlay">
+    <div class="loading-popup">Loading data...</div>
+  </div>
+
+<script>
+  const DEPLOYMENT_ID = "AKfycbwsPIi_Zf7UtwTQJ8BPiLmNR87VxecATUOItw68loKglD60QRcRzeQoqIzyynvTXolipA";
+  const API_URL = `https://script.google.com/macros/s/${DEPLOYMENT_ID}/exec`;
+  const today = new Date();
+  const todayStr = today.toLocaleDateString("en-GB");
+  let stayingData = [];
+
+  document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("pageTitle").textContent = `Guests Staying Today – ${todayStr}`;
+    fetchStayingGuests();
+
+    document.getElementById("searchInput").addEventListener("input", (e) => {
+      const searchTerm = e.target.value.toLowerCase();
+      renderTable(
+        stayingData.filter(b =>
+          Object.values(b).some(v =>
+            String(v || "").toLowerCase().includes(searchTerm)
+          )
+        )
+      );
+    });
+  });
+
+  async function fetchStayingGuests() {
+    document.getElementById("loadingOverlay").style.display = "flex";
+    const tbody = document.getElementById("plateBody");
+    tbody.innerHTML = "";
+
+    try {
+      const res = await fetch(API_URL);
+      const data = await res.json();
+
+      if (!data.bookings || !Array.isArray(data.bookings)) {
+        throw new Error("No 'bookings' array in response.");
+      }
+
+      stayingData = data.bookings.filter(b => {
+        const checkin = parseSheetDate(b.checkin);
+        const checkout = parseSheetDate(b.checkout);
+        return checkin && checkout && checkin <= today && today <= checkout;
+      });
+
+      renderTable(stayingData);
+    } catch (err) {
+      console.error(err);
+      tbody.innerHTML = `<tr><td colspan="7">❌ Error loading data.</td></tr>`;
+    } finally {
+      document.getElementById("loadingOverlay").style.display = "none";
+    }
+  }
+
+  function renderTable(data) {
+    const tbody = document.getElementById("plateBody");
+    tbody.innerHTML = "";
+
+    if (!data.length) {
+      tbody.innerHTML = `<tr><td colspan="7">No guests currently staying (${todayStr}).</td></tr>`;
+      return;
+    }
+
+    data.forEach((b, i) => {
+      const tr = document.createElement("tr");
+      const checkinDate = formatDisplayDate(b.checkin);
+      const checkoutDate = formatDisplayDate(b.checkout);
+      const phone = String(b.phone || '').trim();
+      const cleanPhone = phone.replace(/\s+/g, '');
+      const callLink = `tel:${cleanPhone}`;
+      const waLink = `https://wa.me/${formatWhatsapp(cleanPhone)}`;
+
+      // ✅ Format plate text nicely with line breaks
+      const formattedRemark = formatPlateRemark(b.remark || '');
+
+      tr.innerHTML = `
+        <td data-label="No.">${i + 1}</td>
+        <td data-label="Name">${b.name || '-'}</td>
+        <td data-label="Book Id">${b.bookId || '-'}</td>
+        <td data-label="Check-In">${checkinDate}</td>
+        <td data-label="Check-Out">${checkoutDate}</td>
+        <td data-label="Plate" style="white-space: pre-line;">${formattedRemark}</td>
+        <td data-label="Action">
+          <button class="action-btn call-btn" onclick="window.open('${callLink}', '_self')">📞 Call</button>
+          <button class="action-btn wa-btn" onclick="window.open('${waLink}', '_blank')">💬 WhatsApp</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // ✅ Converts "CAR: ...MOTORCYCLE: ..." into line breaks
+  function formatPlateRemark(remark) {
+    if (!remark) return '—';
+
+    let formatted = remark
+      .replace(/(CAR:)/gi, '\n$1')
+      .replace(/(MOTORCYCLE:)/gi, '\n$1')
+      .trim();
+
+    // Remove first newline if any
+    if (formatted.startsWith('\n')) formatted = formatted.substring(1);
+
+    return formatted;
+  }
+
+  function parseSheetDate(dateStr) {
+    if (!dateStr) return null;
+    const d = new Date(dateStr);
+    if (isNaN(d)) return null;
+    return d;
+  }
+
+  function formatDisplayDate(dateStr) {
+    if (!dateStr) return "-";
+    const d = new Date(dateStr);
+    if (isNaN(d)) return "-";
+    return d.toLocaleDateString("en-GB");
+  }
+
+  function formatWhatsapp(phone) {
+    if (!phone) return "";
+    let p = phone.replace(/\D/g, "");
+    if (p.startsWith("0")) p = "6" + p;
+    if (!p.startsWith("6")) p = "6" + p;
+    return p;
+  }
+</script>
+</body>
+</html>
