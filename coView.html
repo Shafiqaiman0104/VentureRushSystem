@@ -238,6 +238,8 @@ td {
     <div class="form-group"><label>Book ID:</label><input id="bookId" readonly /></div>
     <div class="form-group"><label>Name:</label><input id="custName" readonly /></div>
     <div class="form-group"><label>Contact:</label><input id="custContact" readonly /></div>
+    <!-- 👇 ADD THIS NEW FIELD -->
+    <div class="form-group"><label>Plate Number:</label><input id="plateNumber" readonly /></div>
     <div class="form-group"><label>Unit:</label><input id="unit" readonly /></div>
     <div class="form-group">
   <label>Check‑in:</label><input id="origCheckin" readonly />
@@ -508,6 +510,7 @@ function fillForm(d1, d2){
   document.getElementById('bookId').value = d1.bookId;
   document.getElementById('custName').value = d1.name;
   document.getElementById('custContact').value = `${d1.phone} / ${d1.email}`;
+  document.getElementById('plateNumber').value = d1.remark || '';
   document.getElementById('unit').value = d2 ? d2[1] : '';
 
   // ✅ Add these two lines to show booking check-in/out
@@ -954,6 +957,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxsqetZ_iRLnZ3mhRcbxX09
 </script>
 </body>
 </html>
+
 
 
 
