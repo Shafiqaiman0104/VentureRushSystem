@@ -350,6 +350,11 @@ if (!localStorage.getItem("username") || localStorage.getItem("username") === "U
     document.getElementById("welcomeText").textContent = `Welcome ${username} !!`;
     document.getElementById("mobileWelcome").textContent = `Welcome ${username} !!`;
 
+// Add the formatting function here
+function formatCurrency(amount) {
+  return 'RM ' + parseFloat(amount).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+}
+
     const deploymentId = "AKfycbwsPIi_Zf7UtwTQJ8BPiLmNR87VxecATUOItw68loKglD60QRcRzeQoqIzyynvTXolipA";
     let cachedBookings = [];
 
@@ -486,10 +491,10 @@ function renderBookings(bookings) {
       <td>${formatDate(booking.checkout)}</td>
       <td>${booking.totalPax || '-'}</td>
       <td>${booking.extraPax || '-'}</td>
-      <td>RM ${totalAmount.toFixed(2)}</td>
+      <td>${formatCurrency(totalAmount)}</td>
       <td>${booking.bookId || ""}</td>
       <td>${booking.remark || ""}</td>
-      <td>RM ${commission.toFixed(2)}</td>
+      <td>${formatCurrency(commission)}</td>
       <td>
         <span style="color: white; background-color: ${statusColor}; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem;">
           ${statusLabel}
@@ -502,11 +507,11 @@ if (searchQuery && !visibleText.includes(searchQuery)) return;
     tbody.appendChild(row);
   });
 
-  // 🟢 Update stat cards
-  document.getElementById("totalBookings").textContent = count;
-  document.getElementById("totalSales").textContent = `RM ${total.toFixed(2)}`;
-  document.getElementById("totalPending").textContent = `RM ${totalPending.toFixed(2)}`;
-  document.getElementById("totalPaid").textContent = `RM ${totalPaid.toFixed(2)}`;
+// 🟢 Update stat cards
+document.getElementById("totalBookings").textContent = count;
+document.getElementById("totalSales").textContent = formatCurrency(total);
+document.getElementById("totalPending").textContent = formatCurrency(totalPending);
+document.getElementById("totalPaid").textContent = formatCurrency(totalPaid);
 }
     window.onload = fetchBookings;
 
@@ -617,6 +622,5 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxsqetZ_iRLnZ3mhRcbxX09
   </script>
 </body>
 </html>
-
 
 
