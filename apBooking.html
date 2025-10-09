@@ -1021,7 +1021,7 @@ const vehicleRemark = formatVehicleData(); // This will return "Drop-off" or veh
 // ✅ All validation passed. Now show booking summary popup.
 let vehicleSummary = "";
 if (vehicleData.dropoffOnly) {
-  vehicleSummary += `📦 Drop-off Only Service\n`;
+  vehicleSummary += `Drop-off Only\n`;
 } else {
   if (vehicleData.cars.registered && vehicleData.cars.quantity > 0) {
     vehicleSummary += `🚗 Cars: ${vehicleData.cars.quantity} (${vehicleData.cars.plates})\n`;
@@ -1761,3 +1761,4 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 </body>
 </html>
+
