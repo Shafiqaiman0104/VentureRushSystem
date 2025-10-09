@@ -581,6 +581,11 @@ if (!localStorage.getItem("username") || localStorage.getItem("username") === "A
     document.getElementById("welcomeText").textContent = `Welcome ${username} !!`;
     document.getElementById("mobileWelcome").textContent = `Welcome ${username} !!`;
 
+// Add the formatting function here
+function formatCurrency(amount) {
+  return 'RM ' + parseFloat(amount).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+}
+
     const deploymentId = "AKfycbwsPIi_Zf7UtwTQJ8BPiLmNR87VxecATUOItw68loKglD60QRcRzeQoqIzyynvTXolipA";
     const adminListUrl = "https://script.google.com/macros/s/AKfycbwZYyoTqEYrTzk2mLPDer4RoLysmRVXakI4__TvENZ4GZRzMFvDcFOP8FX3xqG4hPv2TQ/exec";
     let cachedBookings = [];
@@ -1023,10 +1028,12 @@ document.getElementById("loadingOverlay").style.display = "flex"; // Show loadin
           })
           .join('<br>');
         const row = document.createElement("tr");
-        let commissionDisplay = `RM ${commission.toFixed(2)}`;
+
+let commissionDisplay = formatCurrency(commission);
 if (statusLabel === "N/A") {
   commissionDisplay = "N/A";
-}
+}        
+
         row.innerHTML = `
           <td>${booking.name}</td>
           <td>${booking.phone}<br>${booking.email}</td>
@@ -1035,7 +1042,7 @@ if (statusLabel === "N/A") {
           <td>${formatDate(booking.checkout)}</td>
           <td>${booking.totalPax || '-'}</td>
           <td>${booking.extraPax || '-'}</td>
-          <td>RM ${totalAmount.toFixed(2)}</td>
+          <td>${formatCurrency(totalAmount)}</td>
           <td>${booking.bookId || ""}</td>
           <td>${booking.remark || ""}</td>
           <td>${commissionDisplay}</td>
@@ -1060,9 +1067,9 @@ if (searchQuery && !visibleText.includes(searchQuery)) return;
       });
 
       document.getElementById("totalBookings").textContent = count;
-      document.getElementById("totalSales").textContent = `RM ${total.toFixed(2)}`;
-      document.getElementById("totalPending").textContent = `RM ${totalPending.toFixed(2)}`;
-      document.getElementById("totalPaid").textContent = `RM ${totalPaid.toFixed(2)}`;
+      document.getElementById("totalSales").textContent = formatCurrency(total);
+      document.getElementById("totalPending").textContent = formatCurrency(totalPending);
+      document.getElementById("totalPaid").textContent = formatCurrency(totalPaid);
     }
 
 window.onload = async () => {
