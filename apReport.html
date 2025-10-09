@@ -426,6 +426,7 @@ h3 {
     <div>📥 Total Other Income : <span id="otherIncomeTotal">RM 0</span></div>
     <div>💼 Total Commission (10%): <span id="commissionTotal">RM 0</span></div>
     <div>💳 Total Toyyibpay Fee: <span id="toyyibpayTotal">RM 0</span></div>
+    <div>💲 Total HitPay Fee: <span id="hitpayTotal">RM 0</span></div>
     <div>🖥️ Venture Rush Fee (System): <span id="vrFeeTotal">RM 0</span></div>
     <div>🏕️ Total Unit 1B: <span id="unit1BTotal">RM 0</span></div>
     <div>💸 Total Expenses: <span id="expenseTotal">RM 0</span></div>
@@ -456,7 +457,7 @@ h3 {
       <tr>
         <th>Name</th><th>Phone</th><th>Email</th><th>A-Tent</th><th>Lot A</th><th>Lot B</th><th>Lot C</th>
         <th>Check In</th><th>Check Out</th><th>Total Pax</th><th>Extra Pax</th><th>Total</th>
-        <th>Book Id</th><th>User Id</th><th>Checkin Time</th>
+        <th>Book Id</th><th>User Id</th><th>Plate Number</th><th>Checkin Time</th>
 <th>Checkout Time</th>
 <th>Unit Use</th>
 <th>Remark</th>
@@ -628,6 +629,7 @@ let botLotB = 0;
 let botLotC = 0;
     let totalOtherIncome = 0;
     let toyyibpayFee = 0;
+    let hitpayFee = 0; // 🆕 Add this line
     let bookingTotal = 0;
     let expenseTotal = 0;
     let totalPax = 0;
@@ -682,8 +684,15 @@ botLotB += parseInt(lotB);
 botLotC += parseInt(lotC);
 
 
-if (b.userId !== "BLOCK" && b.userId !== "HOLD") {
+// ✅ FIXED: Only count Toyyibpay bookings (8 char alphanumeric Book IDs)
+if (b.bookId && /^[a-z0-9]{8}$/.test(b.bookId)) {
   toyyibpayFee += 1.00;
+}
+
+// ✅ HitPay bookings (UUID format like a007077f-13a5-4a95-b5ac-bef6805869d1)
+if (b.bookId && /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(b.bookId)) {
+  const totalPrice = parseFloat(b.total) || 0;
+  hitpayFee += (totalPrice * 0.03) + 1.00;
 }
 
           unitTentA += parseInt(aTent);
@@ -710,6 +719,7 @@ if (b.userId !== "BLOCK" && b.userId !== "HOLD") {
             <td>RM ${parseFloat(b.total).toFixed(2)}</td>
             <td>${b.bookId || ''}</td>
             <td>${b.userId || ''}</td>
+            <td>${b.remark || ''}</td>
             <td>${co.checkin || ''}</td>
             <td>${co.checkout || ''}</td>
             <td>${co.unitUse || ''}</td>
@@ -833,6 +843,7 @@ try {
 }
 
 document.getElementById("toyyibpayTotal").textContent = `RM ${toyyibpayFee.toFixed(2)}`;
+document.getElementById("hitpayTotal").textContent = `RM ${hitpayFee.toFixed(2)}`; // 🆕 Add this line
     document.getElementById("bookingTotal").textContent = `RM ${bookingTotal.toFixed(2)}`;
     document.getElementById("otherIncomeTotal").textContent = `RM ${totalOtherIncome.toFixed(2)}`;
     document.getElementById("expenseTotal").textContent = `RM ${expenseTotal.toFixed(2)}`;
@@ -885,7 +896,7 @@ document.getElementById("botUnitWrapper").style.display = "block";
 
 // Update values
 document.getElementById("commissionTotal").textContent = `RM ${totalCommission.toFixed(2)}`;
-const profit = bookingTotal + totalOtherIncome - totalCommission - toyyibpayFee - vrFee - total1BRevenue - expenseTotal;
+const profit = bookingTotal + totalOtherIncome - totalCommission - toyyibpayFee - hitpayFee - vrFee - total1BRevenue - expenseTotal;
 document.getElementById("profitTotal").textContent = `RM ${profit.toFixed(2)}`;
 
 
@@ -1116,4 +1127,3 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxsqetZ_iRLnZ3mhRcbxX09
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </body>
 </html>
-
