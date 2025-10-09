@@ -144,6 +144,33 @@
     }
     .notification button:hover { background: #005bb5; }
 
+/* Vehicle Calculation Styles */
+#vehicleCalculationCard {
+  background: #f8fafc;
+  border-left: 4px solid #0d9488;
+}
+
+#vehicleCalculationResult {
+  background: white;
+  padding: 1rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  border: 1px solid #e2e8f0;
+}
+
+#vehicleCalculationResult p {
+  margin: 0.5rem 0;
+}
+
+/* Vehicle input sections */
+#carInputSection,
+#motorcycleInputSection {
+  background: white;
+  padding: 1rem;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+}
+
 .payment-methods {
   display: flex;
   flex-direction: column;
@@ -268,9 +295,62 @@
       <label>Camp‑Lot C <input type="number" id="qtyLotC" value="0" min="0" /></label>
     </div>
     <div class="form-group">
-      <label>Total Pax <input type="number" id="totalPax" value="0" min="0" /></label>
+      <label>Total Pax <input type="number" id="totalPax" value="0" min="0" onchange="calculateAllowedVehicles()" /></label>
       <button onclick="checkPaxSummary()" style="background:#4f46e5;color:white;padding:0.5rem 1rem;border:none;border-radius:6px;cursor:pointer;height:42px;align-self:flex-end">Check Total Pax</button>
     </div>
+
+<!-- Add this Drop-off checkbox section AFTER the vehicle section and BEFORE the customer details -->
+<div class="card" id="dropoffCard" style="background: #f8fafc; border-left: 4px solid #3b82f6; display: none;">
+  <h3>🚕 Drop-off Only</h3>
+  <div class="form-group">
+    <label style="flex-direction: row; align-items: center; gap: 10px;">
+      <input type="checkbox" id="dropoffOnly" onchange="toggleDropoffService()" />
+      <span>This is a Drop-off Only booking (no parking vehicle)</span>
+    </label>
+  </div>
+</div>
+
+<!-- Add this VEHICLE CALCULATION SECTION -->
+<div class="card" id="vehicleCalculationCard" style="display: none;">
+  <h3>🚗 Vehicle Allocation</h3>
+  <div id="vehicleCalculationResult"></div>
+  
+  <div class="form-group">
+    <label style="flex-direction: row; align-items: center; gap: 10px;">
+      <input type="checkbox" id="useCars" onchange="toggleVehicleInputs()" />
+      <span>Register Cars</span>
+    </label>
+    <label style="flex-direction: row; align-items: center; gap: 10px;">
+      <input type="checkbox" id="useMotorcycles" onchange="toggleVehicleInputs()" />
+      <span>Register Motorcycles</span>
+    </label>
+  </div>
+
+  <!-- Car Input Section -->
+  <div id="carInputSection" style="display: none; margin-top: 1rem;">
+    <div class="form-group">
+      <label>Number of Cars 
+        <input type="number" id="carQty" value="0" min="0" onchange="validateVehicleQty('car')" />
+      </label>
+      <label>Car Plate Numbers (separate by comma)
+        <input type="text" id="carPlates" placeholder="e.g., ABC1234, XYZ5678" />
+      </label>
+    </div>
+  </div>
+
+  <!-- Motorcycle Input Section -->
+  <div id="motorcycleInputSection" style="display: none; margin-top: 1rem;">
+    <div class="form-group">
+      <label>Number of Motorcycles 
+        <input type="number" id="motorcycleQty" value="0" min="0" onchange="validateVehicleQty('motorcycle')" />
+      </label>
+      <label>Motorcycle Plate Numbers (separate by comma)
+        <input type="text" id="motorcyclePlates" placeholder="e.g., MCD1234, MEF5678" />
+      </label>
+    </div>
+  </div>
+</div>
+
     <div class="form-group">
       <label>Name <input type="text" id="name" /></label>
       <label>Phone <input type="text" id="phone" /></label>
@@ -393,7 +473,288 @@ function toDMY(dateStr) {
   return `${d}/${m}/${y}`;
 }
 
-function submitCashBooking(name, phone, email, total, checkin, checkout, selectedQty, totalPax, extraPax, callback) {
+// Add this function to handle dropoff service toggle
+function toggleDropoffService() {
+  const dropoffChecked = document.getElementById("dropoffOnly").checked;
+  const vehicleCard = document.getElementById("vehicleCalculationCard");
+  
+  if (dropoffChecked) {
+    // If dropoff is checked, hide vehicle section
+    vehicleCard.style.display = 'none';
+    
+    // Also uncheck and hide vehicle inputs
+    document.getElementById("useCars").checked = false;
+    document.getElementById("useMotorcycles").checked = false;
+    document.getElementById("carInputSection").style.display = 'none';
+    document.getElementById("motorcycleInputSection").style.display = 'none';
+    
+    // Reset vehicle values
+    document.getElementById("carQty").value = 0;
+    document.getElementById("carPlates").value = "";
+    document.getElementById("motorcycleQty").value = 0;
+    document.getElementById("motorcyclePlates").value = "";
+  } else {
+    // If dropoff is unchecked, show vehicle section (it will be shown if there are pax)
+    const totalPax = parseInt(document.getElementById("totalPax").value) || 0;
+    if (totalPax > 0) {
+      vehicleCard.style.display = 'block';
+    }
+  }
+}
+
+// Vehicle calculation function
+function calculateAllowedVehicles() {
+  const totalPax = parseInt(document.getElementById("totalPax").value) || 0;
+  const vehicleCard = document.getElementById("vehicleCalculationCard");
+  const dropoffCard = document.getElementById("dropoffCard");
+  const resultDiv = document.getElementById("vehicleCalculationResult");
+
+  // Show/hide both cards based on total pax
+  if (!totalPax || isNaN(totalPax)) {
+    vehicleCard.style.display = 'none';
+    dropoffCard.style.display = 'none';
+    return;
+  }
+
+  // Show both cards when there are pax
+  vehicleCard.style.display = 'block';
+  dropoffCard.style.display = 'block';
+
+  // Pax-per-vehicle rules (same as your BotPress logic)
+  const MAX_PAX_PER_CAR = 4;
+  const MAX_PAX_PER_MOTORCYCLE = 1;
+
+  // Calculate allowed vehicles
+  const allowedCars = Math.ceil(totalPax / MAX_PAX_PER_CAR);
+  const allowedMotorcycles = Math.ceil(totalPax / MAX_PAX_PER_MOTORCYCLE);
+
+  // Store globally for validation
+  window.allowedCars = allowedCars;
+  window.allowedMotorcycles = allowedMotorcycles;
+
+  // Display results
+  resultDiv.innerHTML = `
+    <p><strong>Since total pax is = ${totalPax} pax</strong></p>
+    <p>🚗 For Cars: you can register up to <strong>${allowedCars}</strong> car(s)</p>
+    <p>🏍️ For Motorcycles: you can register up to <strong>${allowedMotorcycles}</strong> motorcycle(s)</p>
+    <p style="font-size: 0.9rem; color: #666;">💡 You can mix cars and motorcycles, but total vehicle capacity cannot exceed ${totalPax + 4} pax</p>
+  `;
+  
+  // Store calculated values for validation
+  document.getElementById('carQty').setAttribute('data-max', allowedCars);
+  document.getElementById('motorcycleQty').setAttribute('data-max', allowedMotorcycles);
+}
+
+// Helper function to calculate total vehicle capacity
+function calculateVehicleCapacity() {
+  const vehicleData = getVehicleData();
+  const totalPax = parseInt(document.getElementById("totalPax").value) || 0;
+  
+  const PAX_PER_CAR = 4;
+  const PAX_PER_MOTORCYCLE = 1;
+  
+  const coveredPax = (vehicleData.cars.quantity || 0) * PAX_PER_CAR + 
+                     (vehicleData.motorcycles.quantity || 0) * PAX_PER_MOTORCYCLE;
+  
+  const ALLOWED_OVERPAX = 4;
+  const maxAllowedCoverage = totalPax + ALLOWED_OVERPAX;
+  
+  return {
+    coveredPax,
+    maxAllowedCoverage,
+    isOverCapacity: coveredPax > maxAllowedCoverage
+  };
+}
+
+// Toggle vehicle input sections
+function toggleVehicleInputs() {
+  const useCars = document.getElementById("useCars").checked;
+  const useMotorcycles = document.getElementById("useMotorcycles").checked;
+  
+  document.getElementById("carInputSection").style.display = useCars ? 'block' : 'none';
+  document.getElementById("motorcycleInputSection").style.display = useMotorcycles ? 'block' : 'none';
+  
+  if (!useCars) {
+    document.getElementById("carQty").value = 0;
+    document.getElementById("carPlates").value = "";
+  }
+  if (!useMotorcycles) {
+    document.getElementById("motorcycleQty").value = 0;
+    document.getElementById("motorcyclePlates").value = "";
+  }
+
+  // Validate capacity when toggling
+  if (useCars || useMotorcycles) {
+    const capacity = calculateVehicleCapacity();
+    if (capacity.isOverCapacity) {
+      alert(`⚠️ Vehicle capacity warning: Selected vehicles cover ${capacity.coveredPax} pax, but total pax is only ${capacity.maxAllowedCoverage - 4} pax (with 4 pax buffer).`);
+    }
+  }
+}
+
+// Validate vehicle quantity
+function validateVehicleQty(type) {
+  const input = document.getElementById(`${type}Qty`);
+  const maxAllowed = parseInt(input.getAttribute('data-max')) || 0;
+  const currentValue = parseInt(input.value) || 0;
+  
+  if (currentValue > maxAllowed) {
+    alert(`❌ Maximum allowed ${type}s is ${maxAllowed}`);
+    input.value = maxAllowed;
+    return;
+  }
+  
+  if (currentValue < 0) {
+    input.value = 0;
+    return;
+  }
+
+  // Check overcapacity when both vehicle types are used
+  const capacity = calculateVehicleCapacity();
+  if (capacity.isOverCapacity) {
+    alert(`⚠️ Vehicle capacity warning: Selected vehicles cover ${capacity.coveredPax} pax, but total pax is only ${capacity.maxAllowedCoverage - 4} pax (with 4 pax buffer). Please reduce vehicle quantities.`);
+  }
+}
+
+// Update the getVehicleData function to include dropoff info
+function getVehicleData() {
+  const dropoffOnly = document.getElementById("dropoffOnly").checked;
+  const useCars = document.getElementById("useCars").checked;
+  const useMotorcycles = document.getElementById("useMotorcycles").checked;
+  
+  const vehicleData = {
+    dropoffOnly: dropoffOnly,
+    cars: {
+      registered: useCars,
+      quantity: useCars ? parseInt(document.getElementById("carQty").value) || 0 : 0,
+      plates: useCars ? document.getElementById("carPlates").value.trim() : ""
+    },
+    motorcycles: {
+      registered: useMotorcycles,
+      quantity: useMotorcycles ? parseInt(document.getElementById("motorcycleQty").value) || 0 : 0,
+      plates: useMotorcycles ? document.getElementById("motorcyclePlates").value.trim() : ""
+    }
+  };
+  
+  return vehicleData;
+}
+
+// Update the vehicle validation to skip vehicle checks for dropoff
+function validateVehicleData() {
+  const vehicleData = getVehicleData();
+  const totalPax = parseInt(document.getElementById("totalPax").value) || 0;
+  
+  // If it's dropoff only, skip all vehicle validations
+  if (vehicleData.dropoffOnly) {
+    return true;
+  }
+  
+  // Pax-per-vehicle rules (only for non-dropoff bookings)
+  const PAX_PER_CAR = 4;
+  const PAX_PER_MOTORCYCLE = 1;
+  
+  // Get allowed vehicle counts
+  const allowedCars = Math.ceil(totalPax / PAX_PER_CAR);
+  const allowedMotorcycles = Math.ceil(totalPax / PAX_PER_MOTORCYCLE);
+
+  // 1️⃣ Check if plates match quantity
+  if (vehicleData.cars.registered && vehicleData.cars.quantity > 0) {
+    const carPlates = vehicleData.cars.plates.split(/[, ]+/).filter(plate => plate.trim() !== "");
+    if (carPlates.length !== vehicleData.cars.quantity) {
+      alert(`❌ You selected ${vehicleData.cars.quantity} car(s) but entered ${carPlates.length} plate number(s).`);
+      return false;
+    }
+  }
+  
+  if (vehicleData.motorcycles.registered && vehicleData.motorcycles.quantity > 0) {
+    const motorcyclePlates = vehicleData.motorcycles.plates.split(/[, ]+/).filter(plate => plate.trim() !== "");
+    if (motorcyclePlates.length !== vehicleData.motorcycles.quantity) {
+      alert(`❌ You selected ${vehicleData.motorcycles.quantity} motorcycle(s) but entered ${motorcyclePlates.length} plate number(s).`);
+      return false;
+    }
+  }
+
+  // 2️⃣ Per-type allowed checks
+  if (vehicleData.cars.registered && vehicleData.cars.quantity > allowedCars) {
+    alert(`❌ You selected ${vehicleData.cars.quantity} car(s) but are allowed up to ${allowedCars} car(s) for ${totalPax} pax.`);
+    return false;
+  }
+
+  if (vehicleData.motorcycles.registered && vehicleData.motorcycles.quantity > allowedMotorcycles) {
+    alert(`❌ You selected ${vehicleData.motorcycles.quantity} motorcycle(s) but are allowed up to ${allowedMotorcycles} motorcycle(s) for ${totalPax} pax.`);
+    return false;
+  }
+
+  // 3️⃣ Overcapacity check
+  const coveredPax = (vehicleData.cars.quantity || 0) * PAX_PER_CAR + 
+                     (vehicleData.motorcycles.quantity || 0) * PAX_PER_MOTORCYCLE;
+  
+  const ALLOWED_OVERPAX = 4;
+  const maxAllowedCoverage = totalPax + ALLOWED_OVERPAX;
+
+  if (coveredPax > maxAllowedCoverage) {
+    alert(`⚠️ The vehicles you selected cover ${coveredPax} pax, which exceeds the total pax ${totalPax} pax (with ${ALLOWED_OVERPAX} pax buffer). Please reduce your vehicles.`);
+    return false;
+  }
+
+  // ✅ All checks passed
+  return true;
+}
+
+// Update the format vehicle data function to handle dropoff
+function formatVehicleData() {
+  const vehicleData = getVehicleData();
+  
+  // If dropoff only, return "Drop-off" for the remark
+  if (vehicleData.dropoffOnly) {
+    return "Drop-off only";
+  }
+  
+  // Otherwise, format vehicle data as before
+  let vehicleRemark = "";
+  if (vehicleData.cars.registered && vehicleData.cars.quantity > 0) {
+    vehicleRemark += `CAR: ${vehicleData.cars.plates}`;
+  }
+  if (vehicleData.motorcycles.registered && vehicleData.motorcycles.quantity > 0) {
+    // Add a space before MOTORCYCLE if there's already car data
+    if (vehicleRemark) {
+      vehicleRemark += " ";
+    }
+    vehicleRemark += `MOTORCYCLE: ${vehicleData.motorcycles.plates}`;
+  }
+  return vehicleRemark.trim();
+}
+
+// Helper function to format vehicle data for messages
+function formatVehicleDataForMessage() {
+  const vehicleData = getVehicleData();
+  
+  // If dropoff only, return "Drop-off only"
+  if (vehicleData.dropoffOnly) {
+    return "Drop-off only";
+  }
+  
+  let vehicleMessage = "";
+  if (vehicleData.cars.registered && vehicleData.cars.quantity > 0) {
+    vehicleMessage += `CAR: ${vehicleData.cars.plates}`;
+  }
+  if (vehicleData.motorcycles.registered && vehicleData.motorcycles.quantity > 0) {
+    // Add a new line before MOTORCYCLE if there's already car data
+    if (vehicleMessage) {
+      vehicleMessage += "\n";
+    }
+    vehicleMessage += `MOTORCYCLE: ${vehicleData.motorcycles.plates}`;
+  }
+  
+  // If no vehicles registered, show "No vehicle registered"
+  if (!vehicleMessage) {
+    vehicleMessage = "No vehicle registered";
+  }
+  
+  return vehicleMessage;
+}
+
+function submitCashBooking(name, phone, email, total, checkin, checkout, selectedQty, totalPax, extraPax, vehicleRemark, callback) {
   // Generate cash booking ID
   const cashBookId = "cash_" + Date.now();
 
@@ -415,6 +776,7 @@ function submitCashBooking(name, phone, email, total, checkin, checkout, selecte
   postData.append("totalPax", totalPax);
   postData.append("extraPax", extraPax);
   postData.append("bookId", cashBookId);
+  postData.append("remark", vehicleRemark.trim()); // Use the same formatted vehicle remark
 
   fetch(`https://script.google.com/macros/s/${deploymentId}/exec`, {
     method: "POST",
@@ -498,6 +860,10 @@ function submitBooking() {
     lotC: parseInt(document.getElementById("qtyLotC").value) || 0,
   };
 
+// Get vehicle data and format remark
+const vehicleData = getVehicleData();
+const vehicleRemark = formatVehicleData(); // This will return "Drop-off" or vehicle data
+
   const errors = [];
   let formattedPhone;
 
@@ -524,6 +890,11 @@ function submitBooking() {
   }
   if (!total || !validTotalPattern.test(total)) {
     errors.push("❌ Please enter a valid total price (e.g., 1547 or 1547.00).");
+  }
+
+  // Add vehicle validation
+  if (!validateVehicleData()) {
+    return;
   }
 
   // Add payment method validation
@@ -564,6 +935,19 @@ function submitBooking() {
   const extraPax = Math.max(0, totalPax - basePax);
   const extraCharge = extraPax * 5;
 
+// ✅ All validation passed. Now show booking summary popup.
+let vehicleSummary = "";
+if (vehicleData.dropoffOnly) {
+  vehicleSummary += `📦 Drop-off Only Service\n`;
+} else {
+  if (vehicleData.cars.registered && vehicleData.cars.quantity > 0) {
+    vehicleSummary += `🚗 Cars: ${vehicleData.cars.quantity} (${vehicleData.cars.plates})\n`;
+  }
+  if (vehicleData.motorcycles.registered && vehicleData.motorcycles.quantity > 0) {
+    vehicleSummary += `🏍️ Motorcycles: ${vehicleData.motorcycles.quantity} (${vehicleData.motorcycles.plates})\n`;
+  }
+}
+
   // ✅ All validation passed. Now show booking summary popup.
   const summary = `
 ✅ Please review your booking:\n
@@ -579,6 +963,7 @@ function submitBooking() {
 - Camp‑Lot B: ${selectedQty.lotB}
 - Camp‑Lot C: ${selectedQty.lotC}
 
+${vehicleSummary ? `🚗 Vehicles:\n${vehicleSummary}` : ''}
 🧍 Total Pax: ${totalPax}
 🧍‍♀️ Included Pax: ${basePax}
 ➕ Extra Pax: ${extraPax}
@@ -632,7 +1017,7 @@ Click OK to confirm & proceed.
       } else if (paymentMethod === "card") {
         generateHitpayLink(name, phone, email, total, toDMY(checkinStr), toDMY(checkoutStr), selectedQty, totalPax, afterPayment);
       } else if (paymentMethod === "cash") {
-        submitCashBooking(name, formattedPhone, email, total, toDMY(checkinStr), toDMY(checkoutStr), selectedQty, totalPax, extraPax, afterPayment);
+        submitCashBooking(name, formattedPhone, email, total, toDMY(checkinStr), toDMY(checkoutStr), selectedQty, totalPax, extraPax, vehicleRemark, afterPayment);
       }
 
       function afterPayment(success) {
@@ -671,6 +1056,7 @@ if (paymentMethod === "cash") {
           postData.append("quantityLotC", selectedQty.lotC);
           postData.append("totalPax", totalPax);
           postData.append("extraPax", extraPax);
+          postData.append("remark", vehicleRemark.trim());
 
           fetch(`https://script.google.com/macros/s/${deploymentId}/exec`, {
             method: "POST",
@@ -800,6 +1186,8 @@ Booking Detail:
 👤 Name: ${name}
 📞 Phone: ${phone}
 📧 Email: ${email}
+🅿️ Registered Camper Plate: 
+${formatVehicleDataForMessage()}
 
 📅 Check-in: ${toDMY(checkinStr)}
 📅 Check-out: ${toDMY(checkoutStr)}
@@ -932,6 +1320,8 @@ Booking Detail:
 👤 Name: ${name}
 📞 Phone: ${phone}
 📧 Email: ${email}
+🅿️ Registered Camper Plate: 
+${formatVehicleDataForMessage()}
 
 📅 Check-in: ${checkin}
 📅 Check-out: ${checkout}
@@ -1045,6 +1435,8 @@ Booking Detail:
 👤 Name: ${name}
 📞 Phone: ${phone}
 📧 Email: ${email}
+🅿️ Registered Camper Plate: 
+${formatVehicleDataForMessage()}
 
 📅 Check-in: ${checkin}
 📅 Check-out: ${checkout}
