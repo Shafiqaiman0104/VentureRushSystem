@@ -377,6 +377,17 @@
       <button onclick="checkPaxSummary()" style="background:#4f46e5;color:white;padding:0.5rem 1rem;border:none;border-radius:6px;cursor:pointer;height:42px;align-self:flex-end">Check Total Pax</button>
     </div>
 
+<!-- Add this Drop-off checkbox section AFTER the vehicle section and BEFORE the customer details -->
+<div class="card" id="dropoffCard" style="background: #f8fafc; border-left: 4px solid #3b82f6; display: none;">
+  <h3>🚕 Drop-off Only</h3>
+  <div class="form-group">
+    <label style="flex-direction: row; align-items: center; gap: 10px;">
+      <input type="checkbox" id="dropoffOnly" onchange="toggleDropoffService()" />
+      <span>This is a Drop-off Only booking (no parking vehicle)</span>
+    </label>
+  </div>
+</div>
+
 <!-- Add this VEHICLE CALCULATION SECTION -->
 <div class="card" id="vehicleCalculationCard" style="display: none;">
   <h3>🚗 Vehicle Allocation</h3>
@@ -545,16 +556,52 @@ function toDMY(dateStr) {
   return `${d}/${m}/${y}`;
 }
 
+// Add this function to handle dropoff service toggle
+function toggleDropoffService() {
+  const dropoffChecked = document.getElementById("dropoffOnly").checked;
+  const vehicleCard = document.getElementById("vehicleCalculationCard");
+  
+  if (dropoffChecked) {
+    // If dropoff is checked, hide vehicle section
+    vehicleCard.style.display = 'none';
+    
+    // Also uncheck and hide vehicle inputs
+    document.getElementById("useCars").checked = false;
+    document.getElementById("useMotorcycles").checked = false;
+    document.getElementById("carInputSection").style.display = 'none';
+    document.getElementById("motorcycleInputSection").style.display = 'none';
+    
+    // Reset vehicle values
+    document.getElementById("carQty").value = 0;
+    document.getElementById("carPlates").value = "";
+    document.getElementById("motorcycleQty").value = 0;
+    document.getElementById("motorcyclePlates").value = "";
+  } else {
+    // If dropoff is unchecked, show vehicle section (it will be shown if there are pax)
+    const totalPax = parseInt(document.getElementById("totalPax").value) || 0;
+    if (totalPax > 0) {
+      vehicleCard.style.display = 'block';
+    }
+  }
+}
+
 // Vehicle calculation function
 function calculateAllowedVehicles() {
   const totalPax = parseInt(document.getElementById("totalPax").value) || 0;
   const vehicleCard = document.getElementById("vehicleCalculationCard");
+  const dropoffCard = document.getElementById("dropoffCard");
   const resultDiv = document.getElementById("vehicleCalculationResult");
 
+  // Show/hide both cards based on total pax
   if (!totalPax || isNaN(totalPax)) {
     vehicleCard.style.display = 'none';
+    dropoffCard.style.display = 'none';
     return;
   }
+
+  // Show both cards when there are pax
+  vehicleCard.style.display = 'block';
+  dropoffCard.style.display = 'block';
 
   // Pax-per-vehicle rules (same as your BotPress logic)
   const MAX_PAX_PER_CAR = 4;
@@ -575,8 +622,6 @@ function calculateAllowedVehicles() {
     <p>🏍️ For Motorcycles: you can register up to <strong>${allowedMotorcycles}</strong> motorcycle(s)</p>
     <p style="font-size: 0.9rem; color: #666;">💡 You can mix cars and motorcycles, but total vehicle capacity cannot exceed ${totalPax + 4} pax</p>
   `;
-
-  vehicleCard.style.display = 'block';
   
   // Store calculated values for validation
   document.getElementById('carQty').setAttribute('data-max', allowedCars);
@@ -654,12 +699,14 @@ function validateVehicleQty(type) {
   }
 }
 
-// Get vehicle data for submission
+// Update the getVehicleData function to include dropoff info
 function getVehicleData() {
+  const dropoffOnly = document.getElementById("dropoffOnly").checked;
   const useCars = document.getElementById("useCars").checked;
   const useMotorcycles = document.getElementById("useMotorcycles").checked;
   
   const vehicleData = {
+    dropoffOnly: dropoffOnly,
     cars: {
       registered: useCars,
       quantity: useCars ? parseInt(document.getElementById("carQty").value) || 0 : 0,
@@ -675,12 +722,17 @@ function getVehicleData() {
   return vehicleData;
 }
 
-// Enhanced vehicle validation with overcapacity check
+// Update the vehicle validation to skip vehicle checks for dropoff
 function validateVehicleData() {
   const vehicleData = getVehicleData();
   const totalPax = parseInt(document.getElementById("totalPax").value) || 0;
   
-  // Pax-per-vehicle rules
+  // If it's dropoff only, skip all vehicle validations
+  if (vehicleData.dropoffOnly) {
+    return true;
+  }
+  
+  // Pax-per-vehicle rules (only for non-dropoff bookings)
   const PAX_PER_CAR = 4;
   const PAX_PER_MOTORCYCLE = 1;
   
@@ -716,11 +768,11 @@ function validateVehicleData() {
     return false;
   }
 
-  // 3️⃣ Overcapacity check (NEW - prevents cheating)
+  // 3️⃣ Overcapacity check
   const coveredPax = (vehicleData.cars.quantity || 0) * PAX_PER_CAR + 
                      (vehicleData.motorcycles.quantity || 0) * PAX_PER_MOTORCYCLE;
   
-  const ALLOWED_OVERPAX = 4; // Buffer allowance
+  const ALLOWED_OVERPAX = 4;
   const maxAllowedCoverage = totalPax + ALLOWED_OVERPAX;
 
   if (coveredPax > maxAllowedCoverage) {
@@ -730,6 +782,59 @@ function validateVehicleData() {
 
   // ✅ All checks passed
   return true;
+}
+
+// Update the format vehicle data function to handle dropoff
+function formatVehicleData() {
+  const vehicleData = getVehicleData();
+  
+  // If dropoff only, return "Drop-off" for the remark
+  if (vehicleData.dropoffOnly) {
+    return "Drop-off only";
+  }
+  
+  // Otherwise, format vehicle data as before
+  let vehicleRemark = "";
+  if (vehicleData.cars.registered && vehicleData.cars.quantity > 0) {
+    vehicleRemark += `CAR: ${vehicleData.cars.plates}`;
+  }
+  if (vehicleData.motorcycles.registered && vehicleData.motorcycles.quantity > 0) {
+    // Add a space before MOTORCYCLE if there's already car data
+    if (vehicleRemark) {
+      vehicleRemark += " ";
+    }
+    vehicleRemark += `MOTORCYCLE: ${vehicleData.motorcycles.plates}`;
+  }
+  return vehicleRemark.trim();
+}
+
+// Helper function to format vehicle data for messages
+function formatVehicleDataForMessage() {
+  const vehicleData = getVehicleData();
+  
+  // If dropoff only, return "Drop-off only"
+  if (vehicleData.dropoffOnly) {
+    return "Drop-off only";
+  }
+  
+  let vehicleMessage = "";
+  if (vehicleData.cars.registered && vehicleData.cars.quantity > 0) {
+    vehicleMessage += `CAR: ${vehicleData.cars.plates}`;
+  }
+  if (vehicleData.motorcycles.registered && vehicleData.motorcycles.quantity > 0) {
+    // Add a new line before MOTORCYCLE if there's already car data
+    if (vehicleMessage) {
+      vehicleMessage += "\n";
+    }
+    vehicleMessage += `MOTORCYCLE: ${vehicleData.motorcycles.plates}`;
+  }
+  
+  // If no vehicles registered, show "No vehicle registered"
+  if (!vehicleMessage) {
+    vehicleMessage = "No vehicle registered";
+  }
+  
+  return vehicleMessage;
 }
 
 function submitCashBooking(name, phone, email, total, checkin, checkout, selectedQty, totalPax, extraPax, vehicleRemark, callback) {
@@ -838,18 +943,9 @@ function submitBooking() {
     lotC: parseInt(document.getElementById("qtyLotC").value) || 0,
   };
 
-  // Get vehicle data here, before validation
-  const vehicleData = getVehicleData();
-
-  // Format vehicle data for the remark field
-  let vehicleRemark = "";
-  if (vehicleData.cars.registered && vehicleData.cars.quantity > 0) {
-    vehicleRemark += `Cars: ${vehicleData.cars.quantity} (${vehicleData.cars.plates}) `;
-  }
-  if (vehicleData.motorcycles.registered && vehicleData.motorcycles.quantity > 0) {
-    vehicleRemark += `Motorcycles: ${vehicleData.motorcycles.quantity} (${vehicleData.motorcycles.plates})`;
-  }
-  vehicleRemark = vehicleRemark.trim();
+// Get vehicle data and format remark
+const vehicleData = getVehicleData();
+const vehicleRemark = formatVehicleData(); // This will return "Drop-off" or vehicle data
 
   const errors = [];
   let formattedPhone;
@@ -924,11 +1020,15 @@ function submitBooking() {
 
 // ✅ All validation passed. Now show booking summary popup.
 let vehicleSummary = "";
-if (vehicleData.cars.registered && vehicleData.cars.quantity > 0) {
-  vehicleSummary += `🚗 Cars: ${vehicleData.cars.quantity} (${vehicleData.cars.plates})\n`;
-}
-if (vehicleData.motorcycles.registered && vehicleData.motorcycles.quantity > 0) {
-  vehicleSummary += `🏍️ Motorcycles: ${vehicleData.motorcycles.quantity} (${vehicleData.motorcycles.plates})\n`;
+if (vehicleData.dropoffOnly) {
+  vehicleSummary += `📦 Drop-off Only Service\n`;
+} else {
+  if (vehicleData.cars.registered && vehicleData.cars.quantity > 0) {
+    vehicleSummary += `🚗 Cars: ${vehicleData.cars.quantity} (${vehicleData.cars.plates})\n`;
+  }
+  if (vehicleData.motorcycles.registered && vehicleData.motorcycles.quantity > 0) {
+    vehicleSummary += `🏍️ Motorcycles: ${vehicleData.motorcycles.quantity} (${vehicleData.motorcycles.plates})\n`;
+  }
 }
 
   // ✅ All validation passed. Now show booking summary popup.
@@ -1169,6 +1269,8 @@ Booking Detail:
 👤 Name: ${name}
 📞 Phone: ${phone}
 📧 Email: ${email}
+🅿️ Registered Camper Plate: 
+${formatVehicleDataForMessage()}
 
 📅 Check-in: ${toDMY(checkinStr)}
 📅 Check-out: ${toDMY(checkoutStr)}
@@ -1303,6 +1405,8 @@ Booking Detail:
 👤 Name: ${name}
 📞 Phone: ${phone}
 📧 Email: ${email}
+🅿️ Registered Camper Plate: 
+${formatVehicleDataForMessage()}
 
 📅 Check-in: ${checkin}
 📅 Check-out: ${checkout}
@@ -1416,6 +1520,8 @@ Booking Detail:
 👤 Name: ${name}
 📞 Phone: ${phone}
 📧 Email: ${email}
+🅿️ Registered Camper Plate: 
+${formatVehicleDataForMessage()}
 
 📅 Check-in: ${checkin}
 📅 Check-out: ${checkout}
