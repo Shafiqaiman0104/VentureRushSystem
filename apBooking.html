@@ -260,6 +260,21 @@
   flex-shrink: 0; /* Prevent radio button from shrinking */
 }
 
+.payment-option.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: #f9fafb;
+}
+
+.payment-option.disabled:hover {
+  border-color: #e5e7eb;
+  background: #f9fafb;
+}
+
+.payment-option.disabled label {
+  cursor: not-allowed;
+}
+
 /* Mobile responsiveness */
 @media (max-width: 768px) {
   .payment-option {
@@ -446,10 +461,16 @@
         Pay by FPX (for Malaysia Only)
       </label>
     </div>
-    <div class="payment-option" onclick="selectPaymentMethod('card')">
+    <div class="payment-option disabled" onclick="selectPaymentMethod('card')">
+     <label>
+       <input type="radio" name="paymentMethod" value="card" disabled /> 
+       Pay by Card (for Visa/Mastercard) - Currently Unavailable
+     </label>
+   </div>
+    <div class="payment-option" onclick="selectPaymentMethod('qr')">
       <label>
-        <input type="radio" name="paymentMethod" value="card" /> 
-        Pay by Card (for Visa/Mastercard)
+        <input type="radio" name="paymentMethod" value="qr" />
+         Pay by QR (for direct Booking & Walk-in Only)
       </label>
     </div>
     <div class="payment-option" onclick="selectPaymentMethod('cash')">
@@ -924,6 +945,91 @@ function simulateCashWebhook(phone, amount, billCode) {
   });
 }
 
+function submitQRBooking(name, phone, email, total, checkin, checkout, selectedQty, totalPax, extraPax, vehicleRemark, callback) {
+  // Generate QR booking ID
+  const qrBookId = "qr_" + Date.now();
+
+  // Store it for the invoice
+  localStorage.setItem('lastQRBookingId', qrBookId);
+  
+  const postData = new URLSearchParams();
+  postData.append("userId", username);
+  postData.append("custName", name);
+  postData.append("custPhone", phone);
+  postData.append("custEmail", email);
+  postData.append("totalPrice", total);
+  postData.append("startDate", checkin);
+  postData.append("endDate", checkout);
+  postData.append("quantityATent", selectedQty.tentA);
+  postData.append("quantityLotA", selectedQty.lotA);
+  postData.append("quantityLotB", selectedQty.lotB);
+  postData.append("quantityLotC", selectedQty.lotC);
+  postData.append("totalPax", totalPax);
+  postData.append("extraPax", extraPax);
+  postData.append("bookId", qrBookId);
+  postData.append("remark", vehicleRemark.trim());
+
+  fetch(`https://script.google.com/macros/s/${deploymentId}/exec`, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: postData.toString()
+  })
+    .then(res => res.text())
+    .then(() => {
+      // Simulate webhook after 5 seconds (same as cash)
+      setTimeout(() => {
+        simulateQRWebhook(phone, total, qrBookId);
+      }, 5000);
+      
+      // Send notification
+      const notifyData = new URLSearchParams();
+      notifyData.append("message", `New booking by ${name} ${phone} !!`);
+      notifyData.append("from", "Admin Portal");
+      notifyData.append("agent", username);
+
+      fetch("https://script.google.com/macros/s/AKfycbxsqetZ_iRLnZ3mhRcbxX09q4c0aXU_xHzO5JaPkocr0syDM52DsPsGI-raZi2GCpl5/exec", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: notifyData.toString()
+      });
+
+      callback(true);
+    })
+    .catch(err => {
+      console.error("QR booking error:", err);
+      callback(false);
+    });
+}
+
+function simulateQRWebhook(phone, amount, billCode) {
+  const webhookData = {
+    status: "1",
+    order_id: `${phone}|${phone}`,
+    billCode: billCode,
+    amount: parseFloat(amount)
+  };
+
+  const formData = new URLSearchParams();
+  formData.append("status", "1");
+  formData.append("order_id", `${phone}|${phone}`);
+  formData.append("billCode", billCode);
+  formData.append("amount", parseFloat(amount).toString());
+
+  fetch(`https://script.google.com/macros/s/${deploymentId}/exec`, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: formData.toString()
+  })
+  .then(response => response.text())
+  .then(result => {
+    console.log("QR webhook simulated successfully for:", billCode);
+    console.log("Response:", result);
+  })
+  .catch(error => {
+    console.error("Error simulating QR webhook:", error);
+  });
+}
+
 // ... previous code ...
 
 function submitBooking() {
@@ -1101,7 +1207,9 @@ Click OK to confirm & proceed.
         generateHitpayLink(name, phone, email, total, toDMY(checkinStr), toDMY(checkoutStr), selectedQty, totalPax, afterPayment);
       } else if (paymentMethod === "cash") {
         submitCashBooking(name, formattedPhone, email, total, toDMY(checkinStr), toDMY(checkoutStr), selectedQty, totalPax, extraPax, vehicleRemark, afterPayment);
-      }
+      } else if (paymentMethod === "qr") {
+        submitQRBooking(name, formattedPhone, email, total, toDMY(checkinStr), toDMY(checkoutStr), selectedQty, totalPax, extraPax, vehicleRemark, afterPayment);
+}
 
       function afterPayment(success) {
         if (!success) {
@@ -1112,18 +1220,20 @@ Click OK to confirm & proceed.
         
         const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
         
-if (paymentMethod === "cash") {
-    // For cash: Show non-blocking success message and invoice button
+if (paymentMethod === "cash" || paymentMethod === "qr") {
     document.getElementById("loadingOverlay").style.display = "none";
-    
-    // Show the send invoice button ONLY after successful submission
     document.getElementById('sendInvoiceBtn').style.display = 'block';
     
-    // Create a custom notification that doesn't block execution
-    showCustomNotification("✅ Cash booking submitted successfully! Status will update to 'paid' automatically in 5 seconds. Don't forget to send the invoice to customer.");
+    // Store which type of booking for invoice sending
+    if (paymentMethod === "cash") {
+        localStorage.setItem('lastCashBookingId', localStorage.getItem('lastCashBookingId'));
+    } else {
+        localStorage.setItem('lastQRBookingId', localStorage.getItem('lastQRBookingId'));
+    }
     
+    showCustomNotification(`✅ ${paymentMethod.toUpperCase()} booking submitted successfully! Status will update to 'paid' automatically in 5 seconds. Don't forget to send the invoice to customer.`);
     setTimeout(() => location.reload(), 7000);
-}else {
+} else {
           // For online payments, save booking after payment link generation
           const postData = new URLSearchParams();
           postData.append("userId", `${username}`);
@@ -1208,6 +1318,12 @@ function showCustomNotification(message) {
 }
 
 function selectPaymentMethod(method) {
+  // Prevent selection if method is disabled
+  if (method === 'card') {
+    alert("❌ Card payment is currently unavailable. Please choose another payment method.");
+    return;
+  }
+
   // Update radio button
   document.querySelector(`input[value="${method}"]`).checked = true;
   
@@ -1223,6 +1339,24 @@ function selectPaymentMethod(method) {
 }
 
 function sendInvoiceToCustomer() {
+  // At the beginning of the function, determine which booking ID to use
+  let bookingId;
+  const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+
+  if (paymentMethod === "cash") {
+    bookingId = localStorage.getItem('lastCashBookingId');
+  } else if (paymentMethod === "qr") {
+    bookingId = localStorage.getItem('lastQRBookingId');
+  } else {
+    alert("❌ This function is only for cash/QR bookings");
+    return;
+  }
+
+  if (!bookingId) {
+    alert("❌ No booking ID found. Please submit the booking first.");
+    return;
+  }
+
   const name = document.getElementById("name").value.trim();
   const phone = document.getElementById("phone").value.trim();
   const email = document.getElementById("email").value.trim();
@@ -1246,26 +1380,18 @@ function sendInvoiceToCustomer() {
 
   try {
     const formattedPhone = formatPhone(phone);
-
-    // Use the same booking ID that was used in submitCashBooking
-    const cashBookId = localStorage.getItem('lastCashBookingId');
     
-    if (!cashBookId) {
-      alert("❌ No booking ID found. Please submit the booking first.");
-      return;
-    }
+    // Create QR code URL - USE bookingId NOT cashBookId
+    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${bookingId}`;
     
-    // Create QR code URL
-    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${cashBookId}`;
-    
-    // Create the WhatsApp message
+    // Create the WhatsApp message - USE bookingId NOT cashBookId
     const message = `Thank You!!
 
 Here is your QR code: ${qrCodeUrl}
 
 Booking Detail:
 
-🆔 Booking Id: ${cashBookId}
+🆔 Booking Id: ${bookingId}
 👤 Name: ${name}
 📞 Phone: ${phone}
 📧 Email: ${email}
@@ -1291,8 +1417,9 @@ ${formatVehicleDataForMessage()}
     // Hide the button immediately when clicked
     document.getElementById('sendInvoiceBtn').style.display = 'none';
 
-    // ✅ CLEAR the booking ID from localStorage after use
+    // ✅ CLEAR BOTH booking IDs from localStorage after use
     localStorage.removeItem('lastCashBookingId');
+    localStorage.removeItem('lastQRBookingId');
     
     // Open WhatsApp in new tab
     window.open(whatsappUrl, '_blank');
@@ -1325,6 +1452,10 @@ function handlePaymentMethodAlert() {
       } else {
         alert("Pay by Card (for Visa/Mastercard) - Total Price * 5% + RM1(Hitpay Fee) = Actual Total Price");
       }
+      break;
+
+    case 'qr':
+      alert("Pay by QR (for direct Booking & Walk-in Only) - Please make sure customer shows payment confirmation before submitting");
       break;
       
     case 'cash':
@@ -1754,11 +1885,11 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
   
-  // Hide the send invoice button and clear booking ID
+  // Hide the send invoice button and clear booking IDs
   document.getElementById('sendInvoiceBtn').style.display = 'none';
   localStorage.removeItem('lastCashBookingId');
+  localStorage.removeItem('lastQRBookingId'); // Add this line
 });
 </script>
 </body>
 </html>
-
