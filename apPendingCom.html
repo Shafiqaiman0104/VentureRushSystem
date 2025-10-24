@@ -138,6 +138,127 @@
     display: block;
   } 
     }
+/* Loading Popup Styles */
+.loading-popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(8px);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.loading-popup.show {
+  display: flex;
+  opacity: 1;
+}
+
+.loading-content {
+  background: white;
+  padding: 2.5rem;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  max-width: 320px;
+  width: 90%;
+  animation: slideUp 0.4s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.progress-circle {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  margin: 0 auto 1.5rem;
+}
+
+.circle-background {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid #e2e8f0;
+  border-radius: 50%;
+}
+
+.circle-progress {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid transparent;
+  border-top: 3px solid #0ea5e9;
+  border-radius: 50%;
+  animation: spin 1.2s linear infinite;
+}
+
+.circle-inner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.loading-text {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 0.25rem;
+}
+
+.loading-dots {
+  display: flex;
+  justify-content: center;
+  gap: 3px;
+}
+
+.loading-dots span {
+  width: 4px;
+  height: 4px;
+  background: #64748b;
+  border-radius: 50%;
+  animation: bounce 1.4s ease-in-out infinite both;
+}
+
+.loading-dots span:nth-child(1) { animation-delay: -0.32s; }
+.loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes bounce {
+  0%, 80%, 100% {
+    transform: scale(0);
+  }
+  40% {
+    transform: scale(1);
+  }
+}
+
+.loading-content p {
+  color: #64748b;
+  font-size: 0.9rem;
+  margin: 0;
+  line-height: 1.5;
+}
   </style>
 </head>
 <body>
@@ -250,20 +371,27 @@
     let filteredPending = [];
 
 async function fetchAll(){
-  const [bookingsRes, usersRes] = await Promise.all([
-    fetch(`https://script.google.com/macros/s/${bookingId}/exec`),
-    fetch(`https://script.google.com/macros/s/${userDbId}/exec`)
-  ]);
+  showLoading();
+  try {
+    const [bookingsRes, usersRes] = await Promise.all([
+      fetch(`https://script.google.com/macros/s/${bookingId}/exec`),
+      fetch(`https://script.google.com/macros/s/${userDbId}/exec`)
+    ]);
 
-  const { bookings: bdata } = await bookingsRes.json();
-  const { users: udata } = await usersRes.json();
+    const { bookings: bdata } = await bookingsRes.json();
+    const { users: udata } = await usersRes.json();
 
-  bookings = bdata;
-  users = {};
-  udata.forEach(u => { users[u.username] = u; });
+    bookings = bdata;
+    users = {};
+    udata.forEach(u => { users[u.username] = u; });
 
-  setupAgents();
-  renderTable();
+    setupAgents();
+    renderTable();
+  } catch (error) {
+    console.error('Error fetching data:', error);
+  } finally {
+    hideLoading();
+  }
 }
 
 const username = localStorage.getItem("username") || "Admin";
@@ -294,7 +422,20 @@ function setupAgents(){
       localStorage.removeItem("username");
       window.location.href = "index.html";
     }
+
+// Loading functions
+function showLoading() {
+  const loadingPopup = document.getElementById('loadingPopup');
+  loadingPopup.classList.add('show');
+}
+
+function hideLoading() {
+  const loadingPopup = document.getElementById('loadingPopup');
+  loadingPopup.classList.remove('show');
+}
+
     function renderTable(){
+  showLoading();
   const agent = document.getElementById("agentFilter").value;
   const checkinFilter = document.getElementById("checkinFilter").value;
   const checkoutFilter = document.getElementById("checkoutFilter").value;
@@ -352,10 +493,15 @@ row.innerHTML = `
 tbody.appendChild(row);
 
   });
-document.getElementById("markAllBtn").style.display =
-  (agent !== "all" && filteredPending.length > 0) ? "inline-block" : "none";
 
+  // Hide loading after rendering is complete
+  setTimeout(() => {
+    document.getElementById("markAllBtn").style.display =
+      (agent !== "all" && filteredPending.length > 0) ? "inline-block" : "none";
+    hideLoading();
+  }, 300);
 }
+
 async function markAllAsPaid() {
   const agent = document.getElementById("agentFilter").value;
   const checkinFilter = document.getElementById("checkinFilter").value;
@@ -378,7 +524,7 @@ async function markAllAsPaid() {
 
   if (!confirm(confirmMsg)) return;
 
-  document.getElementById("loadingPopup").style.display = "flex";
+  showLoading(); // Use the new loading function
 
   let successCount = 0;
 
@@ -392,8 +538,7 @@ async function markAllAsPaid() {
     }
   }
 
-    // ✅ HIDE loading popup
-  document.getElementById("loadingPopup").style.display = "none";
+  hideLoading(); // Use the new loading function
 
   alert(`✅ Marked ${successCount} commissions as paid.`);
   fetchAll();
@@ -403,34 +548,53 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-  function markPaid(bookId) {
-    if (bookId.startsWith("pending payment")) {
+function markPaid(bookId) {
+  if (bookId.startsWith("pending payment")) {
     alert("⚠️ This customer has not paid yet. Cannot mark commission as paid because no payment was received.");
     return;
   }
 
   if (!confirm("Are you sure you want to mark this commission as paid?")) return;
 
+  showLoading(); // Show loading when marking single payment
+
   fetch(`https://script.google.com/macros/s/${bookingId}/exec?action=markPaid&bookId=${encodeURIComponent(bookId)}`)
     .then(res => res.json())
     .then(data => {
       if (data.success) {
+        hideLoading(); // Add this line
         alert("Marked as paid successfully.");
         fetchAll();
       } else {
         alert("Error marking as paid.");
+        hideLoading();
       }
     })
     .catch(err => {
       console.error(err);
       alert("Request failed.");
+      hideLoading();
     });
 }
+
 function toggleMenu() {
     document.getElementById("mobileMenu").classList.toggle("show");
     }		
-    function refreshAll(){ fetchAll(); }
-    window.onload = fetchAll;
+
+function refreshAll(){ 
+  showLoading();
+  setTimeout(() => {
+    fetchAll();
+  }, 500);
+}
+
+// Show loading when page loads
+window.onload = function() {
+  showLoading();
+  setTimeout(() => {
+    fetchAll();
+  }, 1000);
+};
 
     const API_URL = "https://script.google.com/macros/s/AKfycbxsqetZ_iRLnZ3mhRcbxX09q4c0aXU_xHzO5JaPkocr0syDM52DsPsGI-raZi2GCpl5/exec";
 
@@ -537,22 +701,26 @@ function toggleMenu() {
     // poll every 10s
     setInterval(fetchNotifications, 10000);
   </script>
-<div id="loadingPopup" style="
-  display: none; /* only this */
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: rgba(0,0,0,0.4);
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-  font-size: 1.2rem;
-  color: white;
-  font-weight: bold;
-">
-  🔄 Marking as paid...
+
+<!-- Loading Popup -->
+<div id="loadingPopup" class="loading-popup">
+  <div class="loading-content">
+    <div class="progress-circle">
+      <div class="circle-background"></div>
+      <div class="circle-progress"></div>
+      <div class="circle-inner">
+        <div class="loading-text">Loading</div>
+        <div class="loading-dots">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+    </div>
+    <p>Please wait while we process your data...</p>
+  </div>
 </div>
+
 </body>
 </html>
-
 
