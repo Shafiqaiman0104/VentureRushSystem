@@ -331,6 +331,127 @@
     display: block;
   } 
   }
+/* Loading Popup Styles */
+.loading-popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(8px);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.loading-popup.show {
+  display: flex;
+  opacity: 1;
+}
+
+.loading-content {
+  background: white;
+  padding: 2.5rem;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  max-width: 320px;
+  width: 90%;
+  animation: slideUp 0.4s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.progress-circle {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  margin: 0 auto 1.5rem;
+}
+
+.circle-background {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid #e2e8f0;
+  border-radius: 50%;
+}
+
+.circle-progress {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid transparent;
+  border-top: 3px solid #0ea5e9;
+  border-radius: 50%;
+  animation: spin 1.2s linear infinite;
+}
+
+.circle-inner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.loading-text {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 0.25rem;
+}
+
+.loading-dots {
+  display: flex;
+  justify-content: center;
+  gap: 3px;
+}
+
+.loading-dots span {
+  width: 4px;
+  height: 4px;
+  background: #64748b;
+  border-radius: 50%;
+  animation: bounce 1.4s ease-in-out infinite both;
+}
+
+.loading-dots span:nth-child(1) { animation-delay: -0.32s; }
+.loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes bounce {
+  0%, 80%, 100% {
+    transform: scale(0);
+  }
+  40% {
+    transform: scale(1);
+  }
+}
+
+.loading-content p {
+  color: #64748b;
+  font-size: 0.9rem;
+  margin: 0;
+  line-height: 1.5;
+}
 </style>  
 </head>
 <body>
@@ -455,6 +576,24 @@
 </div>
 </div>
 
+<!-- Loading Popup -->
+<div id="loadingPopup" class="loading-popup">
+  <div class="loading-content">
+    <div class="progress-circle">
+      <div class="circle-background"></div>
+      <div class="circle-progress"></div>
+      <div class="circle-inner">
+        <div class="loading-text">Loading</div>
+        <div class="loading-dots">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+    </div>
+    <p>Please wait while we process your data...</p>
+  </div>
+</div>
 
   </main>
 <div id="dropdownNoti" class="dropdownNoti"></div>
@@ -488,32 +627,57 @@ function logout() {
   window.location.href = "index.html";
 }
 
+// Loading functions
+function showLoading() {
+  const loadingPopup = document.getElementById('loadingPopup');
+  loadingPopup.classList.add('show');
+}
+
+function hideLoading() {
+  const loadingPopup = document.getElementById('loadingPopup');
+  loadingPopup.classList.remove('show');
+}
+
+// Simulate loading for demo purposes
+function simulateLoading(duration = 2000) {
+  showLoading();
+  setTimeout(hideLoading, duration);
+}
+
 const agentId = "AKfycbwZYyoTqEYrTzk2mLPDer4RoLysmRVXakI4__TvENZ4GZRzMFvDcFOP8FX3xqG4hPv2TQ";
 const bookingId = "AKfycbwsPIi_Zf7UtwTQJ8BPiLmNR87VxecATUOItw68loKglD60QRcRzeQoqIzyynvTXolipA";
 let bookings = [], users = {}, userType = "staff";
 
+// Modify your existing functions to use loading
 async function fetchAll(){
-  const ures = await fetch(`https://script.google.com/macros/s/${agentId}/exec`);
-  const dres = await fetch(`https://script.google.com/macros/s/${bookingId}/exec`);
+  showLoading();
+  try {
+    const ures = await fetch(`https://script.google.com/macros/s/${agentId}/exec`);
+    const dres = await fetch(`https://script.google.com/macros/s/${bookingId}/exec`);
 
-  const { users: udata } = await ures.json();
-  const { bookings: bdata } = await dres.json();
+    const { users: udata } = await ures.json();
+    const { bookings: bdata } = await dres.json();
 
-  bookings = bdata;
-  users = {};
-  udata.forEach(u => {
-    users[u.userId] = { username: u.username, type: u.type };
-    if (u.username === username) userType = u.type;
-  });
+    bookings = bdata;
+    users = {};
+    udata.forEach(u => {
+      users[u.userId] = { username: u.username, type: u.type };
+      if (u.username === username) userType = u.type;
+    });
 
-  setupAgents();
-  renderCommission();
-  renderAgentTable();
-  renderUnitSalesChart(); // move this here
-  renderTotalPaxChart();  // <-- add this call here
-  renderMonthlySalesChart();  // <-- add this here
-  renderOccupancyChart();
-
+    setupAgents();
+    renderCommission();
+    renderAgentTable();
+    renderUnitSalesChart();
+    renderTotalPaxChart();
+    renderMonthlySalesChart();
+    renderOccupancyChart();
+    
+  } catch (error) {
+    console.error('Error fetching data:', error);
+  } finally {
+    hideLoading();
+  }
 }
 
 let unitSalesChartInstance;
@@ -911,6 +1075,7 @@ function renderAgentChart(stats) {
 }
 
 function renderAgentTable() {
+  showLoading();
   const agentName = document.getElementById("agentFilter").value;
   const from = document.getElementById("fromDate").value;
   const to = document.getElementById("toDate").value;
@@ -970,10 +1135,29 @@ row.innerHTML = `
   });
 renderAgentChart(stats);
 renderCommission(); // 👈 add this here
+
+  // Hide loading after a short delay to ensure smooth rendering
+  setTimeout(() => {
+    hideLoading();
+  }, 300);
 }
 
-function refreshAll(){ fetchAll(); }
-window.onload = fetchAll;
+function refreshAll() { 
+  showLoading();
+  // Add a small delay so the loading is visible
+  setTimeout(() => {
+    fetchAll();
+  }, 500);
+}
+
+// Show loading when page loads
+window.onload = function() {
+  showLoading();
+  // Simulate initial load time
+  setTimeout(() => {
+    fetchAll();
+  }, 1000);
+};
 
 const API_URL = "https://script.google.com/macros/s/AKfycbxsqetZ_iRLnZ3mhRcbxX09q4c0aXU_xHzO5JaPkocr0syDM52DsPsGI-raZi2GCpl5/exec";
 
@@ -1082,4 +1266,3 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxsqetZ_iRLnZ3mhRcbxX09
 </script>
 </body>
 </html>
-
