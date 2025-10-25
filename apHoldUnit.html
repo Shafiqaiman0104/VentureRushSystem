@@ -191,18 +191,6 @@ table tr:hover {
   background: #dc2626;
 }
 
-    #loadingPopup {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background-color: rgba(0, 0, 0, 0.6);
-      color: white;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 9999;
-      font-size: 1.5rem;
-    }
 .table-container {
   overflow-x: auto;
   width: 100%;
@@ -274,6 +262,129 @@ table tr:hover {
     display: block;
   } 
     }
+
+/* Loading Popup Styles */
+.loading-popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(8px);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.loading-popup.show {
+  display: flex;
+  opacity: 1;
+}
+
+.loading-content {
+  background: white;
+  padding: 2.5rem;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  max-width: 320px;
+  width: 90%;
+  animation: slideUp 0.4s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.progress-circle {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  margin: 0 auto 1.5rem;
+}
+
+.circle-background {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid #e2e8f0;
+  border-radius: 50%;
+}
+
+.circle-progress {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid transparent;
+  border-top: 3px solid #0ea5e9;
+  border-radius: 50%;
+  animation: spin 1.2s linear infinite;
+}
+
+.circle-inner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.loading-text {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 0.25rem;
+}
+
+.loading-dots {
+  display: flex;
+  justify-content: center;
+  gap: 3px;
+}
+
+.loading-dots span {
+  width: 4px;
+  height: 4px;
+  background: #64748b;
+  border-radius: 50%;
+  animation: bounce 1.4s ease-in-out infinite both;
+}
+
+.loading-dots span:nth-child(1) { animation-delay: -0.32s; }
+.loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes bounce {
+  0%, 80%, 100% {
+    transform: scale(0);
+  }
+  40% {
+    transform: scale(1);
+  }
+}
+
+.loading-content p {
+  color: #64748b;
+  font-size: 0.9rem;
+  margin: 0;
+  line-height: 1.5;
+}
+
   </style>
 </head>
 <body>
@@ -337,7 +448,24 @@ table tr:hover {
   </header>
 
   <main>
-    <div id="loadingPopup">Processing...</div>
+    <!-- Loading Popup -->
+<div id="loadingPopup" class="loading-popup">
+  <div class="loading-content">
+    <div class="progress-circle">
+      <div class="circle-background"></div>
+      <div class="circle-progress"></div>
+      <div class="circle-inner">
+        <div class="loading-text">Loading</div>
+        <div class="loading-dots">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+    </div>
+    <p>Please wait while we process your data...</p>
+  </div>
+</div>
 
     <div class="card">
       <h2>Hold Units</h2>
@@ -406,6 +534,17 @@ function toggleMenu() {
       window.location.href = "index.html";
     }
 
+// Loading functions
+function showLoading() {
+  const loadingPopup = document.getElementById('loadingPopup');
+  loadingPopup.classList.add('show');
+}
+
+function hideLoading() {
+  const loadingPopup = document.getElementById('loadingPopup');
+  loadingPopup.classList.remove('show');
+}
+
     function toDMY(date) {
       return `${date.getDate().toString().padStart(2, '0')}/` +
              `${(date.getMonth()+1).toString().padStart(2, '0')}/` +
@@ -455,7 +594,7 @@ if (checkin >= checkout) {
     current.setDate(current.getDate() + 1);
   }
 
-  document.getElementById("loadingPopup").style.display = "flex";
+  showLoading(); // Use the new loading function
 
   try {
     const res = await fetch(`https://script.google.com/macros/s/${deploymentId}/exec`);
@@ -504,7 +643,7 @@ if (unitCounts.lotC + lotC > MAX_UNITS.lotC) {
 
     if (errors.length > 0) {
       alert("Some units are already booked:\n\n" + errors.join("\n"));
-      document.getElementById("loadingPopup").style.display = "none";
+      hideLoading(); // Use the new loading function
       return;
     }
 
@@ -553,20 +692,22 @@ await fetch(API_URL, {
   }).toString()
 });
 
+    hideLoading(); // Use the new loading function
     alert("✅ Units held successfully.");
     location.reload();
 
   } catch (err) {
+    hideLoading(); // Use the new loading function
     alert("❌ Failed to hold units.");
     console.error(err);
   }
-
-  document.getElementById("loadingPopup").style.display = "none";
 }
 
 
     async function releaseHold(bookId, unitStr, dateRange) {
   if (!confirm("Are you sure you want to release this hold?")) return;
+
+  showLoading(); // Show loading when releasing hold
 
   const params = new URLSearchParams();
   params.append("action", "delete");
@@ -590,15 +731,18 @@ await fetch(API_URL, {
       }).toString()
     });
     
+    hideLoading(); // Hide loading when done
     alert("✅ Hold released.");
     fetchHeldUnits();
   } catch (err) {
+    hideLoading(); // Hide loading on error
     alert("❌ Failed to release hold.");
     console.error(err);
   }
 }
 
 async function fetchHeldUnits() {
+  showLoading(); // Show loading when fetching held units
   try {
     const res = await fetch(`https://script.google.com/macros/s/${deploymentId}/exec`);
     const data = await res.json();
@@ -609,6 +753,7 @@ async function fetchHeldUnits() {
 
     if (holdList.length === 0) {
       tbody.innerHTML = "<tr><td colspan='4'>No held units found.</td></tr>";
+      hideLoading(); // Hide loading when no units found
       return;
     }
 
@@ -665,6 +810,8 @@ if (b.unit) {
     console.error("❌ Failed to fetch HOLD data", err);
     const tbody = document.querySelector("#holdListTable tbody");
     tbody.innerHTML = "<tr><td colspan='4'>Error loading data.</td></tr>";
+  }finally {
+    hideLoading(); // Hide loading when done
   }
 }
 function filterHoldTable() {
@@ -678,8 +825,13 @@ function filterHoldTable() {
 }
 
 
-  // Load holds on page load
-  window.onload = fetchHeldUnits;
+// Load holds on page load
+window.onload = function() {
+  showLoading(); // Show loading on page load
+  setTimeout(() => {
+    fetchHeldUnits();
+  }, 500);
+};
 
 const API_URL = "https://script.google.com/macros/s/AKfycbxsqetZ_iRLnZ3mhRcbxX09q4c0aXU_xHzO5JaPkocr0syDM52DsPsGI-raZi2GCpl5/exec";
 
@@ -788,7 +940,6 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxsqetZ_iRLnZ3mhRcbxX09
   </script>
 </body>
 </html>
-
 
 
 
