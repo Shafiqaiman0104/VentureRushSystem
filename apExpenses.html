@@ -158,19 +158,6 @@ main {
     .hidden {
       display: none;
     }
-     /* 👇 Loading Overlay */
-    .loading-overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background-color: rgba(0, 0, 0, 0.5);
-      z-index: 9999;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      color: white;
-      font-size: 1.5rem;
-      display: none;
-    }
     .card-container {
     display: flex;
     justify-content: center;
@@ -323,7 +310,127 @@ tbody tr:hover {
     display: block;
   } 
     }
+/* Loading Popup Styles */
+.loading-popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(8px);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
 
+.loading-popup.show {
+  display: flex;
+  opacity: 1;
+}
+
+.loading-content {
+  background: white;
+  padding: 2.5rem;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  max-width: 320px;
+  width: 90%;
+  animation: slideUp 0.4s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.progress-circle {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  margin: 0 auto 1.5rem;
+}
+
+.circle-background {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid #e2e8f0;
+  border-radius: 50%;
+}
+
+.circle-progress {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid transparent;
+  border-top: 3px solid #0ea5e9;
+  border-radius: 50%;
+  animation: spin 1.2s linear infinite;
+}
+
+.circle-inner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.loading-text {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 0.25rem;
+}
+
+.loading-dots {
+  display: flex;
+  justify-content: center;
+  gap: 3px;
+}
+
+.loading-dots span {
+  width: 4px;
+  height: 4px;
+  background: #64748b;
+  border-radius: 50%;
+  animation: bounce 1.4s ease-in-out infinite both;
+}
+
+.loading-dots span:nth-child(1) { animation-delay: -0.32s; }
+.loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes bounce {
+  0%, 80%, 100% {
+    transform: scale(0);
+  }
+  40% {
+    transform: scale(1);
+  }
+}
+
+.loading-content p {
+  color: #64748b;
+  font-size: 0.9rem;
+  margin: 0;
+  line-height: 1.5;
+}
   </style>
 </head>
 <body>
@@ -499,7 +606,24 @@ tbody tr:hover {
   </div>
 </div>
 
-  <div class="loading-overlay" id="loadingOverlay">Loading...</div>
+ <!-- Loading Popup -->
+<div id="loadingPopup" class="loading-popup">
+  <div class="loading-content">
+    <div class="progress-circle">
+      <div class="circle-background"></div>
+      <div class="circle-progress"></div>
+      <div class="circle-inner">
+        <div class="loading-text">Loading</div>
+        <div class="loading-dots">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+    </div>
+    <p>Please wait while we process your data...</p>
+  </div>
+</div>
 </main>
   <div id="dropdownNoti" class="dropdownNoti"></div>
 
@@ -517,6 +641,16 @@ document.getElementById("mobileWelcome").textContent = `Welcome ${username} !!`;
 
 function toggleMenu() {
   document.getElementById("mobileMenu").classList.toggle("show");
+}
+// Loading functions
+function showLoading() {
+  const loadingPopup = document.getElementById('loadingPopup');
+  loadingPopup.classList.add('show');
+}
+
+function hideLoading() {
+  const loadingPopup = document.getElementById('loadingPopup');
+  loadingPopup.classList.remove('show');
 }
 
   const deploymentId = "AKfycbzbrZVENGEBlwymKaqKBaHrIU4Gl6MDmmrcEL8us5uOesyWhhEXYwWFcvzRB5ECGh4v";
@@ -658,8 +792,8 @@ function logout() {
     params.append("paidTo", formData.get("paidTo"));
     params.append("notes", formData.get("notes"));
 
-    loadingOverlay.style.display = "flex";
-
+    showLoading(); // Use the new loading function
+ 
     try {
       await fetch(`https://script.google.com/macros/s/${deploymentId}/exec`, {
         method: "POST",
@@ -676,13 +810,15 @@ function logout() {
       console.error("Error saving expense:", err);
       alert("❌ Failed to save expense. Please try again.");
     } finally {
-      loadingOverlay.style.display = "none";
+      hideLoading(); // Use the new loading function
     }
   });
 
   async function loadAllExpenses() {
     const tbody = document.getElementById("expenseTableBody");
     tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;">Loading...</td></tr>`;
+
+    showLoading(); // Show loading when loading expenses
 
     try {
       const res = await fetch(`https://script.google.com/macros/s/${deploymentId}/exec?action=getExpenses`);
@@ -692,7 +828,9 @@ function logout() {
     } catch (err) {
       console.error("Failed to load expenses", err);
       tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:red;">Failed to load expenses</td></tr>`;
-    }
+    }finally {
+    hideLoading(); // Hide loading when done
+  }
   }
 
   let allExpenses = [];
@@ -787,7 +925,7 @@ async function deleteFromEdit() {
   params.append("action", "deleteExpense");
   params.append("originalTimestamp", exp.timestamp);
 
-  loadingOverlay.style.display = "flex";
+  showLoading(); // Use the new loading function
   try {
     await fetch(`https://script.google.com/macros/s/${deploymentId}/exec`, {
       method: "POST",
@@ -800,7 +938,7 @@ async function deleteFromEdit() {
   } catch (err) {
     alert("❌ Failed to delete expense.");
   } finally {
-    loadingOverlay.style.display = "none";
+    hideLoading(); // Use the new loading function
   }
 }
 
@@ -867,7 +1005,7 @@ params.append("description", finalEditDescription);
   params.append("paidTo", document.getElementById("editPaidTo").value);
   params.append("notes", document.getElementById("editNotes").value);
 
-  loadingOverlay.style.display = "flex";
+  showLoading(); // Use the new loading function
   try {
     await fetch(`https://script.google.com/macros/s/${deploymentId}/exec`, {
       method: "POST",
@@ -880,11 +1018,16 @@ params.append("description", finalEditDescription);
   } catch (err) {
     alert("❌ Failed to update expense.");
   } finally {
-    loadingOverlay.style.display = "none";
+    hideLoading(); // Use the new loading function
   }
 });
 
-window.addEventListener("DOMContentLoaded", loadAllExpenses);
+window.addEventListener("DOMContentLoaded", function() {
+  showLoading(); // Show loading on page load
+  setTimeout(() => {
+    loadAllExpenses();
+  }, 500);
+});
 
 const API_URL = "https://script.google.com/macros/s/AKfycbxsqetZ_iRLnZ3mhRcbxX09q4c0aXU_xHzO5JaPkocr0syDM52DsPsGI-raZi2GCpl5/exec";
 
@@ -994,6 +1137,5 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxsqetZ_iRLnZ3mhRcbxX09
   
 </body>
 </html>
-
 
 
