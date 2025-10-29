@@ -96,23 +96,6 @@
       transition: background 0.2s;
     }
     .btn-main:hover { background: #0f766e; }
-    #loadingOverlay {
-      display: none;
-      position: fixed;
-      z-index: 9999;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.4);
-      justify-content: center;
-      align-items: center;
-    }
-    .loading-popup {
-      background: white;
-      padding: 1.5rem 2rem;
-      border-radius: 8px;
-      font-weight: bold;
-      font-size: 1.2rem;
-      box-shadow: 0 0 20px rgba(0,0,0,0.3);
-    }
         .bell {
       position: relative; font-size: 22px; cursor: pointer;
     }
@@ -268,6 +251,129 @@
     @media (max-width: 600px) {
       .form-group label { min-width: 100%; }
     }
+
+/* Loading Popup Styles - Same as adminpage */
+.loading-popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(8px);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.loading-popup.show {
+  display: flex;
+  opacity: 1;
+}
+
+.loading-content {
+  background: white;
+  padding: 2.5rem;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  max-width: 320px;
+  width: 90%;
+  animation: slideUp 0.4s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.progress-circle {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  margin: 0 auto 1.5rem;
+}
+
+.circle-background {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid #e2e8f0;
+  border-radius: 50%;
+}
+
+.circle-progress {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid transparent;
+  border-top: 3px solid #0ea5e9;
+  border-radius: 50%;
+  animation: spin 1.2s linear infinite;
+}
+
+.circle-inner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.loading-text {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 0.25rem;
+}
+
+.loading-dots {
+  display: flex;
+  justify-content: center;
+  gap: 3px;
+}
+
+.loading-dots span {
+  width: 4px;
+  height: 4px;
+  background: #64748b;
+  border-radius: 50%;
+  animation: bounce 1.4s ease-in-out infinite both;
+}
+
+.loading-dots span:nth-child(1) { animation-delay: -0.32s; }
+.loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes bounce {
+  0%, 80%, 100% {
+    transform: scale(0);
+  }
+  40% {
+    transform: scale(1);
+  }
+}
+
+.loading-content p {
+  color: #64748b;
+  font-size: 0.9rem;
+  margin: 0;
+  line-height: 1.5;
+}
+
   </style>
 </head>
 <body>
@@ -411,10 +517,45 @@
     <div id="paymentLinkContainer" style="margin-top: 1rem;"></div>
   </div>
 </main>
-<div id="loadingOverlay"><div class="loading-popup">Double Checking Availability...</div></div>
-<div id="paymentLoadingOverlay" style="display: none; position: fixed; z-index: 9999; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); justify-content: center; align-items: center;">
-  <div class="loading-popup">Generating payment link...</div>
+
+<!-- Loading Popup for Availability Check -->
+<div id="loadingPopup" class="loading-popup">
+  <div class="loading-content">
+    <div class="progress-circle">
+      <div class="circle-background"></div>
+      <div class="circle-progress"></div>
+      <div class="circle-inner">
+        <div class="loading-text">Loading</div>
+        <div class="loading-dots">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+    </div>
+    <p>Double Checking Availability...</p>
+  </div>
 </div>
+
+<!-- Loading Popup for Payment Processing -->
+<div id="paymentLoadingPopup" class="loading-popup">
+  <div class="loading-content">
+    <div class="progress-circle">
+      <div class="circle-background"></div>
+      <div class="circle-progress"></div>
+      <div class="circle-inner">
+        <div class="loading-text">Loading</div>
+        <div class="loading-dots">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+    </div>
+    <p>Generating payment link...</p>
+  </div>
+</div>
+
   <div id="dropdownNoti" class="dropdownNoti"></div>
 
 <audio id="dingSound" preload="auto">
@@ -457,6 +598,26 @@ if (!localStorage.getItem("username") || localStorage.getItem("username") === "U
 document.getElementById("welcomeText").textContent = `Welcome ${username} !!`;
 document.getElementById("mobileWelcome").textContent = `Welcome ${username} !!`;
 
+// Loading functions
+function showLoading() {
+  const loadingPopup = document.getElementById('loadingPopup');
+  loadingPopup.classList.add('show');
+}
+
+function hideLoading() {
+  const loadingPopup = document.getElementById('loadingPopup');
+  loadingPopup.classList.remove('show');
+}
+
+function showPaymentLoading() {
+  const paymentLoadingPopup = document.getElementById('paymentLoadingPopup');
+  paymentLoadingPopup.classList.add('show');
+}
+
+function hidePaymentLoading() {
+  const paymentLoadingPopup = document.getElementById('paymentLoadingPopup');
+  paymentLoadingPopup.classList.remove('show');
+}
 
 const deploymentId = "AKfycbwsPIi_Zf7UtwTQJ8BPiLmNR87VxecATUOItw68loKglD60QRcRzeQoqIzyynvTXolipA";
 const MAX_UNITS = { tentA: 7, lotA: 1, lotB: 3, lotC: 5 };
@@ -1091,7 +1252,7 @@ Click OK to confirm & proceed.
   }
 
   document.querySelector(".btn-main").disabled = true;
-  document.getElementById("loadingOverlay").style.display = "flex";
+  showLoading();
 
   fetch(`https://script.google.com/macros/s/${deploymentId}/exec`)
     .then(res => res.json())
@@ -1110,7 +1271,7 @@ Click OK to confirm & proceed.
       });
 
       if (warnings.length > 0) {
-        document.getElementById("loadingOverlay").style.display = "none";
+        hideLoading();
         document.querySelector(".btn-main").disabled = false;
         alert("Limited availability:\n" + warnings.join("\n"));
         return;
@@ -1130,7 +1291,7 @@ Click OK to confirm & proceed.
 
       function afterPayment(success) {
         if (!success) {
-          document.getElementById("loadingOverlay").style.display = "none";
+          hideLoading();
           document.querySelector(".btn-main").disabled = false;
           return;
         }
@@ -1138,7 +1299,7 @@ Click OK to confirm & proceed.
         const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
 
 if (paymentMethod === "cash" || paymentMethod === "qr") {
-  document.getElementById("loadingOverlay").style.display = "none";
+  hideLoading();
   document.getElementById('sendInvoiceBtn').style.display = 'block';
   
   // Store which type of booking for invoice sending
@@ -1187,12 +1348,12 @@ if (paymentMethod === "cash" || paymentMethod === "qr") {
                 body: notifyData.toString()
               }).catch(err => console.error("❌ Notification error:", err));
 
-              document.getElementById("loadingOverlay").style.display = "none";
+              hideLoading();
               alert("✅ Booking submitted successfully!");
               setTimeout(() => location.reload(), 7000);
             })
             .catch(err => {
-              document.getElementById("loadingOverlay").style.display = "none";
+              hideLoading();
               document.querySelector(".btn-main").disabled = false;
               alert("❌ Failed to submit booking: " + err);
             });
@@ -1200,7 +1361,7 @@ if (paymentMethod === "cash" || paymentMethod === "qr") {
       }
     })
     .catch(err => {
-      document.getElementById("loadingOverlay").style.display = "none";
+      hideLoading();
       document.querySelector(".btn-main").disabled = false;
       alert("❌ Failed to check availability: " + err);
     });
@@ -1384,7 +1545,7 @@ function handlePaymentMethodAlert() {
 let lastPaymentLink = ""; // ✅ store generated link for copy
 
 function generateToyyibpayLink(name, phone, email, amount, checkin, checkout, selectedQty, totalPax, callback) {
-  document.getElementById("paymentLoadingOverlay").style.display = "flex";
+  showPaymentLoading();
 
   const userSecretKey = "b8i1lou9-73pz-uufr-4wub-kg3knagpoisp";
   const categoryCode = "rolv7s75";
@@ -1421,7 +1582,7 @@ function generateToyyibpayLink(name, phone, email, amount, checkin, checkout, se
   })
     .then(res => res.json())
     .then(data => {
-      document.getElementById("paymentLoadingOverlay").style.display = "none";
+      hidePaymentLoading();
       if (Array.isArray(data) && data[0]?.BillCode) {
         const link = `https://toyyibpay.com/${data[0].BillCode}`;
         lastPaymentLink = link;
@@ -1482,7 +1643,7 @@ ${units}
       }
     })
     .catch(err => {
-      document.getElementById("paymentLoadingOverlay").style.display = "none";
+      hidePaymentLoading();
       alert("❌ Payment error: " + err.message);
       document.querySelector(".btn-main").disabled = false;
       callback(false);
@@ -1490,7 +1651,7 @@ ${units}
 }
 
 function generateHitpayLink(name, phone, email, amount, checkin, checkout, selectedQty, totalPax, callback) {
-  document.getElementById("paymentLoadingOverlay").style.display = "flex";
+  showPaymentLoading();
 
   const apiKey = "test_278603db184930b3c1fb4798b0d79fd51c006fb6e8ea5e3a18e633b18f005bc7";
   const redirectUrl = "https://payment.mkrimbacamp-vr.com";
@@ -1535,7 +1696,7 @@ function generateHitpayLink(name, phone, email, amount, checkin, checkout, selec
       return res.json();
     })
     .then(data => {
-      document.getElementById("paymentLoadingOverlay").style.display = "none";
+      hidePaymentLoading();
       console.log("HitPay response:", data);
       
       if (data.url) {
@@ -1598,7 +1759,7 @@ ${units}
       }
     })
     .catch(err => {
-      document.getElementById("paymentLoadingOverlay").style.display = "none";
+      hidePaymentLoading();
       console.error("HitPay error:", err);
       alert("❌ HitPay error: " + err.message);
       document.querySelector(".btn-main").disabled = false;
@@ -1808,4 +1969,3 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 </body>
 </html>
-
