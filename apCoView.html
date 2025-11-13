@@ -550,10 +550,37 @@ td {
     <source src="https://actions.google.com/sounds/v1/alarms/beep_short.mp3" type="audio/mpeg">
 </audio>
 <script>
-    const username = localStorage.getItem("username") || "Admin";
-// 🔐 Redirect if not logged in (username missing or defaulted to "Admin")
+const username = localStorage.getItem("username") || "Admin";
+
+// 🔐 Redirect if not logged in
 if (!localStorage.getItem("username") || localStorage.getItem("username") === "Admin") {
   window.location.href = "index.html";
+} else {
+  // Check user's type
+  fetch("https://script.google.com/macros/s/AKfycbwZYyoTqEYrTzk2mLPDer4RoLysmRVXakI4__TvENZ4GZRzMFvDcFOP8FX3xqG4hPv2TQ/exec")
+    .then(res => res.json())
+    .then(data => {
+      const users = data.users || [];
+      const currentUser = users.find(u => u.username === username);
+      if (!currentUser) {
+        alert("⚠️ Username not recognized. Please log in again.");
+        localStorage.removeItem("username");
+        window.location.href = "index.html";
+        return;
+      }
+
+      if (["staff", "co"].includes(currentUser.type.toLowerCase())) {
+      alert("⚠️ This page is for admin only. Please use your own ID and sign in again.");
+      localStorage.removeItem("username");
+      window.location.href = "index.html";
+      return;
+      }
+    })
+    .catch(() => {
+      alert("⚠️ Failed to verify user type. Please try again.");
+      localStorage.removeItem("username");
+      window.location.href = "index.html";
+    });
 }
     document.getElementById("welcomeText").textContent = `Welcome ${username} !!`;
     document.getElementById("mobileWelcome").textContent = `Welcome ${username} !!`;
@@ -1194,5 +1221,6 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxsqetZ_iRLnZ3mhRcbxX09
 </script>
 </body>
 </html>
+
 
 
