@@ -899,11 +899,21 @@ function openEditPopup(data) {
 }
 
 function deleteBooking() {
+  const bookId = document.getElementById('editBookId').value;
+  
+  // Use the same logic as in submitEdit to check if checked in
+  const coRow = coData.find(r => (r.bookId || '').trim() === bookId.trim());
+  const hasCheckin = coRow?.checkin?.trim();
+
+  if (hasCheckin && hasCheckin !== "") {
+    alert(`❌ Customer already checked in, cannot delete this data`);
+    return;
+  }
+  
   if (!confirm("Confirm delete this booking?")) return;
 
   showLoading("Deleting booking...");
 
-  const bookId = document.getElementById('editBookId').value;
   const payload = new URLSearchParams();
   payload.append("action", "delete");
   payload.append("bookId", bookId);
@@ -1388,3 +1398,4 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxsqetZ_iRLnZ3mhRcbxX09
 
 </body>
 </html>
+
