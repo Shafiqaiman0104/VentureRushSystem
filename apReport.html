@@ -6,137 +6,132 @@
   <title>Monthly Profit Report</title>
   <style>
     * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    font-family: 'Segoe UI', sans-serif;
-    background: #f8fafc;
-  }
-header {
-    background: white;
-    padding: 1rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
-    flex-wrap: wrap;
-  }
-.logo { font-weight: bold; }
-  .menu-toggle {
-    display: none;
-    font-size: 1.5rem;
-    background: none;
-    border: none;
-    cursor: pointer;
-  }
-nav {
-    display: flex;
-    gap: 1rem;
-    align-items: center;
-  }
-
-
-.dropdown-btn {
-    margin: 0 4px;
-    padding: 8px 12px;
-    background-color: #f3f4f6;
-    border: none;
-    cursor: pointer;
-    font-size: 0.95rem;
-    width: 150px;
-  }
-  .dropdown {
-    position: relative;
-  }
- .dropdown-content {
-    display: none;
-    position: absolute;
-    top: 110%;
-    left: 0;
-    background-color: white;
-    min-width: 100%;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-    z-index: 999;
-    flex-direction: column;
-  }
-  .dropdown-content button {
-    padding: 10px;
-    width: 100%;
-    text-align: left;
-    background-color: #f3f4f6;
-    border: none;
-    border-top: 1px solid #ccc;
-    border-radius: 0px; /* ← square buttons */
-    white-space: nowrap;      
-  }
-  .dropdown-content button:hover {
-    background-color: white; 
-    color: #000; /* optional: make text darker for visibility */
-  }
- .dropdown:hover .dropdown-content {
-    display: flex;
-  }
-
-
-  .mobile-menu {
-    display: none;
-    flex-direction: column;
-    gap: 0.5rem;
-    margin-top: 1rem;
-    width: 100%;
-  }
-  .mobile-menu.show {
-    display: flex;
-  }
-.tab {
-    padding: 0.5rem 1rem;
-    border: none;
-    border-radius: 5px;
-    background: #f3f4f6;
-    cursor: pointer;
-    font-size: 0.95rem;
-  }
-  .tab.active {
-    background: #ffffff;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-  }
-  .logout-btn {
-    padding: 0.5rem 1rem;
-    background: #ef4444;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-  .welcome-mobile {
-    display: none;
-    font-size: 0.8rem;
-    color: #334155;
-    margin-left: auto;
-    margin-right: 0.5rem;
-  }
-main {
-    padding: 1.5rem;
-    max-width: 100%;
-    margin: auto;
-  }
-  .top-actions {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
-  }
-  .action-button {
-    background: #0ea5e9;
-    color: white;
-    padding: 0.5rem 1rem;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-  .action-button:hover {
-    background: #0284c7;
-  }
-
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #f8fafc;
+    }
+    header {
+      background: white;
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+      flex-wrap: wrap;
+    }
+    .logo { font-weight: bold; }
+    .menu-toggle {
+      display: none;
+      font-size: 1.5rem;
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+    nav {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+    .dropdown-btn {
+      margin: 0 4px;
+      padding: 8px 12px;
+      background-color: #f3f4f6;
+      border: none;
+      cursor: pointer;
+      font-size: 0.95rem;
+      width: 150px;
+    }
+    .dropdown {
+      position: relative;
+    }
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      top: 110%;
+      left: 0;
+      background-color: white;
+      min-width: 100%;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      z-index: 999;
+      flex-direction: column;
+    }
+    .dropdown-content button {
+      padding: 10px;
+      width: 100%;
+      text-align: left;
+      background-color: #f3f4f6;
+      border: none;
+      border-top: 1px solid #ccc;
+      border-radius: 0px;
+      white-space: nowrap;      
+    }
+    .dropdown-content button:hover {
+      background-color: white; 
+      color: #000;
+    }
+    .dropdown:hover .dropdown-content {
+      display: flex;
+    }
+    .mobile-menu {
+      display: none;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-top: 1rem;
+      width: 100%;
+    }
+    .mobile-menu.show {
+      display: flex;
+    }
+    .tab {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 5px;
+      background: #f3f4f6;
+      cursor: pointer;
+      font-size: 0.95rem;
+    }
+    .tab.active {
+      background: #ffffff;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+    .logout-btn {
+      padding: 0.5rem 1rem;
+      background: #ef4444;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .welcome-mobile {
+      display: none;
+      font-size: 0.8rem;
+      color: #334155;
+      margin-left: auto;
+      margin-right: 0.5rem;
+    }
+    main {
+      padding: 1.5rem;
+      max-width: 100%;
+      margin: auto;
+    }
+    .top-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    .action-button {
+      background: #0ea5e9;
+      color: white;
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .action-button:hover {
+      background: #0284c7;
+    }
     h2 {
       text-align: center;
       margin-bottom: 1rem;
@@ -184,11 +179,11 @@ main {
       font-size: 0.9rem;
     }
     th, td {
-     border: 1px solid #d1d5db;
-     padding: 8px;
-     text-align: left;
-     white-space: nowrap;
-     word-break: normal;
+      border: 1px solid #d1d5db;
+      padding: 8px;
+      text-align: left;
+      white-space: nowrap;
+      word-break: normal;
     }
     th {
       background: #e2e8f0;
@@ -196,88 +191,81 @@ main {
     tr:nth-child(even) {
       background: #f8fafc;
     }
-.table-wrapper {
-  overflow-x: auto;
-  max-width: 100%;
-}
-
-.table-wrapper table {
-  width: max-content; /* 👈 Ensures table doesn't shrink inside scroll container */
-}
-h3 {
-  margin-top: 2rem;
-  font-size: 1.2rem;
-  color: #1e293b;
-}
-#loadingOverlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(255,255,255,0.8);
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.2rem;
-  font-weight: bold;
-  color: #0ea5e9;
-}
-.spinner {
-  border: 4px solid #e0f2f1;
-  border-top: 4px solid #0ea5e9;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  animation: spin 0.8s linear infinite;
-  margin-right: 10px;
-}
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-@media print {
-  #printBtn,
-  #excelBtn,
-  #monthSelect,
-  .form-group,
-  .error,
-  #loadingOverlay {
-    display: none !important;
-  }
-
-  body {
-    background: white !important;
-    margin: 0;
-    padding: 0.5in;
-  }
-
-  .card {
-    box-shadow: none !important;
-    border: none !important;
-    padding: 0;
-  }
-
-  table {
-    page-break-inside: auto;
-  }
-
-  tr {
-    page-break-inside: avoid;
-    page-break-after: auto;
-  }
-
-  .table-wrapper {
-    overflow: visible !important;
-  }
-
-  table, th, td {
-    font-size: 10px;
-    white-space: normal;
-    word-wrap: break-word;
-  }
-}
+    .table-wrapper {
+      overflow-x: auto;
+      max-width: 100%;
+    }
+    .table-wrapper table {
+      width: max-content;
+    }
+    h3 {
+      margin-top: 2rem;
+      font-size: 1.2rem;
+      color: #1e293b;
+    }
+    #loadingOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255,255,255,0.8);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #0ea5e9;
+    }
+    .spinner {
+      border: 4px solid #e0f2f1;
+      border-top: 4px solid #0ea5e9;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 0.8s linear infinite;
+      margin-right: 10px;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    @media print {
+      #printBtn,
+      #excelBtn,
+      #monthSelect,
+      .form-group,
+      .error,
+      #loadingOverlay {
+        display: none !important;
+      }
+      body {
+        background: white !important;
+        margin: 0;
+        padding: 0.5in;
+      }
+      .card {
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0;
+      }
+      table {
+        page-break-inside: auto;
+      }
+      tr {
+        page-break-inside: avoid;
+        page-break-after: auto;
+      }
+      .table-wrapper {
+        overflow: visible !important;
+      }
+      table, th, td {
+        font-size: 10px;
+        white-space: normal;
+        word-wrap: break-word;
+      }
+    }
     .bell {
       position: relative; font-size: 22px; cursor: pointer;
     }
@@ -292,8 +280,8 @@ h3 {
       background: white; width: 320px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.2);
       border-radius: 8px; 
-      overflow-y: auto;       /* enable vertical scroll */
-      max-height: 60vh;       /* limit height to 60% of screen */
+      overflow-y: auto;
+      max-height: 60vh;
       z-index: 999;
     }
     .dropdownNoti.active { display: block; }
@@ -308,47 +296,49 @@ h3 {
       border-radius: 4px; cursor: pointer; font-size: 12px;
     }
     .notification button:hover { background: #005bb5; }
-    
- @media (max-width: 768px) {
-    nav {
-      display: none;
+    .payment-breakdown {
+      padding-left: 1rem;
+      font-size: 1rem;
     }
-    .menu-toggle {
-      display: block;
+    @media (max-width: 768px) {
+      nav {
+        display: none;
+      }
+      .menu-toggle {
+        display: block;
+      }
+      .mobile-menu.show {
+        display: flex;
+      }
+      .top-actions {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+      }
+      .table-wrapper {
+        font-size: 0.9rem;
+      }
+      .welcome-mobile {
+        display: block;
+      }
+      nav #welcomeText {
+        display: none;
+      }
+      .dropdownNoti {
+        display: none;
+        position: absolute; right: 20px; top: 50px;
+        left: auto;
+        background: white; width: 320px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        border-radius: 8px; 
+        overflow-y: auto;
+        max-height: 60vh;
+        z-index: 999;
+      }
+      .dropdownNoti.active {
+        display: block;
+      } 
     }
-    .mobile-menu.show {
-      display: flex;
-    }
-    .top-actions {
-      flex-direction: column;
-      gap: 1rem;
-      align-items: stretch;
-    }
-    .table-wrapper {
-      font-size: 0.9rem;
-    }
-    .welcome-mobile {
-      display: block;
-    }
-    nav #welcomeText {
-      display: none;
-    }
-   .dropdownNoti {
-      display: none;
-      position: absolute; right: 20px; top: 50px;
-      left: auto;
-      background: white; width: 320px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-      border-radius: 8px; 
-      overflow-y: auto;       /* enable vertical scroll */
-      max-height: 60vh;       /* limit height to 60% of screen */
-      z-index: 999;
-    }
-  .dropdownNoti.active {
-    display: block;
-  } 
-  }
-
   </style>
 </head>
 <body>
@@ -423,13 +413,20 @@ h3 {
 
   <div class="report" id="reportBox" style="display:none;">
     <div>📦 Total Booking Revenue: <span id="bookingTotal">RM 0</span></div>
+    <div class="payment-breakdown" id="bookingPaymentBreakdown"></div>
+    
     <div>📥 Total Other Income : <span id="otherIncomeTotal">RM 0</span></div>
+    <div class="payment-breakdown" id="otherIncomePaymentBreakdown"></div>
+    
     <div>💼 Total Commission (10%): <span id="commissionTotal">RM 0</span></div>
     <div>💳 Total Toyyibpay Fee: <span id="toyyibpayTotal">RM 0</span></div>
     <div>💲 Total HitPay Fee: <span id="hitpayTotal">RM 0</span></div>
     <div>🖥️ Venture Rush Fee (System): <span id="vrFeeTotal">RM 0</span></div>
     <div>🏕️ Total Unit 1B: <span id="unit1BTotal">RM 0</span></div>
+    
     <div>💸 Total Expenses: <span id="expenseTotal">RM 0</span></div>
+    <div class="payment-breakdown" id="expensePaymentBreakdown"></div>
+    
     <div>👥 Total Pax: <span id="totalPax">0</span></div>
     <div>🛏️ Units Sold:</div>
     <div style="padding-left: 1rem;">
@@ -477,6 +474,7 @@ h3 {
         <th>Category</th>
         <th>Description</th>
         <th>Amount</th>
+        <th>Payment Method</th>
         <th>Received From</th>
         <th>Notes</th>
       </tr>
@@ -536,7 +534,10 @@ h3 {
     <thead>
       <tr>
         <th>Bill on</th><th>Date</th><th>Category</th><th>Description</th>
-        <th>Amount</th><th>Paid to</th><th>Notes</th>
+        <th>Amount</th>
+        <th>Payment Method</th>
+        <th>Paid to</th>
+        <th>Notes</th>
       </tr>
     </thead>
     <tbody></tbody>
@@ -630,7 +631,7 @@ function logout() {
   window.location.href = "index.html";
 }
   async function loadReport() {
-document.getElementById("loadingOverlay").style.display = "flex";
+    document.getElementById("loadingOverlay").style.display = "flex";
     const monthValue = document.getElementById("monthSelect").value;
     const [mm, yyyy] = monthValue.split('/').map(Number);
     const monthName = new Date(yyyy, mm - 1).toLocaleString('default', { month: 'long' });
@@ -639,24 +640,24 @@ document.getElementById("loadingOverlay").style.display = "flex";
     const errorBox = document.getElementById("errorMsg");
     const table = document.getElementById("bookingTable");
     const tbody = table.querySelector("tbody");
-document.getElementById("unit1BSummaryWrapper").style.display = "none";
-document.getElementById("expenseWrapper").style.display = "none";
-document.getElementById("bookingWrapper").style.display = "none";
-document.getElementById("agentWrapper").style.display = "none";
-document.getElementById("otherIncomeWrapper").style.display = "none";
-document.getElementById("botUnitWrapper").style.display = "none";
+    document.getElementById("unit1BSummaryWrapper").style.display = "none";
+    document.getElementById("expenseWrapper").style.display = "none";
+    document.getElementById("bookingWrapper").style.display = "none";
+    document.getElementById("agentWrapper").style.display = "none";
+    document.getElementById("otherIncomeWrapper").style.display = "none";
+    document.getElementById("botUnitWrapper").style.display = "none";
 
     errorBox.textContent = "";
     reportBox.style.display = "none";
     tbody.innerHTML = "";
    
-let botTentA = 0;
-let botLotA = 0;
-let botLotB = 0;
-let botLotC = 0;
+    let botTentA = 0;
+    let botLotA = 0;
+    let botLotB = 0;
+    let botLotC = 0;
     let totalOtherIncome = 0;
     let toyyibpayFee = 0;
-    let hitpayFee = 0; // 🆕 Add this line
+    let hitpayFee = 0;
     let bookingTotal = 0;
     let expenseTotal = 0;
     let totalPax = 0;
@@ -664,25 +665,39 @@ let botLotC = 0;
     let unitLotA = 0;
     let unitLotB = 0;
     let unitLotC = 0;
-const coDeploymentId = "AKfycbxwLq33J4Ud1P7bPVSZM86kr1CUmWeiEAVM9jjB3ffJtiCCfapZEAtVkpzU7v52tmo";
-let coMap = {};
+    
+    // Payment breakdown variables
+    let bookingCash = 0;
+    let bookingQR = 0;
+    let otherIncomeCash = 0;
+    let otherIncomeOnline = 0;
+    let expenseCash = 0;
+    let expenseOnline = 0;
 
-try {
-  const coRes = await fetch(`https://script.google.com/macros/s/${coDeploymentId}/exec`);
-  const coData = await coRes.json();
-  (coData || []).forEach(row => {
-    const [bookId, , checkin, checkout, unitUse, remark, coName] = row;
-    coMap[bookId] = { checkin, checkout, unitUse, remark, coName };
-  });
-} catch (err) {
-  console.error("❌ Failed to fetch CO data.");
-}
-let total1BRevenue = 0; // Declare early
-let unit1BWeekdayNights = 0;
-let unit1BWeekendNights = 0;
+    const coDeploymentId = "AKfycbxwLq33J4Ud1P7bPVSZM86kr1CUmWeiEAVM9jjB3ffJtiCCfapZEAtVkpzU7v52tmo";
+    let coMap = {};
+
+    try {
+      const coRes = await fetch(`https://script.google.com/macros/s/${coDeploymentId}/exec`);
+      if (!coRes.ok) throw new Error("Failed to fetch CO data");
+      const coData = await coRes.json();
+      (coData || []).forEach(row => {
+        const [bookId, , checkin, checkout, unitUse, remark, coName] = row;
+        coMap[bookId] = { checkin, checkout, unitUse, remark, coName };
+      });
+    } catch (err) {
+      errorBox.textContent = "❌ Failed to load C.O data.";
+      document.getElementById("loadingOverlay").style.display = "none";
+      return;
+    }
+
+    let total1BRevenue = 0;
+    let unit1BWeekdayNights = 0;
+    let unit1BWeekendNights = 0;
 
     try {
       const res1 = await fetch(`https://script.google.com/macros/s/${bookingDeploymentId}/exec`);
+      if (!res1.ok) throw new Error("Failed to fetch booking data");
       const data1 = await res1.json();
       const bookings = data1.bookings || [];
 
@@ -691,6 +706,12 @@ let unit1BWeekendNights = 0;
         const date = new Date(b.checkin);
         if (date.getMonth() + 1 === mm && date.getFullYear() === yyyy) {
 
+          // Payment breakdown for bookings
+          if (b.bookId && b.bookId.startsWith("cash_")) {
+            bookingCash += parseFloat(b.total) || 0;
+          } else if (b.bookId && b.bookId.startsWith("qr_")) {
+            bookingQR += parseFloat(b.total) || 0;
+          }
 
           bookingTotal += parseFloat(b.total) || 0;
           totalPax += parseInt(b.totalPax) || 0;
@@ -705,29 +726,26 @@ let unit1BWeekendNights = 0;
           const lotB = matchLotB ? matchLotB[1] : "0";
           const lotC = matchLotC ? matchLotC[1] : "0";
  
-botTentA += parseInt(aTent);
-botLotA += parseInt(lotA);
-botLotB += parseInt(lotB);
-botLotC += parseInt(lotC);
+          botTentA += parseInt(aTent);
+          botLotA += parseInt(lotA);
+          botLotB += parseInt(lotB);
+          botLotC += parseInt(lotC);
 
+          // ✅ FIXED: Only count Toyyibpay bookings (8 char alphanumeric Book IDs)
+          if (b.bookId && /^[a-z0-9]{8}$/.test(b.bookId)) {
+            toyyibpayFee += 1.00;
+          }
 
-// ✅ FIXED: Only count Toyyibpay bookings (8 char alphanumeric Book IDs)
-if (b.bookId && /^[a-z0-9]{8}$/.test(b.bookId)) {
-  toyyibpayFee += 1.00;
-}
-
-// ✅ HitPay bookings (UUID format like a007077f-13a5-4a95-b5ac-bef6805869d1)
-if (b.bookId && /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(b.bookId)) {
-  const totalPrice = parseFloat(b.total) || 0;
-  hitpayFee += (totalPrice * 0.03) + 1.00;
-}
+          // ✅ HitPay bookings (UUID format like a007077f-13a5-4a95-b5ac-bef6805869d1)
+          if (b.bookId && /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(b.bookId)) {
+            const totalPrice = parseFloat(b.total) || 0;
+            hitpayFee += (totalPrice * 0.03) + 1.00;
+          }
 
           unitTentA += parseInt(aTent);
           unitLotA += parseInt(lotA);
           unitLotB += parseInt(lotB);
           unitLotC += parseInt(lotC);
-
-
 
           const tr = document.createElement("tr");
           const co = coMap[b.bookId] || {};
@@ -756,121 +774,154 @@ if (b.bookId && /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/
           tbody.appendChild(tr);
         }
       });
- // 🔁 Calculate 1B revenue using booking dates
-bookings.forEach(b => {
-  const co = coMap[b.bookId];
-  if (!co || !co.unitUse || !b.checkin || !b.checkout) return;
-  if (!co.unitUse.toLowerCase().includes("1b")) return;
 
-  const checkin = new Date(b.checkin);
-  const checkout = new Date(b.checkout);
+      // 🔁 Calculate 1B revenue using booking dates
+      bookings.forEach(b => {
+        const co = coMap[b.bookId];
+        if (!co || !co.unitUse || !b.checkin || !b.checkout) return;
+        if (!co.unitUse.toLowerCase().includes("1b")) return;
 
-// ✅ Only process if check-in month/year matches selected filter
-if (checkin.getMonth() + 1 !== mm || checkin.getFullYear() !== yyyy) return;
+        const checkin = new Date(b.checkin);
+        const checkout = new Date(b.checkout);
 
-for (let d = new Date(checkin); d < checkout; d.setDate(d.getDate() + 1)) {
-  const day = d.getDay();
-  if (day === 0 || day === 5 || day === 6) {
-    total1BRevenue += 60;
-    unit1BWeekendNights++;
-  } else {
-    total1BRevenue += 45;
-    unit1BWeekdayNights++;
-  }
-}
+        // ✅ Only process if check-in month/year matches selected filter
+        if (checkin.getMonth() + 1 !== mm || checkin.getFullYear() !== yyyy) return;
 
-});
+        for (let d = new Date(checkin); d < checkout; d.setDate(d.getDate() + 1)) {
+          const day = d.getDay();
+          if (day === 0 || day === 5 || day === 6) {
+            total1BRevenue += 60;
+            unit1BWeekendNights++;
+          } else {
+            total1BRevenue += 45;
+            unit1BWeekdayNights++;
+          }
+        }
+      });
     } catch (err) {
       errorBox.textContent = "❌ Failed to load booking data.";
+      document.getElementById("loadingOverlay").style.display = "none";
       return;
     }
-document.getElementById("unit1BTotal").textContent = `RM ${total1BRevenue.toFixed(2)}`;
 
-document.getElementById("unit1BWeekendNights").textContent = unit1BWeekendNights;
-document.getElementById("unit1BWeekendTotal").textContent = `RM ${(unit1BWeekendNights * 60).toFixed(2)}`;
+    document.getElementById("unit1BTotal").textContent = `RM ${total1BRevenue.toFixed(2)}`;
+    document.getElementById("unit1BWeekendNights").textContent = unit1BWeekendNights;
+    document.getElementById("unit1BWeekendTotal").textContent = `RM ${(unit1BWeekendNights * 60).toFixed(2)}`;
+    document.getElementById("unit1BWeekdayNights").textContent = unit1BWeekdayNights;
+    document.getElementById("unit1BWeekdayTotal").textContent = `RM ${(unit1BWeekdayNights * 45).toFixed(2)}`;
 
-document.getElementById("unit1BWeekdayNights").textContent = unit1BWeekdayNights;
-document.getElementById("unit1BWeekdayTotal").textContent = `RM ${(unit1BWeekdayNights * 45).toFixed(2)}`;
+    try {
+      const expenseTable = document.getElementById("expenseTable");
+      const expenseBody = expenseTable.querySelector("tbody");
+      expenseBody.innerHTML = "";
 
+      const res2 = await fetch(`https://script.google.com/macros/s/${expenseDeploymentId}/exec?action=getExpenses`);
+      if (!res2.ok) throw new Error("Failed to fetch expenses data");
+      const data2 = await res2.json();
+      const expenses = data2.expenses || [];
 
+      expenses.forEach(e => {
+        if (!e.amount || !e.date) return;
+        const date = new Date(e.date);
+        if (date.getMonth() + 1 === mm && date.getFullYear() === yyyy) {
+          expenseTotal += parseFloat(e.amount) || 0;
 
-   try {
+          // Payment breakdown for expenses
+          if (e.paymentMethod === "Cash") {
+            expenseCash += parseFloat(e.amount) || 0;
+          } else if (e.paymentMethod === "Online Transfer") {
+            expenseOnline += parseFloat(e.amount) || 0;
+          }
 
-  const expenseTable = document.getElementById("expenseTable");
-  const expenseBody = expenseTable.querySelector("tbody");
-  expenseBody.innerHTML = "";
-
-  const res2 = await fetch(`https://script.google.com/macros/s/${expenseDeploymentId}/exec?action=getExpenses`);
-  const data2 = await res2.json();
-  const expenses = data2.expenses || [];
-
-  expenses.forEach(e => {
-    if (!e.amount || !e.date) return;
-    const date = new Date(e.date);
-    if (date.getMonth() + 1 === mm && date.getFullYear() === yyyy) {
-      expenseTotal += parseFloat(e.amount) || 0;
-
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${formatDate(e.billOn) || ''}</td>
-        <td>${formatDate(e.date) || ''}</td>
-        <td>${e.category || ''}</td>
-        <td>${e.description || ''}</td>
-        <td>RM ${parseFloat(e.amount).toFixed(2)}</td>
-        <td>${e.paidTo || ''}</td>
-        <td>${e.notes || ''}</td>
-      `;
-      expenseBody.appendChild(tr);
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${formatDate(e.billOn) || ''}</td>
+            <td>${formatDate(e.date) || ''}</td>
+            <td>${e.category || ''}</td>
+            <td>${e.description || ''}</td>
+            <td>RM ${parseFloat(e.amount).toFixed(2)}</td>
+            <td>${e.paymentMethod || ''}</td>
+            <td>${e.paidTo || ''}</td>
+            <td>${e.notes || ''}</td>
+          `;
+          expenseBody.appendChild(tr);
+        }
+      });
+    } catch (err) {
+      errorBox.textContent = "❌ Failed to load expenses data.";
+      document.getElementById("loadingOverlay").style.display = "none";
+      return;
     }
-  });
 
-  
-} catch (err) {
-  errorBox.textContent = "❌ Failed to load expenses data.";
-  return;
-}
+    // === 🆕 Fetch Other Income ===
+    const otherIncomeDeploymentId = "AKfycbzPWBQPRf1FwODxcR4I39FDkjsZR_QDPKwwno__TgB-Nc3lkvYF9_UfxGdaQMHeQJFH";
 
-// === 🆕 Fetch Other Income ===
-const otherIncomeDeploymentId = "AKfycbzPWBQPRf1FwODxcR4I39FDkjsZR_QDPKwwno__TgB-Nc3lkvYF9_UfxGdaQMHeQJFH";
+    try {
+      const otherRes = await fetch(`https://script.google.com/macros/s/${otherIncomeDeploymentId}/exec?action=getIncome`);
+      if (!otherRes.ok) throw new Error("Failed to fetch other income data");
+      const otherData = await otherRes.json();
+      const incomeList = otherData.income || [];
 
-try {
-  const otherRes = await fetch(`https://script.google.com/macros/s/${otherIncomeDeploymentId}/exec?action=getIncome`);
-  const otherData = await otherRes.json();
-  const incomeList = otherData.income || [];
+      const tbody = document.querySelector("#otherIncomeTable tbody");
+      tbody.innerHTML = "";
 
-  const tbody = document.querySelector("#otherIncomeTable tbody");
-  tbody.innerHTML = "";
+      let found = false;
+      incomeList.forEach(item => {
+        if (!item.amount || !item.date) return;
+        const date = new Date(item.date);
+        if (date.getMonth() + 1 === mm && date.getFullYear() === yyyy) {
+          found = true;
+          totalOtherIncome += parseFloat(item.amount) || 0;
 
-  let found = false;
-  incomeList.forEach(item => {
-    if (!item.amount || !item.date) return;
-    const date = new Date(item.date);
-    if (date.getMonth() + 1 === mm && date.getFullYear() === yyyy) {
-      found = true;
-      totalOtherIncome += parseFloat(item.amount) || 0;
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${formatDate(item.chargeOn) || ''}</td>
-        <td>${formatDate(item.date) || ''}</td>
-        <td>${item.category || ''}</td>
-        <td>${item.description || ''}</td>
-        <td>RM ${parseFloat(item.amount).toFixed(2)}</td>
-        <td>${item.receiveFrom || ''}</td>
-        <td>${item.notes || ''}</td>
-      `;
-      tbody.appendChild(tr);
+          // Payment breakdown for other income
+          if (item.paymentMethod === "Cash") {
+            otherIncomeCash += parseFloat(item.amount) || 0;
+          } else if (item.paymentMethod === "Online Transfer") {
+            otherIncomeOnline += parseFloat(item.amount) || 0;
+          }
+
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${formatDate(item.chargeOn) || ''}</td>
+            <td>${formatDate(item.date) || ''}</td>
+            <td>${item.category || ''}</td>
+            <td>${item.description || ''}</td>
+            <td>RM ${parseFloat(item.amount).toFixed(2)}</td>
+            <td>${item.paymentMethod || ''}</td>
+            <td>${item.receiveFrom || ''}</td>
+            <td>${item.notes || ''}</td>
+          `;
+          tbody.appendChild(tr);
+        }
+      });
+
+      if (found) {
+        document.getElementById("otherIncomeWrapper").style.display = "block";
+      }
+    } catch (err) {
+      errorBox.textContent = "❌ Failed to load other income data.";
+      document.getElementById("loadingOverlay").style.display = "none";
+      return;
     }
-  });
 
-  if (found) {
-    document.getElementById("otherIncomeWrapper").style.display = "block";
-  }
-} catch (err) {
-  console.error("❌ Failed to load Other Income data.", err);
-}
+    // Update payment breakdown displays
+    document.getElementById("bookingPaymentBreakdown").innerHTML = `
+      <div>Cash: RM ${bookingCash.toFixed(2)}</div>
+      <div>QR: RM ${bookingQR.toFixed(2)}</div>
+    `;
 
-document.getElementById("toyyibpayTotal").textContent = `RM ${toyyibpayFee.toFixed(2)}`;
-document.getElementById("hitpayTotal").textContent = `RM ${hitpayFee.toFixed(2)}`; // 🆕 Add this line
+    document.getElementById("otherIncomePaymentBreakdown").innerHTML = `
+      <div>Cash: RM ${otherIncomeCash.toFixed(2)}</div>
+      <div>Online Transfer: RM ${otherIncomeOnline.toFixed(2)}</div>
+    `;
+
+    document.getElementById("expensePaymentBreakdown").innerHTML = `
+      <div>Cash: RM ${expenseCash.toFixed(2)}</div>
+      <div>Online Transfer: RM ${expenseOnline.toFixed(2)}</div>
+    `;
+
+    document.getElementById("toyyibpayTotal").textContent = `RM ${toyyibpayFee.toFixed(2)}`;
+    document.getElementById("hitpayTotal").textContent = `RM ${hitpayFee.toFixed(2)}`;
     document.getElementById("bookingTotal").textContent = `RM ${bookingTotal.toFixed(2)}`;
     document.getElementById("otherIncomeTotal").textContent = `RM ${totalOtherIncome.toFixed(2)}`;
     document.getElementById("expenseTotal").textContent = `RM ${expenseTotal.toFixed(2)}`;
@@ -880,280 +931,266 @@ document.getElementById("hitpayTotal").textContent = `RM ${hitpayFee.toFixed(2)}
     document.getElementById("unitLotB").textContent = unitLotB;
     document.getElementById("unitLotC").textContent = unitLotC;
 
-
     reportBox.style.display = "block";
     table.style.display = "table";
-    await renderAgentTable();
-
-// Now we can read from the fully populated agentTable
-let totalCommission = 0;
-document.querySelectorAll("#agentTable tbody tr").forEach(row => {
-  const commCell = row.cells[3]?.textContent;
-  if (commCell && !commCell.includes("N/A")) {
-    const num = parseFloat(commCell.replace("RM", "").trim());
-    if (!isNaN(num)) totalCommission += num;
-  }
-});
-const botBody = document.querySelector("#botUnitTable tbody");
-botBody.innerHTML = "";
-
-const botUnits = [
-  { name: "🏕️ Pondok A-Tent", count: botTentA },
-  { name: "⛺ Camp-Lot A", count: botLotA },
-  { name: "⛺ Camp-Lot B", count: botLotB },
-  { name: "⛺ Camp-Lot C", count: botLotC },
-];
-const vrFee = (botTentA + botLotA + botLotB + botLotC) * 3;
-document.getElementById("vrFeeTotal").textContent = `RM ${vrFee.toFixed(2)}`;
-
-
-botUnits.forEach(unit => {
-  const fee = unit.count * 3;
-  const tr = document.createElement("tr");
-  tr.innerHTML = `
-    <td>${unit.name}</td>
-    <td>${unit.count}</td>
-    <td>RM ${fee.toFixed(2)}</td>
-  `;
-  botBody.appendChild(tr);
-});
-
-document.getElementById("botUnitWrapper").style.display = "block";
-
-
-// Update values
-document.getElementById("commissionTotal").textContent = `RM ${totalCommission.toFixed(2)}`;
-const profit = bookingTotal + totalOtherIncome - totalCommission - toyyibpayFee - hitpayFee - vrFee - total1BRevenue - expenseTotal;
-document.getElementById("profitTotal").textContent = `RM ${profit.toFixed(2)}`;
-
-
-
-// Show sections
-document.getElementById("bookingWrapper").style.display = "block";
-document.getElementById("expenseWrapper").style.display = "block";
-document.getElementById("agentWrapper").style.display = "block";
-document.getElementById("otherIncomeWrapper").style.display = "block";
-document.getElementById("unit1BSummaryWrapper").style.display = "block";
-document.getElementById("loadingOverlay").style.display = "none";
-
     
-  }
-async function renderAgentTable() {
-  const agentTable = document.querySelector("#agentTable tbody");
-  agentTable.innerHTML = "";
+    try {
+      await renderAgentTable();
+    } catch (err) {
+      errorBox.textContent = "❌ Failed to load agent commission data.";
+      document.getElementById("loadingOverlay").style.display = "none";
+      return;
+    }
 
-  const [mm, yyyy] = document.getElementById("monthSelect").value.split('/').map(Number);
-
-  let agents = {};
-  let bookings = [];
-
-  try {
-    const userRes = await fetch(`https://script.google.com/macros/s/${agentDeploymentId}/exec`);
-    const userData = await userRes.json();
-    (userData.users || []).forEach(u => {
-      if (u.type === "staff") {
-        agents[u.username] = { type: "staff", count: 0, sales: 0, comm: 0, paid: 0 };
-      } else if (u.type === "admin") {
-        agents[u.username] = { type: "admin", count: 0, sales: 0 };
+    // Now we can read from the fully populated agentTable
+    let totalCommission = 0;
+    document.querySelectorAll("#agentTable tbody tr").forEach(row => {
+      const commCell = row.cells[3]?.textContent;
+      if (commCell && !commCell.includes("N/A")) {
+        const num = parseFloat(commCell.replace("RM", "").trim());
+        if (!isNaN(num)) totalCommission += num;
       }
     });
-  } catch (e) {
-    console.error("❌ Failed to load agent data");
-    return;
+
+    const botBody = document.querySelector("#botUnitTable tbody");
+    botBody.innerHTML = "";
+
+    const botUnits = [
+      { name: "🏕️ Pondok A-Tent", count: botTentA },
+      { name: "⛺ Camp-Lot A", count: botLotA },
+      { name: "⛺ Camp-Lot B", count: botLotB },
+      { name: "⛺ Camp-Lot C", count: botLotC },
+    ];
+    const vrFee = (botTentA + botLotA + botLotB + botLotC) * 3;
+    document.getElementById("vrFeeTotal").textContent = `RM ${vrFee.toFixed(2)}`;
+
+    botUnits.forEach(unit => {
+      const fee = unit.count * 3;
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${unit.name}</td>
+        <td>${unit.count}</td>
+        <td>RM ${fee.toFixed(2)}</td>
+      `;
+      botBody.appendChild(tr);
+    });
+
+    document.getElementById("botUnitWrapper").style.display = "block";
+
+    // Update values
+    document.getElementById("commissionTotal").textContent = `RM ${totalCommission.toFixed(2)}`;
+    const profit = bookingTotal + totalOtherIncome - totalCommission - toyyibpayFee - hitpayFee - vrFee - total1BRevenue - expenseTotal;
+    document.getElementById("profitTotal").textContent = `RM ${profit.toFixed(2)}`;
+
+    // Show sections
+    document.getElementById("bookingWrapper").style.display = "block";
+    document.getElementById("expenseWrapper").style.display = "block";
+    document.getElementById("agentWrapper").style.display = "block";
+    document.getElementById("otherIncomeWrapper").style.display = "block";
+    document.getElementById("unit1BSummaryWrapper").style.display = "block";
+    document.getElementById("loadingOverlay").style.display = "none";
   }
 
-  try {
-    const bookRes = await fetch(`https://script.google.com/macros/s/${bookingDeploymentId}/exec`);
-    const bookData = await bookRes.json();
-    bookings = bookData.bookings || [];
-  } catch (e) {
-    console.error("❌ Failed to load booking data");
-    return;
+  async function renderAgentTable() {
+    const agentTable = document.querySelector("#agentTable tbody");
+    agentTable.innerHTML = "";
+
+    const [mm, yyyy] = document.getElementById("monthSelect").value.split('/').map(Number);
+
+    let agents = {};
+    let bookings = [];
+
+    try {
+      const userRes = await fetch(`https://script.google.com/macros/s/${agentDeploymentId}/exec`);
+      if (!userRes.ok) throw new Error("Failed to fetch user data");
+      const userData = await userRes.json();
+      (userData.users || []).forEach(u => {
+        if (u.type === "staff") {
+          agents[u.username] = { type: "staff", count: 0, sales: 0, comm: 0, paid: 0 };
+        } else if (u.type === "admin") {
+          agents[u.username] = { type: "admin", count: 0, sales: 0 };
+        }
+      });
+    } catch (e) {
+      throw new Error("Failed to load agent data");
+    }
+
+    try {
+      const bookRes = await fetch(`https://script.google.com/macros/s/${bookingDeploymentId}/exec`);
+      if (!bookRes.ok) throw new Error("Failed to fetch booking data");
+      const bookData = await bookRes.json();
+      bookings = bookData.bookings || [];
+    } catch (e) {
+      throw new Error("Failed to load booking data");
+    }
+
+    bookings.forEach(b => {
+      if (!b.userId || b.userId === "BLOCK" || b.userId === "HOLD") return;
+
+      const checkinDate = new Date(b.checkin);
+      if (checkinDate.getMonth() + 1 !== mm || checkinDate.getFullYear() !== yyyy) return;
+
+      const baseUser = b.userId.split(" - ")[0];
+      if (!(baseUser in agents)) return;
+
+      const amt = parseFloat(b.total) || 0;
+      const extraPax = parseInt(b.extraPax) || 0;
+      const net = amt - (extraPax * 5);
+      const comm = net * 0.10;
+
+      agents[baseUser].count++;
+      agents[baseUser].sales += amt;
+      agents[baseUser].comm += comm;
+      if (b.userId.includes("paid")) {
+        agents[baseUser].paid += comm;
+      }
+    });
+
+    Object.entries(agents).forEach(([agent, stats]) => {
+      const row = document.createElement("tr");
+
+      if (stats.type === "staff") {
+        const pending = stats.comm - stats.paid;
+        row.innerHTML = `
+          <td>${agent}</td>
+          <td>${stats.count}</td>
+          <td>RM ${stats.sales.toFixed(2)}</td>
+          <td>RM ${stats.comm.toFixed(2)}</td>
+          <td>RM ${stats.paid.toFixed(2)}</td>
+          <td>RM ${pending.toFixed(2)}</td>
+        `;
+      } else if (stats.type === "admin") {
+        row.innerHTML = `
+          <td>${agent}</td>
+          <td>${stats.count}</td>
+          <td>RM ${stats.sales.toFixed(2)}</td>
+          <td>N/A</td>
+          <td>N/A</td>
+          <td>N/A</td>
+        `;
+      }
+
+      agentTable.appendChild(row);
+    });
   }
 
-  bookings.forEach(b => {
-    if (!b.userId || b.userId === "BLOCK" || b.userId === "HOLD") return;
+  function exportAllTablesToExcel() {
+    const workbook = XLSX.utils.book_new();
 
-    const checkinDate = new Date(b.checkin);
-    if (checkinDate.getMonth() + 1 !== mm || checkinDate.getFullYear() !== yyyy) return;
+    const tables = [
+      { id: "bookingTable", name: "Bookings" },
+      { id: "agentTable", name: "Agent_Commission" },
+      { id: "Unit1BTable", name: "1B_Total" },
+      { id: "botUnitTable", name: "VR_Fees" },
+      { id: "expenseTable", name: "Expenses" },
+      { id: "otherIncomeTable", name: "Other_Income" },
+    ];
 
-    const baseUser = b.userId.split(" - ")[0];
-    if (!(baseUser in agents)) return;
+    tables.forEach(t => {
+      const tableEl = document.getElementById(t.id);
+      if (tableEl && tableEl.rows.length > 1) {
+        const ws = XLSX.utils.table_to_sheet(tableEl);
+        XLSX.utils.book_append_sheet(workbook, ws, t.name);
+      }
+    });
 
-    const amt = parseFloat(b.total) || 0;
-    const extraPax = parseInt(b.extraPax) || 0;
-    const net = amt - (extraPax * 5);
-    const comm = net * 0.10;
+    const month = document.getElementById("monthSelect").value.replace("/", "-");
+    XLSX.writeFile(workbook, `Profit_Report_${month}.xlsx`);
+  }
 
-    agents[baseUser].count++;
-    agents[baseUser].sales += amt;
-    agents[baseUser].comm += comm;
-    if (b.userId.includes("paid")) {
-      agents[baseUser].paid += comm;
-    }
-  });
-
-  Object.entries(agents).forEach(([agent, stats]) => {
-    const row = document.createElement("tr");
-
-    if (stats.type === "staff") {
-      const pending = stats.comm - stats.paid;
-      row.innerHTML = `
-        <td>${agent}</td>
-        <td>${stats.count}</td>
-        <td>RM ${stats.sales.toFixed(2)}</td>
-        <td>RM ${stats.comm.toFixed(2)}</td>
-        <td>RM ${stats.paid.toFixed(2)}</td>
-        <td>RM ${pending.toFixed(2)}</td>
-      `;
-    } else if (stats.type === "admin") {
-      row.innerHTML = `
-        <td>${agent}</td>
-        <td>${stats.count}</td>
-        <td>RM ${stats.sales.toFixed(2)}</td>
-        <td>N/A</td>
-        <td>N/A</td>
-        <td>N/A</td>
-      `;
-    }
-
-    agentTable.appendChild(row);
-  });
-
-}
-function exportAllTablesToExcel() {
-  const workbook = XLSX.utils.book_new();
-
-  const tables = [
-    { id: "bookingTable", name: "Bookings" },
-    { id: "agentTable", name: "Agent_Commission" },
-    { id: "Unit1BTable", name: "1B_Total" },
-    { id: "botUnitTable", name: "VR_Fees" },
-    { id: "expenseTable", name: "Expenses" },
-    { id: "otherIncomeTable", name: "Other_Income" }, // 🆕 Add this line
-  ];
-
-  tables.forEach(t => {
-    const tableEl = document.getElementById(t.id);
-    if (tableEl && tableEl.rows.length > 1) { // only if table has data
-      const ws = XLSX.utils.table_to_sheet(tableEl);
-      XLSX.utils.book_append_sheet(workbook, ws, t.name);
-    }
-  });
-
-  const month = document.getElementById("monthSelect").value.replace("/", "-");
-  XLSX.writeFile(workbook, `Profit_Report_${month}.xlsx`);
-}
   window.onload = populateMonthSelect;
 
-const API_URL = "https://script.google.com/macros/s/AKfycbxsqetZ_iRLnZ3mhRcbxX09q4c0aXU_xHzO5JaPkocr0syDM52DsPsGI-raZi2GCpl5/exec";
+  const API_URL = "https://script.google.com/macros/s/AKfycbxsqetZ_iRLnZ3mhRcbxX09q4c0aXU_xHzO5JaPkocr0syDM52DsPsGI-raZi2GCpl5/exec";
 
-    let unread = JSON.parse(localStorage.getItem("unread") || "[]");
-    let lastSeenTime = localStorage.getItem("lastSeenTime") ? new Date(localStorage.getItem("lastSeenTime")) : null;
+  let unread = JSON.parse(localStorage.getItem("unread") || "[]");
+  let lastSeenTime = localStorage.getItem("lastSeenTime") ? new Date(localStorage.getItem("lastSeenTime")) : null;
 
-    function saveState() {
-      localStorage.setItem("unread", JSON.stringify(unread));
-      if (lastSeenTime) {
-        localStorage.setItem("lastSeenTime", lastSeenTime.toISOString());
+  function saveState() {
+    localStorage.setItem("unread", JSON.stringify(unread));
+    if (lastSeenTime) {
+      localStorage.setItem("lastSeenTime", lastSeenTime.toISOString());
+    }
+  }
+
+  function handleBellClick() {
+    const badge = document.getElementById("badge");
+    if (badge.style.display === "none" || badge.innerText === "0") {
+      window.location.href = "apAllNoti.html";
+    } else {
+      document.getElementById("dropdownNoti").classList.toggle("active");
+    }
+  }
+
+  async function fetchNotifications() {
+    try {
+      const res = await fetch(API_URL);
+      let data = await res.json();
+
+      data.sort((a,b)=> new Date(b.Timestamp) - new Date(a.Timestamp));
+
+      if (!lastSeenTime && data.length > 0) {
+        lastSeenTime = new Date(data[0].Timestamp);
+        saveState();
+        return;
       }
+
+      let newOnes = data.filter(n => new Date(n.Timestamp) > lastSeenTime);
+
+      if (newOnes.length > 0) {
+        document.getElementById("dingSound").play().catch(()=>{});
+        
+        unread = [...newOnes, ...unread];
+        lastSeenTime = new Date(newOnes[0].Timestamp);
+
+        updateUI();
+        saveState();
+      }
+    } catch(err) {
+      console.error("Fetch error", err);
+    }
+  }
+
+  function updateUI() {
+    const badge = document.getElementById("badge");
+    const dropdownNoti = document.getElementById("dropdownNoti");
+
+    if (unread.length > 0) {
+      badge.innerText = unread.length;
+      badge.style.display = "inline";
+    } else {
+      badge.style.display = "none";
     }
 
-    function handleBellClick() {
-      const badge = document.getElementById("badge");
-      if (badge.style.display === "none" || badge.innerText === "0") {
-        // No unread → go to apAllNoti.html
-        window.location.href = "apAllNoti.html";
-      } else {
-        // Toggle dropdown
-        document.getElementById("dropdownNoti").classList.toggle("active");
-      }
-    }
+    dropdownNoti.innerHTML = "";
+    unread.forEach((n, idx) => {
+      const div = document.createElement("div");
+      div.className = "notification";
+      div.innerHTML = `
+        <strong>🔔 New Notification</strong>
+        <div>"${n.Message}"</div>
+        <div>From: ${n.From} | Agent: ${n.Agent}</div>
+        <button>See more...</button>
+      `;
 
-    async function fetchNotifications() {
-      try {
-        const res = await fetch(API_URL);
-        let data = await res.json();
-
-        // sort newest first
-        data.sort((a,b)=> new Date(b.Timestamp) - new Date(a.Timestamp));
-
-        if (!lastSeenTime && data.length > 0) {
-          // first load: set lastSeenTime but do not trigger sound
-          lastSeenTime = new Date(data[0].Timestamp);
-          saveState();
-          return;
-        }
-
-        let newOnes = data.filter(n => new Date(n.Timestamp) > lastSeenTime);
-
-        if (newOnes.length > 0) {
-          // play sound once for new arrivals
-          document.getElementById("dingSound").play().catch(()=>{});
-          
-          // prepend new ones
-          unread = [...newOnes, ...unread];
-
-          // update last seen time to newest
-          lastSeenTime = new Date(newOnes[0].Timestamp);
-
-          updateUI();
-          saveState();
-        }
-      } catch(err) {
-        console.error("Fetch error", err);
-      }
-    }
-
-    function updateUI() {
-      const badge = document.getElementById("badge");
-      const dropdownNoti = document.getElementById("dropdownNoti");
-
-      if (unread.length > 0) {
-        badge.innerText = unread.length;
-        badge.style.display = "inline";
-      } else {
-        badge.style.display = "none";
-      }
-
-      dropdownNoti.innerHTML = "";
-      unread.forEach((n, idx) => {
-        const div = document.createElement("div");
-        div.className = "notification";
-        div.innerHTML = `
-          <strong>🔔 New Notification</strong>
-          <div>"${n.Message}"</div>
-          <div>From: ${n.From} | Agent: ${n.Agent}</div>
-          <button>See more...</button>
-        `;
-
-        // click on card removes it
-        div.addEventListener("click", () => {
-          unread.splice(idx, 1);
-          updateUI();
-          saveState();
-        });
-
-        // prevent button from removing notification, go to apAllNoti.html
-        div.querySelector("button").addEventListener("click", (e) => {
-          e.stopPropagation();
-          window.location.href = "apAllNoti.html";
-        });
-
-        dropdownNoti.appendChild(div);
+      div.addEventListener("click", () => {
+        unread.splice(idx, 1);
+        updateUI();
+        saveState();
       });
-    }
 
-    // restore UI from storage on load
-    updateUI();
+      div.querySelector("button").addEventListener("click", (e) => {
+        e.stopPropagation();
+        window.location.href = "apAllNoti.html";
+      });
 
-    // initial fetch
-    fetchNotifications();
-    // poll every 10s
-    setInterval(fetchNotifications, 10000);
+      dropdownNoti.appendChild(div);
+    });
+  }
+
+  updateUI();
+  fetchNotifications();
+  setInterval(fetchNotifications, 10000);
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </body>
 </html>
-
-
-
