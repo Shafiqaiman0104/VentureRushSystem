@@ -669,6 +669,7 @@ function logout() {
     // Payment breakdown variables
     let bookingCash = 0;
     let bookingQR = 0;
+    let bookingToyyibpay = 0; // 🆕 ADD THIS LINE
     let otherIncomeCash = 0;
     let otherIncomeOnline = 0;
     let expenseCash = 0;
@@ -711,6 +712,8 @@ function logout() {
             bookingCash += parseFloat(b.total) || 0;
           } else if (b.bookId && b.bookId.startsWith("qr_")) {
             bookingQR += parseFloat(b.total) || 0;
+          } else if (b.bookId && /^[a-z0-9]{8}$/.test(b.bookId)) {
+            bookingToyyibpay += parseFloat(b.total) || 0;
           }
 
           bookingTotal += parseFloat(b.total) || 0;
@@ -908,6 +911,7 @@ function logout() {
     document.getElementById("bookingPaymentBreakdown").innerHTML = `
       <div>Cash: RM ${bookingCash.toFixed(2)}</div>
       <div>QR: RM ${bookingQR.toFixed(2)}</div>
+      <div>Toyyibpay: RM ${bookingToyyibpay.toFixed(2)}</div>  <!-- 🆕 ADD THIS LINE -->
     `;
 
     document.getElementById("otherIncomePaymentBreakdown").innerHTML = `
