@@ -259,6 +259,31 @@
   margin: 0;
   line-height: 1.5;
 }
+.comm-cards {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+.comm-card {
+  flex: 1;
+  min-width: 200px;
+  background: white;
+  padding: 1rem;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+}
+.comm-card p {
+  font-size: 0.9rem;
+  color: #64748b;
+  margin-bottom: 0.3rem;
+}
+.comm-card h3 {
+  font-size: 1.5rem;
+  color: #0f172a;
+  margin: 0;
+}
   </style>
 </head>
 <body>
@@ -323,6 +348,14 @@
   
   <main>
     <h2>Manage Pending Commissions</h2>
+
+<div class="comm-cards" id="commSummary">
+  <div class="comm-card"><p>Total Sales</p><h3 id="totalSales">RM 0.00</h3></div>
+  <div class="comm-card"><p>Total Commission</p><h3 id="totalComm">RM 0.00</h3></div>
+  <div class="comm-card"><p>Total Paid</p><h3 id="paidComm">RM 0.00</h3></div>
+  <div class="comm-card"><p>Total Pending</p><h3 id="pendComm">RM 0.00</h3></div>
+</div>
+
     <div class="filters-admin">
   <div><label>Agent:</label>
     <select id="agentFilter" onchange="renderTable()">
@@ -387,6 +420,7 @@ async function fetchAll(){
 
     setupAgents();
     renderTable();
+    renderCommission(); // Add this line
   } catch (error) {
     console.error('Error fetching data:', error);
   } finally {
@@ -525,6 +559,7 @@ tbody.appendChild(row);
   setTimeout(() => {
     document.getElementById("markAllBtn").style.display =
       (agent !== "all" && filteredPending.length > 0) ? "inline-block" : "none";
+    renderCommission();
     hideLoading();
   }, 300);
 }
@@ -727,6 +762,71 @@ window.onload = function() {
     fetchNotifications();
     // poll every 10s
     setInterval(fetchNotifications, 10000);
+
+function formatCurrency(amount) {
+  return 'RM ' + parseFloat(amount).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+}
+
+function renderCommission() {
+  const agentName = document.getElementById("agentFilter").value;
+  const checkinFilter = document.getElementById("checkinFilter").value;
+  const checkoutFilter = document.getElementById("checkoutFilter").value;
+
+  let totalSales = 0, totalComm = 0, paid = 0, pending = 0;
+
+  bookings.forEach(b => {
+    if (b.userId === "BLOCK" || b.userId === "HOLD") return;
+    
+    const [rawName] = b.userId.split(" - ");
+    const agent = rawName || "Unknown";
+    const user = users[rawName];
+    
+    // Skip admin users
+    if (user?.type === "admin") return;
+
+    if (agentName !== "all" && agent !== agentName) return;
+
+    // Date filtering
+    if (checkinFilter && checkoutFilter) {
+      const filterStart = new Date(checkinFilter);
+      const filterEnd = new Date(checkoutFilter);
+      filterStart.setHours(0, 0, 0, 0);
+      filterEnd.setHours(0, 0, 0, 0);
+
+      const bCheckin = new Date(b.checkin);
+      const bCheckout = new Date(b.checkout);
+      bCheckin.setHours(0, 0, 0, 0);
+      bCheckout.setHours(0, 0, 0, 0);
+
+      if (bCheckin >= filterEnd || bCheckout <= filterStart) return;
+    }
+
+    const amt = parseFloat(b.total) || 0;
+    const extraPaxCharge = (parseInt(b.extraPax) || 0) * 5;
+    const net = amt - extraPaxCharge;
+    
+    totalSales += amt;
+
+    // Only calculate commission for non-admin users
+    if (user && user.type !== "admin") {
+      const comm = net * 0.10;
+      totalComm += comm;
+      
+      if (b.userId.includes("paid")) {
+        paid += comm;
+      } else {
+        pending += comm;
+      }
+    }
+  });
+
+  // Update the display
+  document.getElementById("totalSales").textContent = formatCurrency(totalSales);
+  document.getElementById("totalComm").textContent = formatCurrency(totalComm);
+  document.getElementById("paidComm").textContent = formatCurrency(paid);
+  document.getElementById("pendComm").textContent = formatCurrency(pending);
+}
+
   </script>
 
 <!-- Loading Popup -->
@@ -750,5 +850,4 @@ window.onload = function() {
 
 </body>
 </html>
-
 
