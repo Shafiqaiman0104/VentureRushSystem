@@ -431,6 +431,43 @@ tbody tr:hover {
   margin: 0;
   line-height: 1.5;
 }
+/* Global Search Bar */
+.search-container {
+    display: flex;
+    align-items: center;
+    margin-right: 1rem;
+    flex: 1;
+    max-width: 400px;
+    position: relative;
+}
+
+.search-input {
+    width: 100%;
+    padding: 0.5rem 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 5px;
+    font-size: 0.9rem;
+}
+
+.clear-search {
+    background: none;
+    border: none;
+    position: absolute;
+    right: 10px;
+    cursor: pointer;
+    font-size: 1.2rem;
+    color: #888;
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .search-container {
+        order: 3;
+        width: 100%;
+        max-width: 100%;
+        margin: 0.5rem 0;
+    }
+}
   </style>
 </head>
 <body>
@@ -551,6 +588,11 @@ tbody tr:hover {
   <!-- All Expense Card -->
 <div class="card">
   <h2>All Expenses</h2>
+<!-- Add search bar here -->
+<div class="search-container">
+    <input type="text" id="globalSearch" class="search-input" placeholder="Search expense records..." />
+    <button class="clear-search" onclick="document.getElementById('globalSearch').value=''; renderExpenseTable();" style="display:none;" id="clearSearch">×</button>
+</div>
   <div class="form-group">
     <label>Filter by Month</label>
     <input type="month" id="monthFilter" />
@@ -887,31 +929,57 @@ function logout() {
   function renderExpenseTable() {
     const tbody = document.getElementById("expenseTableBody");
     const selectedMonth = document.getElementById("monthFilter").value;
+    const searchQuery = document.getElementById("globalSearch").value.toLowerCase();
 
     console.log("Selected Month:", selectedMonth);
     console.log("All expenses:", allExpenses);
 
-    const filtered = allExpenses.filter(exp => {
-  if (!selectedMonth) return true;
-  if (!exp.date) return false;
+    // Sort allExpenses by Expense Date (latest first)
+    const sortedExpenses = [...allExpenses].sort((a, b) => {
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
+        return dateB - dateA; // Latest first (descending order)
+    });
 
-  const expDateObj = new Date(exp.date);
-  const expMonth = String(expDateObj.getMonth() + 1).padStart(2, '0'); // Month is 0-indexed
-  const expYear = expDateObj.getFullYear().toString();
+    const filtered = sortedExpenses.filter(exp => {
+        // Month filter
+        if (selectedMonth) {
+            if (!exp.date) return false;
 
-  const [filterYear, filterMonth] = selectedMonth.split("-");
-  return expMonth === filterMonth && expYear === filterYear;
-});
+            const expDateObj = new Date(exp.date);
+            const expMonth = String(expDateObj.getMonth() + 1).padStart(2, '0'); // Month is 0-indexed
+            const expYear = expDateObj.getFullYear().toString();
 
+            const [filterYear, filterMonth] = selectedMonth.split("-");
+            if (expMonth !== filterMonth || expYear !== filterYear) return false;
+        }
+
+        // Search filter
+        if (searchQuery) {
+            const searchFields = [
+                exp.category?.toLowerCase(),
+                exp.description?.toLowerCase(),
+                exp.paymentMethod?.toLowerCase(),
+                exp.paidTo?.toLowerCase(),
+                exp.notes?.toLowerCase(),
+                reformatDDMMYYYY(exp.billOn)?.toLowerCase(),
+                reformatDDMMYYYY(exp.date)?.toLowerCase(),
+                parseFloat(exp.amount)?.toString()
+            ];
+            return searchFields.some(field => field && field.includes(searchQuery));
+        }
+
+        return true;
+    });
 
     if (filtered.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;">No expenses found for this month.</td></tr>`;
-      return;
+        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;">No expenses found.</td></tr>`;
+        return;
     }
 
     tbody.innerHTML = filtered.map(exp => {
-  const index = allExpenses.findIndex(e => e.timestamp === exp.timestamp); // safer match
-  return `
+        const index = allExpenses.findIndex(e => e.timestamp === exp.timestamp);
+        return `
     <tr>
       <td>${reformatDDMMYYYY(exp.billOn)}</td>
       <td>${reformatDDMMYYYY(exp.date)}</td>
@@ -926,12 +994,20 @@ function logout() {
       </td>
     </tr>
   `;
-}).join("");
-
-
-  }
+    }).join("");
+}
 
   document.getElementById("monthFilter").addEventListener("change", renderExpenseTable);
+
+// Add search functionality
+document.getElementById("globalSearch").addEventListener("input", renderExpenseTable);
+
+// Show/hide clear button
+document.getElementById("globalSearch").addEventListener("input", function() {
+    const clearBtn = document.getElementById("clearSearch");
+    clearBtn.style.display = this.value ? 'block' : 'none';
+    renderExpenseTable();
+});
   
 
 function openEditExpense(index) {
@@ -1190,5 +1266,4 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxsqetZ_iRLnZ3mhRcbxX09
   
 </body>
 </html>
-
 
