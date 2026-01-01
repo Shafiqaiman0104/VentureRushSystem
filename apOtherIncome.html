@@ -538,13 +538,19 @@ tbody tr:hover {
       </div>
 
         <div class="form-group">
-          <label>Receive From</label>
-          <input type="text" name="receiveFrom" />
-        </div>
+  <label>Receive From</label>
+  <input type="text" name="receiveFrom" id="receiveFrom" />
+</div>
         <div class="form-group">
-          <label>Notes</label>
-          <textarea name="notes" rows="3"></textarea>
-        </div>
+  <label>Notes</label>
+  <select id="notesDropdown" onchange="handleNotesChange()">
+    <option value="">-- Select Note Type --</option>
+    <option value="note">Note</option>
+    <option value="customer">Customer</option>
+    <option value="inHouseCustomer">In House Customer</option>
+  </select>
+  <textarea name="notes" id="notesField" rows="3"></textarea>
+</div>
         <button class="action-button" type="submit">Submit Income</button>
       </form>
     </div>
@@ -614,7 +620,13 @@ tbody tr:hover {
         <label>Receive From:</label>
         <input type="text" id="editReceiveFrom" /><br/>
         <label>Notes:</label>
-        <input type="text" id="editNotes" /><br/><br/>
+<select id="editNotesDropdown" onchange="handleEditNotesChange()">
+  <option value="">-- Select Note Type --</option>
+  <option value="note">Note</option>
+  <option value="customer">Customer</option>
+  <option value="inHouseCustomer">In House Customer</option>
+</select>
+<textarea id="editNotes" rows="3"></textarea><br/><br/>
         <div class="popup-buttons">
           <button type="submit" class="btn-save">✅ Save</button>
           <button type="button" class="btn-delete" onclick="deleteFromEdit()">🗑️ Delete</button>
@@ -651,6 +663,9 @@ tbody tr:hover {
 </audio>
 <script>
 const username = localStorage.getItem("username") || "Admin";
+
+// Add this line to prefill the Receive From field
+document.getElementById("receiveFrom").value = username;
 
 // 🔐 Redirect if not logged in
 if (!localStorage.getItem("username") || localStorage.getItem("username") === "Admin") {
@@ -772,6 +787,46 @@ function logout() {
   window.location.href = "index.html";
 }
 
+function handleNotesChange() {
+  const dropdown = document.getElementById("notesDropdown");
+  const notesField = document.getElementById("notesField");
+  const selected = dropdown.value;
+  
+  switch(selected) {
+    case "note":
+      notesField.value = "";
+      break;
+    case "customer":
+      notesField.value = "Notes : \nDetails :";
+      break;
+    case "inHouseCustomer":
+      notesField.value = "Notes : \nFor Customer :";
+      break;
+    default:
+      notesField.value = "";
+  }
+}
+
+function handleEditNotesChange() {
+  const dropdown = document.getElementById("editNotesDropdown");
+  const notesField = document.getElementById("editNotes");
+  const selected = dropdown.value;
+  
+  switch(selected) {
+    case "note":
+      notesField.value = "";
+      break;
+    case "customer":
+      notesField.value = "Notes : \nDetails :";
+      break;
+    case "inHouseCustomer":
+      notesField.value = "Notes : \nFor Customer :";
+      break;
+    default:
+      notesField.value = "";
+  }
+}
+
 function formatDate(isoDate) {
   if (!isoDate) return "";
   const [year, month, day] = isoDate.split("-");
@@ -837,6 +892,7 @@ document.getElementById("incomeForm").addEventListener("submit", async (e) => {
     alert("✅ Income saved successfully!");
     await loadAllIncome();
     form.reset();
+    document.getElementById("receiveFrom").value = username;
     descriptionSelect.innerHTML = "";
     descriptionSelect.classList.add("hidden");
     customDescription.classList.add("hidden");
@@ -940,6 +996,18 @@ function openEditIncome(index) {
   document.getElementById("editReceiveFrom").value = entry.receiveFrom;
   document.getElementById("editNotes").value = entry.notes;
   document.getElementById("editIncomePopup").style.display = "flex";
+
+// Add this to set the dropdown based on existing notes
+const editNotesDropdown = document.getElementById("editNotesDropdown");
+const notesValue = entry.notes || "";
+
+if (notesValue.includes("Notes :") && notesValue.includes("For Customer :")) {
+  editNotesDropdown.value = "inHouseCustomer";
+} else if (notesValue.includes("Notes :") && notesValue.includes("Details :")) {
+  editNotesDropdown.value = "customer";
+} else {
+  editNotesDropdown.value = "note";
+}
 }
 
 function closeEditPopup() {
@@ -1153,5 +1221,4 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxsqetZ_iRLnZ3mhRcbxX09
 </script>
 </body>
 </html>
-
 
