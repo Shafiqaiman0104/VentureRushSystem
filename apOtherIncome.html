@@ -430,6 +430,40 @@ tbody tr:hover {
   } 
     }
 
+/* Global Search Bar */
+.search-container {
+    display: flex;
+    align-items: center;
+    margin-right: 1rem;
+    flex: 1;
+    max-width: 400px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 0.5rem 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 5px;
+    font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+    .search-container {
+        order: 3;
+        width: 100%;
+        max-width: 100%;
+        margin: 0.5rem 0;
+    }
+}
+.clear-search {
+    background: none;
+    border: none;
+    position: absolute;
+    right: 10px;
+    cursor: pointer;
+    font-size: 1.2rem;
+    color: #888;
+}
   </style>
 </head>
 <body>
@@ -557,6 +591,10 @@ tbody tr:hover {
 
     <div class="card">
       <h2>All Income</h2>
+<div class="search-container" style="position:relative">
+    <input type="text" id="globalSearch" class="search-input" placeholder="Search income records..." />
+    <button class="clear-search" onclick="document.getElementById('globalSearch').value=''; renderIncomeTable();" style="display:none;" id="clearSearch">×</button>
+</div>
       <div class="form-group">
         <label>Filter by Month</label>
         <input type="month" id="monthFilter" />
@@ -928,26 +966,51 @@ let allIncome = [];
 function renderIncomeTable() {
   const tbody = document.getElementById("incomeTableBody");
   const selectedMonth = document.getElementById("monthFilter").value;
+  const searchQuery = document.getElementById("globalSearch").value.toLowerCase();
 
-  const filtered = allIncome.filter(entry => {
-    if (!selectedMonth) return true;
-    if (!entry.date) return false;
+  // Sort allIncome by Income Date (latest first)
+  const sortedIncome = [...allIncome].sort((a, b) => {
+    const dateA = new Date(a.date);
+    const dateB = new Date(b.date);
+    return dateB - dateA; // Latest first (descending order)
+  });
 
-    const entryDateObj = new Date(entry.date);
-    const entryMonth = String(entryDateObj.getMonth() + 1).padStart(2, '0');
-    const entryYear = entryDateObj.getFullYear().toString();
-    const [filterYear, filterMonth] = selectedMonth.split("-");
+  const filtered = sortedIncome.filter(entry => {
+    // Month filter
+    if (selectedMonth) {
+      if (!entry.date) return false;
+      const entryDateObj = new Date(entry.date);
+      const entryMonth = String(entryDateObj.getMonth() + 1).padStart(2, '0');
+      const entryYear = entryDateObj.getFullYear().toString();
+      const [filterYear, filterMonth] = selectedMonth.split("-");
+      if (entryMonth !== filterMonth || entryYear !== filterYear) return false;
+    }
 
-    return entryMonth === filterMonth && entryYear === filterYear;
+    // Search filter
+    if (searchQuery) {
+      const searchFields = [
+        entry.category?.toLowerCase(),
+        entry.description?.toLowerCase(),
+        entry.paymentMethod?.toLowerCase(),
+        entry.receiveFrom?.toLowerCase(),
+        entry.notes?.toLowerCase(),
+        reformatDDMMYYYY(entry.chargeOn)?.toLowerCase(),
+        reformatDDMMYYYY(entry.date)?.toLowerCase(),
+        parseFloat(entry.amount)?.toString()
+      ];
+      return searchFields.some(field => field && field.includes(searchQuery));
+    }
+
+    return true;
   });
 
   if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;">No records found for this month.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;">No records found.</td></tr>`;
     return;
   }
 
   tbody.innerHTML = filtered.map(entry => {
-    const index = allIncome.findIndex(e => e.timestamp === entry.timestamp); // 🔍 correct mapping
+    const index = allIncome.findIndex(e => e.timestamp === entry.timestamp);
     return `
       <tr>
         <td>${reformatDDMMYYYY(entry.chargeOn)}</td>
@@ -964,8 +1027,16 @@ function renderIncomeTable() {
   }).join("");
 }
 
-
 document.getElementById("monthFilter").addEventListener("change", renderIncomeTable);
+// Add search functionality
+document.getElementById("globalSearch").addEventListener("input", renderIncomeTable);
+
+// Show/hide clear button
+document.getElementById("globalSearch").addEventListener("input", function() {
+    const clearBtn = document.getElementById("clearSearch");
+    clearBtn.style.display = this.value ? 'block' : 'none';
+    renderIncomeTable();
+});
 
 function openEditIncome(index) {
   const entry = allIncome[index];
@@ -1221,4 +1292,3 @@ const API_URL = "https://script.google.com/macros/s/AKfycbxsqetZ_iRLnZ3mhRcbxX09
 </script>
 </body>
 </html>
-
