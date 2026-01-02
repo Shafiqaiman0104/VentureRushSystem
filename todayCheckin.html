@@ -536,25 +536,35 @@
   max-width: 200px;
   word-break: break-word;
 }
-    /* Special Order table styling */
-    #specialOrderTable {
-      min-width: 1200px;
-    }
-    
-    #specialOrderTable th:nth-child(3),
-    #specialOrderTable td:nth-child(3) {
-      min-width: 150px;
-    }
-    
-    #specialOrderTable th:nth-child(4),
-    #specialOrderTable td:nth-child(4) {
-      min-width: 100px;
-    }
-    
-    #specialOrderTable th:nth-child(5),
-    #specialOrderTable td:nth-child(5) {
-      min-width: 120px;
-    }
+   /* Special Order table styling */
+#specialOrderTable {
+  min-width: 1300px; /* Increased width for new column */
+}
+
+#specialOrderTable th:nth-child(2),
+#specialOrderTable td:nth-child(2) {
+ content-visibility: hidden;
+}
+
+#specialOrderTable th:nth-child(3),
+#specialOrderTable td:nth-child(3) {
+  min-width: 150px;
+}
+
+#specialOrderTable th:nth-child(4),
+#specialOrderTable td:nth-child(4) {
+  min-width: 100px; /* This is now for Checkout column */
+}
+
+#specialOrderTable th:nth-child(5),
+#specialOrderTable td:nth-child(5) {
+  min-width: 100px; /* This is now for Note column */
+}
+
+#specialOrderTable th:nth-child(6),
+#specialOrderTable td:nth-child(6) {
+  min-width: 120px; /* This is now for Category column */
+}
   </style>
 </head>
 <body>
@@ -675,6 +685,7 @@
               <th>No.</th>
               <th>Date</th>
               <th>Details</th>
+              <th>Checkout</th> <!-- ADD THIS COLUMN -->
               <th>Note</th>
               <th>Category</th>
               <th>Description</th>
@@ -778,60 +789,90 @@ const OTHER_INCOME_DB_URL = 'https://script.google.com/macros/s/AKfycbzPWBQPRf1F
       displaySpecialOrders(specialOrders);
     }
     
-    // Function to display special orders in the table
-    function displaySpecialOrders(orders) {
-      const tableBody = document.getElementById('specialOrderTableBody');
-      const noDataMessage = document.getElementById('noSpecialOrderMessage');
+   // Function to display special orders in the table
+function displaySpecialOrders(orders) {
+  const tableBody = document.getElementById('specialOrderTableBody');
+  const noDataMessage = document.getElementById('noSpecialOrderMessage');
+  
+  if (!orders || orders.length === 0) {
+    tableBody.innerHTML = '';
+    noDataMessage.style.display = 'block';
+    return;
+  }
+  
+  noDataMessage.style.display = 'none';
+  let tableHTML = '';
+  
+  orders.forEach((order, index) => {
+    // Parse notes to extract Details, Checkout, and Note
+    let details = '';
+    let checkout = '';
+    let note = '';
+    
+    if (order.notes) {
+      // Format: "Notes : {note} Details : {details} Checkout : {checkout}"
+      // Or: "Notes : {note} Details : {details}"
       
-      if (!orders || orders.length === 0) {
-        tableBody.innerHTML = '';
-        noDataMessage.style.display = 'block';
-        return;
-      }
-      
-      noDataMessage.style.display = 'none';
-      let tableHTML = '';
-      
-      orders.forEach((order, index) => {
-        // Parse notes to extract Details and Note
-        let details = '';
-        let note = '';
-        
-        if (order.notes) {
-          // Split notes by "Details :"
-          const parts = order.notes.split('Details :');
+      // First, extract checkout if it exists
+      if (order.notes.includes('Checkout :')) {
+        // Split by "Checkout :"
+        const checkoutParts = order.notes.split('Checkout :');
+        if (checkoutParts.length >= 2) {
+          checkout = checkoutParts[1]?.trim() || '';
+          // Now we have the part before checkout
+          const beforeCheckout = checkoutParts[0];
           
-          if (parts.length >= 2) {
-            // First part contains "Notes : {value}"
-            const notePart = parts[0];
-            if (notePart.includes('Notes :')) {
-              note = notePart.split('Notes :')[1]?.trim() || '';
+          // Extract Note and Details from beforeCheckout
+          if (beforeCheckout.includes('Details :')) {
+            const detailParts = beforeCheckout.split('Details :');
+            if (detailParts.length >= 2) {
+              // First part contains "Notes : {value}"
+              const notePart = detailParts[0];
+              if (notePart.includes('Notes :')) {
+                note = notePart.split('Notes :')[1]?.trim() || '';
+              }
+              
+              // Second part contains details (before checkout)
+              details = detailParts[1]?.trim() || '';
             }
-            
-            // Second part contains details
-            details = parts[1]?.trim() || '';
-          } else {
-            // Fallback if pattern doesn't match
-            note = order.notes;
           }
         }
-        
-        tableHTML += `
-          <tr>
-            <td>${index + 1}</td>
-            <td>${order.date || 'N/A'}</td>
-            <td>${details || 'N/A'}</td>
-            <td>${note || 'N/A'}</td>
-            <td>${order.category || 'N/A'}</td>
-            <td>${order.description || 'N/A'}</td>
-            <td>${order.amount ? 'RM' + order.amount.toFixed(2) : 'N/A'}</td>
-            <td>${order.receiveFrom || 'N/A'}</td>
-          </tr>
-        `;
-      });
-      
-      tableBody.innerHTML = tableHTML;
+      } else if (order.notes.includes('Details :')) {
+        // Only has "Notes : {note} Details : {details}" format
+        const parts = order.notes.split('Details :');
+        if (parts.length >= 2) {
+          // First part contains "Notes : {value}"
+          const notePart = parts[0];
+          if (notePart.includes('Notes :')) {
+            note = notePart.split('Notes :')[1]?.trim() || '';
+          }
+          
+          // Second part contains details
+          details = parts[1]?.trim() || '';
+        }
+      } else {
+        // Fallback if pattern doesn't match
+        note = order.notes;
+      }
     }
+    
+    tableHTML += `
+      <tr>
+        <td>${index + 1}</td>
+        <td>${order.date || 'N/A'}</td>
+        <td>${details || 'N/A'}</td>
+        <td>${checkout || 'N/A'}</td> <!-- ADD CHECKOUT COLUMN -->
+        <td>${note || 'N/A'}</td>
+        <td>${order.category || 'N/A'}</td>
+        <td>${order.description || 'N/A'}</td>
+        <td>${order.amount ? 'RM' + order.amount.toFixed(2) : 'N/A'}</td>
+        <td>${order.receiveFrom || 'N/A'}</td>
+      </tr>
+    `;
+  });
+  
+  tableBody.innerHTML = tableHTML;
+}
 
     // Function to refresh special orders
     function refreshSpecialOrders() {
