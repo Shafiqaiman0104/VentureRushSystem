@@ -946,7 +946,7 @@ function getRentalItemsForBooking(bookId) {
     
     // Check for BOTH formats:
     // 1. "For Customer : {bookId}" (with space after colon)
-    // 2. "For Customer:{bookId}" (without space after colon)
+    // 2. "For Customer :{bookId}" (without space after colon)
     
     const formatWithSpace = `For Customer : ${bookId}`;
     const formatWithoutSpace = `For Customer:${bookId}`;
@@ -1275,4 +1275,5 @@ const rentalDisplay = rentalItems.length > 0
 </body>
 
 </html>
+
 
