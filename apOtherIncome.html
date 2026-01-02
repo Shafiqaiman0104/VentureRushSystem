@@ -464,6 +464,34 @@ tbody tr:hover {
     font-size: 1.2rem;
     color: #888;
 }
+/* Calendar tooltip styling */
+.checkout-tooltip {
+    position: absolute;
+    background: white;
+    border: 1px solid #d1d5db;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    padding: 10px;
+    z-index: 1000;
+    display: none;
+}
+
+.checkout-calendar {
+    margin-top: 5px;
+}
+
+.checkout-calendar input {
+    width: 100%;
+    padding: 5px;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+/* Textarea container for positioning tooltip */
+.textarea-container {
+    position: relative;
+}
   </style>
 </head>
 <body>
@@ -575,7 +603,8 @@ tbody tr:hover {
   <label>Receive From</label>
   <input type="text" name="receiveFrom" id="receiveFrom" />
 </div>
-        <div class="form-group">
+
+<div class="form-group">
   <label>Notes</label>
   <select id="notesDropdown" onchange="handleNotesChange()">
     <option value="">-- Select Note Type --</option>
@@ -583,8 +612,22 @@ tbody tr:hover {
     <option value="customer">Customer</option>
     <option value="inHouseCustomer">In House Customer</option>
   </select>
-  <textarea name="notes" id="notesField" rows="3"></textarea>
+<div id="checkoutTooltip" class="checkout-tooltip">
+      <div>Select checkout date:</div>
+      <div class="checkout-calendar">
+        <input type="date" id="checkoutDatePicker">
+      </div>
+      <div style="margin-top: 8px;">
+        <button type="button" onclick="insertCheckoutDate()" style="padding: 4px 12px; background: #0ea5e9; color: white; border: none; border-radius: 4px; cursor: pointer;">Insert</button>
+        <button type="button" onclick="hideCheckoutCalendar()" style="padding: 4px 12px; background: #e5e7eb; color: #111827; border: none; border-radius: 4px; cursor: pointer; margin-left: 5px;">X</button>
+      </div>
+    </div>
+  <div class="textarea-container">
+    <textarea name="notes" id="notesField" rows="3" onfocus="showCheckoutCalendar(this)" onclick="showCheckoutCalendar(this)"></textarea>
+    
+  </div>
 </div>
+
         <button class="action-button" type="submit">Submit Income</button>
       </form>
     </div>
@@ -664,7 +707,19 @@ tbody tr:hover {
   <option value="customer">Customer</option>
   <option value="inHouseCustomer">In House Customer</option>
 </select>
-<textarea id="editNotes" rows="3"></textarea><br/><br/>
+<div class="textarea-container">
+  <textarea id="editNotes" rows="3" onfocus="showEditCheckoutCalendar(this)" onclick="showEditCheckoutCalendar(this)"></textarea>
+  <div id="editCheckoutTooltip" class="checkout-tooltip">
+    <div>Select checkout date:</div>
+    <div class="checkout-calendar">
+      <input type="date" id="editCheckoutDatePicker">
+    </div>
+    <div style="margin-top: 8px;">
+      <button type="button" onclick="insertEditCheckoutDate()" style="padding: 4px 12px; background: #0ea5e9; color: white; border: none; border-radius: 4px; cursor: pointer;">Insert</button>
+      <button type="button" onclick="hideEditCheckoutCalendar()" style="padding: 4px 12px; background: #e5e7eb; color: #111827; border: none; border-radius: 4px; cursor: pointer; margin-left: 5px;">X</button>
+    </div>
+  </div>
+</div><br/><br/>
         <div class="popup-buttons">
           <button type="submit" class="btn-save">✅ Save</button>
           <button type="button" class="btn-delete" onclick="deleteFromEdit()">🗑️ Delete</button>
@@ -835,10 +890,20 @@ function handleNotesChange() {
       notesField.value = "";
       break;
     case "customer":
-      notesField.value = "Notes : \nDetails :";
+      notesField.value = "Notes : \nDetails :\nCheckout :";
+      // Auto show calendar for customer
+      setTimeout(() => {
+        notesField.focus();
+        showCheckoutCalendar(notesField);
+      }, 100);
       break;
     case "inHouseCustomer":
-      notesField.value = "Notes : \nFor Customer :";
+      notesField.value = "Notes : \nFor Customer :\nCheckout :";
+      // Auto show calendar for in-house customer
+      setTimeout(() => {
+        notesField.focus();
+        showCheckoutCalendar(notesField);
+      }, 100);
       break;
     default:
       notesField.value = "";
@@ -855,15 +920,169 @@ function handleEditNotesChange() {
       notesField.value = "";
       break;
     case "customer":
-      notesField.value = "Notes : \nDetails :";
+      notesField.value = "Notes : \nDetails :\nCheckout :";
+      // Auto show calendar for customer
+      setTimeout(() => {
+        notesField.focus();
+        showEditCheckoutCalendar(notesField);
+      }, 100);
       break;
     case "inHouseCustomer":
-      notesField.value = "Notes : \nFor Customer :";
+      notesField.value = "Notes : \nFor Customer :\nCheckout :";
+      // Auto show calendar for in-house customer
+      setTimeout(() => {
+        notesField.focus();
+        showEditCheckoutCalendar(notesField);
+      }, 100);
       break;
     default:
       notesField.value = "";
   }
 }
+
+// Calendar functions for main form
+let currentTextarea = null;
+
+function showCheckoutCalendar(textarea) {
+  currentTextarea = textarea;
+  const tooltip = document.getElementById("checkoutTooltip");
+  const rect = textarea.getBoundingClientRect();
+  
+  tooltip.style.display = "block";
+  tooltip.style.position = "absolute";
+  tooltip.style.top = (rect.bottom + window.scrollY) + "px";
+  tooltip.style.left = (rect.left + window.scrollX) + "px";
+  
+  // Set today's date as default
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById("checkoutDatePicker").value = today;
+}
+
+function hideCheckoutCalendar() {
+  document.getElementById("checkoutTooltip").style.display = "none";
+  currentTextarea = null;
+}
+
+function insertCheckoutDate() {
+  if (!currentTextarea) return;
+  
+  const datePicker = document.getElementById("checkoutDatePicker");
+  const selectedDate = datePicker.value;
+  
+  if (selectedDate) {
+    // Format date as DD/MM/YYYY
+    const [year, month, day] = selectedDate.split('-');
+    const formattedDate = `${day}/${month}/${year}`;
+    
+    // Check if textarea already contains "Checkout :"
+    const currentText = currentTextarea.value;
+    
+    if (currentText.includes("Checkout :")) {
+      // Replace existing checkout date or add it
+      const lines = currentText.split('\n');
+      const newLines = lines.map(line => {
+        if (line.trim().startsWith("Checkout :")) {
+          return `Checkout : ${formattedDate}`;
+        }
+        return line;
+      });
+      currentTextarea.value = newLines.join('\n');
+    } else {
+      // Add checkout line
+      currentTextarea.value = currentText + (currentText ? '\n' : '') + `Checkout : ${formattedDate}`;
+    }
+  }
+  
+  hideCheckoutCalendar();
+  // Prevent form submission by returning false
+  return false;
+}
+
+// Calendar functions for edit form
+let currentEditTextarea = null;
+
+function showEditCheckoutCalendar(textarea) {
+  currentEditTextarea = textarea;
+  const tooltip = document.getElementById("editCheckoutTooltip");
+  const rect = textarea.getBoundingClientRect();
+  
+  tooltip.style.display = "block";
+  tooltip.style.position = "absolute";
+  tooltip.style.top = (rect.bottom + window.scrollY) + "px";
+  tooltip.style.left = (rect.left + window.scrollX) + "px";
+  
+  // Check if there's already a checkout date in the textarea
+  const currentText = textarea.value;
+  const checkoutMatch = currentText.match(/Checkout : (\d{2}\/\d{2}\/\d{4})/);
+  
+  if (checkoutMatch) {
+    // Parse existing date to set in date picker
+    const [day, month, year] = checkoutMatch[1].split('/');
+    document.getElementById("editCheckoutDatePicker").value = `${year}-${month}-${day}`;
+  } else {
+    // Set today's date as default
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById("editCheckoutDatePicker").value = today;
+  }
+}
+
+function hideEditCheckoutCalendar() {
+  document.getElementById("editCheckoutTooltip").style.display = "none";
+  currentEditTextarea = null;
+}
+
+function insertEditCheckoutDate() {
+  if (!currentEditTextarea) return;
+  
+  const datePicker = document.getElementById("editCheckoutDatePicker");
+  const selectedDate = datePicker.value;
+  
+  if (selectedDate) {
+    // Format date as DD/MM/YYYY
+    const [year, month, day] = selectedDate.split('-');
+    const formattedDate = `${day}/${month}/${year}`;
+    
+    // Check if textarea already contains "Checkout :"
+    const currentText = currentEditTextarea.value;
+    
+    if (currentText.includes("Checkout :")) {
+      // Replace existing checkout date
+      const lines = currentText.split('\n');
+      const newLines = lines.map(line => {
+        if (line.trim().startsWith("Checkout :")) {
+          return `Checkout : ${formattedDate}`;
+        }
+        return line;
+      });
+      currentEditTextarea.value = newLines.join('\n');
+    } else {
+      // Add checkout line
+      currentEditTextarea.value = currentText + (currentText ? '\n' : '') + `Checkout : ${formattedDate}`;
+    }
+  }
+  
+  hideEditCheckoutCalendar();
+  // Prevent form submission by returning false
+  return false;
+}
+
+// Close calendar when clicking outside
+document.addEventListener('click', function(event) {
+  const tooltip = document.getElementById("checkoutTooltip");
+  const editTooltip = document.getElementById("editCheckoutTooltip");
+  
+  if (tooltip && tooltip.style.display === 'block' && 
+      !tooltip.contains(event.target) && 
+      event.target.id !== 'notesField') {
+    hideCheckoutCalendar();
+  }
+  
+  if (editTooltip && editTooltip.style.display === 'block' && 
+      !editTooltip.contains(event.target) && 
+      event.target.id !== 'editNotes') {
+    hideEditCheckoutCalendar();
+  }
+});
 
 function formatDate(isoDate) {
   if (!isoDate) return "";
