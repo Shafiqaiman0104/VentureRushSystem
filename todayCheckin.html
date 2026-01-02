@@ -940,18 +940,8 @@ function getRentalItemsForBooking(bookId) {
   const rentalItems = [];
   
   otherIncomeData.forEach(income => {
-    if (!income.notes || !bookId) return;
-    
-    const notes = income.notes.trim();
-    
-    // Check for BOTH formats:
-    // 1. "For Customer : {bookId}" (with space after colon)
-    // 2. "For Customer :{bookId}" (without space after colon)
-    
-    const formatWithSpace = `For Customer : ${bookId}`;
-    const formatWithoutSpace = `For Customer:${bookId}`;
-    
-    if (notes.includes(formatWithSpace) || notes.includes(formatWithoutSpace)) {
+    // Check if notes contain "For Customer : {bookId}"
+    if (income.notes && income.notes.includes(`For Customer : ${bookId}`)) {
       // Add the description (and amount if needed)
       const itemInfo = {
         description: income.description || '',
@@ -1275,5 +1265,6 @@ const rentalDisplay = rentalItems.length > 0
 </body>
 
 </html>
+
 
 
