@@ -536,6 +536,25 @@
   max-width: 200px;
   word-break: break-word;
 }
+    /* Special Order table styling */
+    #specialOrderTable {
+      min-width: 1200px;
+    }
+    
+    #specialOrderTable th:nth-child(3),
+    #specialOrderTable td:nth-child(3) {
+      min-width: 150px;
+    }
+    
+    #specialOrderTable th:nth-child(4),
+    #specialOrderTable td:nth-child(4) {
+      min-width: 100px;
+    }
+    
+    #specialOrderTable th:nth-child(5),
+    #specialOrderTable td:nth-child(5) {
+      min-width: 120px;
+    }
   </style>
 </head>
 <body>
@@ -642,6 +661,37 @@
         </div>
       </div>
     </div>
+
+    <!-- Special Order Table Section -->
+    <div class="card">
+      <h3>Special Orders</h3>
+      <div class="filter-controls">
+        <button class="btn" onclick="refreshSpecialOrders()">Refresh Special Orders</button>
+      </div>
+      <div class="table-container">
+        <table id="specialOrderTable">
+          <thead>
+            <tr>
+              <th>No.</th>
+              <th>Date</th>
+              <th>Details</th>
+              <th>Note</th>
+              <th>Category</th>
+              <th>Description</th>
+              <th>Amount (RM)</th>
+              <th>Receive From</th>
+            </tr>
+          </thead>
+          <tbody id="specialOrderTableBody">
+            <!-- Data will be populated here -->
+          </tbody>
+        </table>
+        <div id="noSpecialOrderMessage" class="no-data" style="display: none;">
+          No special orders found for today.
+        </div>
+      </div>
+    </div>
+
   </main>
   
   <audio id="dingSound" preload="auto">
@@ -696,7 +746,102 @@ const OTHER_INCOME_DB_URL = 'https://script.google.com/macros/s/AKfycbzPWBQPRf1F
       localStorage.removeItem("username");
       window.location.href = "index.html";
     }
+
+    // Function to filter and display special orders
+    function filterAndDisplaySpecialOrders() {
+      const selectedDate = document.getElementById('dateFilter').value;
+      if (!selectedDate || !otherIncomeData || otherIncomeData.length === 0) {
+        document.getElementById('specialOrderTableBody').innerHTML = '';
+        document.getElementById('noSpecialOrderMessage').style.display = 'block';
+        return;
+      }
+      
+      // Filter otherIncomeData for the selected date and Notes containing "Details :"
+      const specialOrders = otherIncomeData.filter(income => {
+        // Check if date matches
+        if (!income.date || formatDateToMalaysiaDate(parseDateLocal(income.date)) !== selectedDate) {
+          return false;
+        }
+        
+        // Check if notes contain "Details :" pattern (format number 2)
+        if (!income.notes || typeof income.notes !== 'string') return false;
+        
+        // Check for pattern "Details :" in notes
+        const hasDetailsPattern = income.notes.includes('Details :');
+        const hasForCustomerPattern = income.notes.includes('For Customer :');
+        
+        // Only include items with "Details :" but NOT "For Customer :"
+        // (since "For Customer :" is format number 3)
+        return hasDetailsPattern && !hasForCustomerPattern;
+      });
+      
+      displaySpecialOrders(specialOrders);
+    }
     
+    // Function to display special orders in the table
+    function displaySpecialOrders(orders) {
+      const tableBody = document.getElementById('specialOrderTableBody');
+      const noDataMessage = document.getElementById('noSpecialOrderMessage');
+      
+      if (!orders || orders.length === 0) {
+        tableBody.innerHTML = '';
+        noDataMessage.style.display = 'block';
+        return;
+      }
+      
+      noDataMessage.style.display = 'none';
+      let tableHTML = '';
+      
+      orders.forEach((order, index) => {
+        // Parse notes to extract Details and Note
+        let details = '';
+        let note = '';
+        
+        if (order.notes) {
+          // Split notes by "Details :"
+          const parts = order.notes.split('Details :');
+          
+          if (parts.length >= 2) {
+            // First part contains "Notes : {value}"
+            const notePart = parts[0];
+            if (notePart.includes('Notes :')) {
+              note = notePart.split('Notes :')[1]?.trim() || '';
+            }
+            
+            // Second part contains details
+            details = parts[1]?.trim() || '';
+          } else {
+            // Fallback if pattern doesn't match
+            note = order.notes;
+          }
+        }
+        
+        tableHTML += `
+          <tr>
+            <td>${index + 1}</td>
+            <td>${order.date || 'N/A'}</td>
+            <td>${details || 'N/A'}</td>
+            <td>${note || 'N/A'}</td>
+            <td>${order.category || 'N/A'}</td>
+            <td>${order.description || 'N/A'}</td>
+            <td>${order.amount ? 'RM' + order.amount.toFixed(2) : 'N/A'}</td>
+            <td>${order.receiveFrom || 'N/A'}</td>
+          </tr>
+        `;
+      });
+      
+      tableBody.innerHTML = tableHTML;
+    }
+
+    // Function to refresh special orders
+    function refreshSpecialOrders() {
+      showLoading();
+      setTimeout(() => {
+        filterAndDisplaySpecialOrders();
+        hideLoading();
+      }, 500);
+    }
+
     // Loading functions
     function showLoading() {
       document.getElementById('loadingPopup').classList.add('show');
@@ -719,32 +864,33 @@ const OTHER_INCOME_DB_URL = 'https://script.google.com/macros/s/AKfycbzPWBQPRf1F
       document.getElementById('dateFilter').value = todayStr;
     }
     
-    // Load data from both databases
+        // Load data from both databases
     async function loadAllData() {
-  showLoading();
-  try {
-    const [bookingResponse, coResponse, otherIncomeResponse] = await Promise.all([
-      fetch(BOOKING_DB_URL),
-      fetch(CO_DB_URL),
-      fetch(OTHER_INCOME_DB_URL + '?action=getIncome') // Add this line
-    ]);
-    
-    const bookingResult = await bookingResponse.json();
-    const coResult = await coResponse.json();
-    const otherIncomeResult = await otherIncomeResponse.json(); // Add this line
-    
-    bookingData = bookingResult.bookings || [];
-    coData = coResult || [];
-    otherIncomeData = otherIncomeResult.income || []; // Add this line
-    
-    filterAndDisplayData();
-  } catch (error) {
-    console.error("Error loading data:", error);
-    alert("❌ Failed to load customer data. Please try again.");
-  } finally {
-    hideLoading();
-  }
-}
+      showLoading();
+      try {
+        const [bookingResponse, coResponse, otherIncomeResponse] = await Promise.all([
+          fetch(BOOKING_DB_URL),
+          fetch(CO_DB_URL),
+          fetch(OTHER_INCOME_DB_URL + '?action=getIncome')
+        ]);
+        
+        const bookingResult = await bookingResponse.json();
+        const coResult = await coResponse.json();
+        const otherIncomeResult = await otherIncomeResponse.json();
+        
+        bookingData = bookingResult.bookings || [];
+        coData = coResult || [];
+        otherIncomeData = otherIncomeResult.income || [];
+        
+        filterAndDisplayData();
+        filterAndDisplaySpecialOrders(); // ADD THIS LINE
+      } catch (error) {
+        console.error("Error loading data:", error);
+        alert("❌ Failed to load customer data. Please try again.");
+      } finally {
+        hideLoading();
+      }
+    }
 
 // Function to get rental items for a specific bookId
 function getRentalItemsForBooking(bookId) {
@@ -768,7 +914,7 @@ function getRentalItemsForBooking(bookId) {
   return rentalItems;
 }
     
-    // Filter data for selected date and display
+       // Filter data for selected date and display
     function filterAndDisplayData() {
       const selectedDate = document.getElementById('dateFilter').value;
       if (!selectedDate) return;
@@ -796,6 +942,9 @@ function getRentalItemsForBooking(bookId) {
       
       // Display table
       displayTable();
+      
+      // Filter and display special orders too
+      filterAndDisplaySpecialOrders(); // ADD THIS LINE
     }
     
     // Update statistics counters
