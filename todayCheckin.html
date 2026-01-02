@@ -940,8 +940,28 @@ function getRentalItemsForBooking(bookId) {
   const rentalItems = [];
   
   otherIncomeData.forEach(income => {
-    // Check if notes contain "For Customer : {bookId}"
-    if (income.notes && income.notes.includes(`For Customer : ${bookId}`)) {
+    if (!income.notes || !bookId) return;
+    
+    const notes = income.notes.trim();
+    
+    // Check for multiple possible formats:
+    // 1. "For Customer : {bookId}" (space colon space)
+    // 2. "For Customer :{bookId}" (space colon no space)
+    // 3. "For Customer: {bookId}" (no space colon space)
+    // 4. "For Customer:{bookId}" (no space colon no space)
+    
+    // Create patterns to check
+    const patterns = [
+      `For Customer : ${bookId}`,  // space colon space
+      `For Customer :${bookId}`,   // space colon no space  
+      `For Customer: ${bookId}`,   // no space colon space
+      `For Customer:${bookId}`     // no space colon no space
+    ];
+    
+    // Check if any pattern matches
+    const hasMatch = patterns.some(pattern => notes.includes(pattern));
+    
+    if (hasMatch) {
       // Add the description (and amount if needed)
       const itemInfo = {
         description: income.description || '',
@@ -1265,6 +1285,7 @@ const rentalDisplay = rentalItems.length > 0
 </body>
 
 </html>
+
 
 
 
