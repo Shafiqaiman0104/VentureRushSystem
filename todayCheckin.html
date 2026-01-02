@@ -183,7 +183,7 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 1100px;
+      min-width: 1500px;
     }
     
     th {
@@ -529,6 +529,13 @@
         padding: 0.75rem 0.5rem;
       }
     }
+.rental-info {
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: #059669;
+  max-width: 200px;
+  word-break: break-word;
+}
   </style>
 </head>
 <body>
@@ -618,6 +625,7 @@
               <th>Contact (Phone & Email)</th>
               <th>Unit & Quantity</th>
               <th>Unit Use</th>
+              <th>Rental Items</th> <!-- Add this line -->
               <th>Book ID</th>
               <th>Remark</th>
               <th>C.O</th>
@@ -646,11 +654,15 @@
     const BOOKING_DB_URL = 'https://script.google.com/macros/s/AKfycbwsPIi_Zf7UtwTQJ8BPiLmNR87VxecATUOItw68loKglD60QRcRzeQoqIzyynvTXolipA/exec';
     const CO_DB_URL = 'https://script.google.com/macros/s/AKfycbxwLq33J4Ud1P7bPVSZM86kr1CUmWeiEAVM9jjB3ffJtiCCfapZEAtVkpzU7v52tmo/exec';
     const NOTIFICATION_API_URL = "https://script.google.com/macros/s/AKfycbxsqetZ_iRLnZ3mhRcbxX09q4c0aXU_xHzO5JaPkocr0syDM52DsPsGI-raZi2GCpl5/exec";
+// Add this line with your other database URLs
+const OTHER_INCOME_DB_URL = 'https://script.google.com/macros/s/AKfycbzPWBQPRf1FwODxcR4I39FDkjsZR_QDPKwwno__TgB-Nc3lkvYF9_UfxGdaQMHeQJFH/exec';
     
     // Global variables
     let bookingData = [];
     let coData = [];
+    let otherIncomeData = [];
     let filteredData = [];
+    
     
     // Check authentication
     const username = localStorage.getItem("username") || "CO";
@@ -709,27 +721,52 @@
     
     // Load data from both databases
     async function loadAllData() {
-      showLoading();
-      try {
-        const [bookingResponse, coResponse] = await Promise.all([
-          fetch(BOOKING_DB_URL),
-          fetch(CO_DB_URL)
-        ]);
-        
-        const bookingResult = await bookingResponse.json();
-        const coResult = await coResponse.json();
-        
-        bookingData = bookingResult.bookings || [];
-        coData = coResult || [];
-        
-        filterAndDisplayData();
-      } catch (error) {
-        console.error("Error loading data:", error);
-        alert("❌ Failed to load customer data. Please try again.");
-      } finally {
-        hideLoading();
-      }
+  showLoading();
+  try {
+    const [bookingResponse, coResponse, otherIncomeResponse] = await Promise.all([
+      fetch(BOOKING_DB_URL),
+      fetch(CO_DB_URL),
+      fetch(OTHER_INCOME_DB_URL + '?action=getIncome') // Add this line
+    ]);
+    
+    const bookingResult = await bookingResponse.json();
+    const coResult = await coResponse.json();
+    const otherIncomeResult = await otherIncomeResponse.json(); // Add this line
+    
+    bookingData = bookingResult.bookings || [];
+    coData = coResult || [];
+    otherIncomeData = otherIncomeResult.income || []; // Add this line
+    
+    filterAndDisplayData();
+  } catch (error) {
+    console.error("Error loading data:", error);
+    alert("❌ Failed to load customer data. Please try again.");
+  } finally {
+    hideLoading();
+  }
+}
+
+// Function to get rental items for a specific bookId
+function getRentalItemsForBooking(bookId) {
+  if (!otherIncomeData || otherIncomeData.length === 0) return [];
+  
+  const rentalItems = [];
+  
+  otherIncomeData.forEach(income => {
+    // Check if notes contain "For Customer : {bookId}"
+    if (income.notes && income.notes.includes(`For Customer : ${bookId}`)) {
+      // Add the description (and amount if needed)
+      const itemInfo = {
+        description: income.description || '',
+        amount: income.amount || 0,
+        date: income.date || ''
+      };
+      rentalItems.push(itemInfo);
     }
+  });
+  
+  return rentalItems;
+}
     
     // Filter data for selected date and display
     function filterAndDisplayData() {
@@ -799,6 +836,10 @@
         const unitUse = coRecord ? coRecord[4] : ''; // Unit Use from CO database (column index 4)
         const remark = coRecord ? coRecord[5] : (booking.remark || ''); // Remark from CO database (column index 5) or booking database
         const coName = coRecord ? coRecord[6] : ''; // C.O Name from CO database (column index 6)
+        const rentalItems = getRentalItemsForBooking(booking.bookId);
+const rentalDisplay = rentalItems.length > 0 
+  ? rentalItems.map(item => `${item.description} (RM${item.amount})`).join('<br>')
+  : 'No rental items';
         
         // Parse unit string to display properly
         const unitDisplay = formatUnitDisplay(booking.unit);
@@ -808,37 +849,38 @@
         const cleanPhone = phoneNumber.replace(/\D/g, ''); // Remove non-digits
         
         tableHTML += `
-          <tr>
-            <td>${index + 1}</td>
-            <td><strong>${booking.name || 'N/A'}</strong></td>
-            <td class="contact-info">
-              <div class="contact-phone">📞 ${phoneNumber || 'N/A'}</div>
-              <div class="contact-email">📧 ${booking.email || 'N/A'}</div>
-            </td>
-            <td class="unit-info">${unitDisplay}</td>
-            <td class="unit-use-info">${unitUse || 'Not assigned'}</td>
-            <td><code>${booking.bookId || 'N/A'}</code></td>
-            <td class="remark-info">${remark || 'No remark'}</td>
-            <td class="co-info">${coName || 'Not assigned'}</td>
-            <td>
-              <span class="status-badge ${hasArrived ? 'status-arrived' : 'status-not-arrived'}">
-                ${hasArrived ? '✅ Arrived' : '⏳ Not Yet'}
-              </span>
-              ${hasArrived ? `<br><small>${arrivalTime}</small>` : ''}
-            </td>
-            <td>
-              <div class="actions-container">
-                ${phoneNumber ? `
-                  <a href="tel:${phoneNumber}" class="btn btn-call btn-small">📞 Call</a>
-                  <a href="https://wa.me/${cleanPhone}?text=${encodeURIComponent('Hi! I\'m from MK RIMBA CAMP, as we check in our database you not checkin yet.')}" target="_blank" class="btn btn-whatsapp btn-small">💬 WhatsApp</a>
-                ` : `
-                  <button class="btn btn-call btn-small" disabled>📞 Call</button>
-                  <button class="btn btn-whatsapp btn-small" disabled>💬 WhatsApp</button>
-                `}
-              </div>
-            </td>
-          </tr>
-        `;
+  <tr>
+    <td>${index + 1}</td>
+    <td><strong>${booking.name || 'N/A'}</strong></td>
+    <td class="contact-info">
+      <div class="contact-phone">📞 ${phoneNumber || 'N/A'}</div>
+      <div class="contact-email">📧 ${booking.email || 'N/A'}</div>
+    </td>
+    <td class="unit-info">${unitDisplay}</td>
+    <td class="unit-use-info">${unitUse || 'Not assigned'}</td>
+    <td class="rental-info">${rentalDisplay}</td> <!-- Add this line -->
+    <td><code>${booking.bookId || 'N/A'}</code></td>
+    <td class="remark-info">${remark || 'No remark'}</td>
+    <td class="co-info">${coName || 'Not assigned'}</td>
+    <td>
+      <span class="status-badge ${hasArrived ? 'status-arrived' : 'status-not-arrived'}">
+        ${hasArrived ? '✅ Arrived' : '⏳ Not Yet'}
+      </span>
+      ${hasArrived ? `<br><small>${arrivalTime}</small>` : ''}
+    </td>
+    <td>
+      <div class="actions-container">
+        ${phoneNumber ? `
+          <a href="tel:${phoneNumber}" class="btn btn-call btn-small">📞 Call</a>
+          <a href="https://wa.me/${cleanPhone}?text=${encodeURIComponent('Hi! I\'m from MK RIMBA CAMP, as we check in our database you not checkin yet.')}" target="_blank" class="btn btn-whatsapp btn-small">💬 WhatsApp</a>
+        ` : `
+          <button class="btn btn-call btn-small" disabled>📞 Call</button>
+          <button class="btn btn-whatsapp btn-small" disabled>💬 WhatsApp</button>
+        `}
+      </div>
+    </td>
+  </tr>
+`;
       });
       
       tableBody.innerHTML = tableHTML;
