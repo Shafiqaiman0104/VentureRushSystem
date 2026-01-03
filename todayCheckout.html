@@ -536,6 +536,35 @@
   max-width: 200px;
   word-break: break-word;
 }
+/* Special Order table styling - Add this */
+#specialOrderTable {
+  min-width: 1300px;
+}
+
+#specialOrderTable th:nth-child(2),
+#specialOrderTable td:nth-child(2) {
+  content-visibility: hidden;
+}
+
+#specialOrderTable th:nth-child(3),
+#specialOrderTable td:nth-child(3) {
+  min-width: 150px;
+}
+
+#specialOrderTable th:nth-child(4),
+#specialOrderTable td:nth-child(4) {
+  min-width: 100px;
+}
+
+#specialOrderTable th:nth-child(5),
+#specialOrderTable td:nth-child(5) {
+  min-width: 100px;
+}
+
+#specialOrderTable th:nth-child(6),
+#specialOrderTable td:nth-child(6) {
+  min-width: 120px;
+}
   </style>
 </head>
 <body>
@@ -642,6 +671,38 @@
         </div>
       </div>
     </div>
+
+    <!-- Special Order Table Section -->
+    <div class="card">
+      <h3>Special Orders</h3>
+      <div class="filter-controls">
+        <button class="btn" onclick="refreshSpecialOrders()">Refresh Special Orders</button>
+      </div>
+      <div class="table-container">
+        <table id="specialOrderTable">
+          <thead>
+            <tr>
+              <th>No.</th>
+              <th>Date</th>
+              <th>Details</th>
+              <th>Checkout</th>
+              <th>Note</th>
+              <th>Category</th>
+              <th>Description</th>
+              <th>Amount (RM)</th>
+              <th>Receive From</th>
+            </tr>
+          </thead>
+          <tbody id="specialOrderTableBody">
+            <!-- Data will be populated here -->
+          </tbody>
+        </table>
+        <div id="noSpecialOrderMessage" class="no-data" style="display: none;">
+          No special orders found for today.
+        </div>
+      </div>
+    </div>
+
   </main>
   
   <audio id="dingSound" preload="auto">
@@ -736,6 +797,7 @@ const OTHER_INCOME_DB_URL = 'https://script.google.com/macros/s/AKfycbzPWBQPRf1F
     otherIncomeData = otherIncomeResult.income || [];
     
     filterAndDisplayData();
+filterAndDisplaySpecialOrders(); // ADD THIS LINE
   } catch (error) {
     console.error("Error loading data:", error);
     alert("❌ Failed to load customer data. Please try again.");
@@ -743,6 +805,153 @@ const OTHER_INCOME_DB_URL = 'https://script.google.com/macros/s/AKfycbzPWBQPRf1F
     hideLoading();
   }
 }
+
+        // Function to filter and display special orders for checkout
+    function filterAndDisplaySpecialOrders() {
+      const selectedDate = document.getElementById('dateFilter').value;
+      if (!selectedDate || !otherIncomeData || otherIncomeData.length === 0) {
+        document.getElementById('specialOrderTableBody').innerHTML = '';
+        document.getElementById('noSpecialOrderMessage').style.display = 'block';
+        return;
+      }
+      
+      // Filter otherIncomeData for the selected date and Notes containing "Checkout" with the selected date
+      const specialOrders = otherIncomeData.filter(income => {
+        // Check if notes contain "Checkout" pattern with the selected date
+        if (!income.notes || typeof income.notes !== 'string') return false;
+        
+        // Check for pattern "Checkout" followed by the selected date in multiple formats
+        const selectedDateParts = selectedDate.split('-');
+        const formattedDate = `${selectedDateParts[2]}/${selectedDateParts[1]}/${selectedDateParts[0]}`; // DD/MM/YYYY
+        
+        // Check for multiple possible formats:
+        // 1. "Checkout : {formattedDate}" (space colon space)
+        // 2. "Checkout: {formattedDate}" (no space colon space)
+        // 3. "Checkout: {formattedDate}" (no space colon no space)
+        // 4. "Checkout :{formattedDate}" (space colon no space)
+        
+        // Create patterns to check
+        const patterns = [
+          `Checkout : ${formattedDate}`,  // space colon space
+          `Checkout: ${formattedDate}`,   // no space colon space
+          `Checkout:${formattedDate}`,    // no space colon no space
+          `Checkout :${formattedDate}`    // space colon no space
+        ];
+        
+        // Check if any pattern matches
+        return patterns.some(pattern => income.notes.includes(pattern));
+      });
+      
+      displaySpecialOrders(specialOrders);
+    }
+
+      // Function to display special orders in the table
+    function displaySpecialOrders(orders) {
+      const tableBody = document.getElementById('specialOrderTableBody');
+      const noDataMessage = document.getElementById('noSpecialOrderMessage');
+      
+      if (!orders || orders.length === 0) {
+        tableBody.innerHTML = '';
+        noDataMessage.style.display = 'block';
+        return;
+      }
+      
+      noDataMessage.style.display = 'none';
+      let tableHTML = '';
+      
+      orders.forEach((order, index) => {
+        // Parse notes to extract Details, Checkout, and Note
+        let details = '';
+        let checkout = '';
+        let note = '';
+        
+        if (order.notes) {
+          // Handle multiple formats for Checkout
+          // Formats: "Checkout : {date}", "Checkout: {date}", "Checkout:{date}", "Checkout :{date}"
+          
+          // First, extract checkout if it exists (check for all patterns)
+          let checkoutMatch = null;
+          const checkoutPatterns = [
+            /Checkout : (\d{2}\/\d{2}\/\d{4})/i,  // space colon space
+            /Checkout: (\d{2}\/\d{2}\/\d{4})/i,   // no space colon space
+            /Checkout:(\d{2}\/\d{2}\/\d{4})/i,     // no space colon no space
+            /Checkout :(\d{2}\/\d{2}\/\d{4})/i    // space colon no space (ADD THIS)
+          ];
+          
+          for (const pattern of checkoutPatterns) {
+            const match = order.notes.match(pattern);
+            if (match) {
+              checkoutMatch = match;
+              checkout = match[1] || '';
+              break;
+            }
+          }
+          
+          // Extract the part before checkout for Note and Details parsing
+          let beforeCheckout = order.notes;
+          if (checkoutMatch) {
+            beforeCheckout = order.notes.substring(0, checkoutMatch.index);
+          }
+          
+          // Extract Note and Details from beforeCheckout
+          // Handle both "Notes :" and "Notes:" formats
+          if (beforeCheckout.includes('Details :') || beforeCheckout.includes('Details:')) {
+            // Split by either "Details :" or "Details:"
+            const detailSplit = beforeCheckout.split(/Details\s*:/);
+            if (detailSplit.length >= 2) {
+              // First part contains "Notes : {value}" or "Notes:{value}"
+              const notePart = detailSplit[0];
+              
+              // Extract note (handle both "Notes :" and "Notes:" formats)
+              const noteMatch = notePart.match(/Notes\s*:\s*(.+)/i);
+              if (noteMatch) {
+                note = noteMatch[1]?.trim() || '';
+              } else {
+                // If no "Notes:" pattern, use the whole notePart
+                note = notePart.replace(/Notes\s*:\s*/i, '').trim();
+              }
+              
+              // Second part contains details (before any checkout text)
+              details = detailSplit[1]?.trim() || '';
+            }
+          } else if (beforeCheckout.includes('Notes :') || beforeCheckout.includes('Notes:')) {
+            // Only has note, no details
+            const noteMatch = beforeCheckout.match(/Notes\s*:\s*(.+)/i);
+            if (noteMatch) {
+              note = noteMatch[1]?.trim() || '';
+            }
+          } else {
+            // Fallback if pattern doesn't match
+            note = beforeCheckout.trim();
+          }
+        }
+        
+        tableHTML += `
+          <tr>
+            <td>${index + 1}</td>
+            <td>${order.date || 'N/A'}</td>
+            <td>${details || 'N/A'}</td>
+            <td>${checkout || 'N/A'}</td>
+            <td>${note || 'N/A'}</td>
+            <td>${order.category || 'N/A'}</td>
+            <td>${order.description || 'N/A'}</td>
+            <td>${order.amount ? 'RM' + order.amount.toFixed(2) : 'N/A'}</td>
+            <td>${order.receiveFrom || 'N/A'}</td>
+          </tr>
+        `;
+      });
+      
+      tableBody.innerHTML = tableHTML;
+    }
+
+    // Function to refresh special orders
+    function refreshSpecialOrders() {
+      showLoading();
+      setTimeout(() => {
+        filterAndDisplaySpecialOrders();
+        hideLoading();
+      }, 500);
+    }
 
 // Function to get rental items for a specific bookId
 function getRentalItemsForBooking(bookId) {
@@ -814,6 +1023,9 @@ function getRentalItemsForBooking(bookId) {
       
       // Display table
       displayTable();
+
+      // Filter and display special orders too
+      filterAndDisplaySpecialOrders();
     }
     
     // Update statistics counters - CHANGED to checkout
