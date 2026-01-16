@@ -1,0 +1,1438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Today's Customer Arrival List | C.O. Portal</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #eef2f7; }
+    h2, h3 { margin-top: 0; }
+    
+    header {
+      background: #ffffff;
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+      flex-wrap: wrap;
+      z-index: 101;
+      position: relative;
+    }
+    
+    .logo { font-weight: bold; }
+    
+    .menu-toggle {
+      display: none;
+      font-size: 1.5rem;
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+    
+    nav { display: flex; gap: 1rem; align-items: center; }
+    
+    .tab {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 5px;
+      background: #f3f4f6;
+      cursor: pointer;
+      font-size: 0.95rem;
+    }
+    
+    .tab.active {
+      background: #ffffff;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+      font-weight: 600;
+      color: #0ea5e9;
+    }
+    
+    .logout-btn {
+      padding: 0.5rem 1rem;
+      background: #ef4444;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    
+    .logout-btn:hover {
+      background: #dc2626;
+    }
+    
+    .mobile-menu {
+      display: none;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-top: 1rem;
+      width: 100%;
+    }
+    
+    .welcome-mobile {
+      display: none;
+      font-size: 0.8rem;
+      color: #334155;
+      margin-left: auto;
+      margin-right: 0.5rem;
+    }
+    
+    main {
+      padding: 1rem;
+      max-width: 1200px;
+      margin: auto;
+    }
+    
+    .page-title {
+      text-align: center;
+      color: #1e293b;
+      margin-bottom: 1.5rem;
+      font-size: 1.8rem;
+    }
+    
+    .subtitle {
+      text-align: center;
+      color: #64748b;
+      margin-bottom: 2rem;
+    }
+    
+    .card {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      margin-bottom: 2rem;
+    }
+    
+    .filter-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      align-items: center;
+    }
+    
+    .date-selector {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    
+    .date-selector input {
+      padding: 0.5rem;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+    
+    .btn {
+      padding: 0.6rem 1.2rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      background: #0ea5e9;
+      color: white;
+      font-weight: 500;
+      transition: background 0.3s;
+    }
+    
+    .btn:hover {
+      background: #0284c7;
+    }
+    
+    .btn-secondary {
+      background: #64748b;
+    }
+    
+    .btn-secondary:hover {
+      background: #475569;
+    }
+    
+    .btn-small {
+      padding: 0.3rem 0.6rem;
+      font-size: 0.8rem;
+      margin: 0.1rem;
+    }
+    
+    .btn-call {
+      background: #10b981;
+    }
+    
+    .btn-call:hover {
+      background: #059669;
+    }
+    
+    .btn-whatsapp {
+      background: #25d366;
+    }
+    
+    .btn-whatsapp:hover {
+      background: #1da851;
+    }
+    
+    .table-container {
+      overflow-x: auto;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      background: white;
+      margin-top: 1rem;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 1500px;
+    }
+    
+    th {
+      background: #f8fafc;
+      padding: 1rem;
+      text-align: left;
+      font-weight: 600;
+      color: #334155;
+      border-bottom: 2px solid #e2e8f0;
+    }
+    
+    td {
+      padding: 1rem;
+      border-bottom: 1px solid #e2e8f0;
+      vertical-align: top;
+    }
+    
+    tr:hover {
+      background: #f8fafc;
+    }
+    
+    .status-badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+    
+    .status-arrived {
+      background: #d1fae5;
+      color: #065f46;
+    }
+    
+    .status-not-arrived {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+    
+    .contact-info {
+      font-size: 0.9rem;
+      line-height: 1.4;
+    }
+    
+    .contact-phone {
+      color: #1e40af;
+      font-weight: 500;
+    }
+    
+    .contact-email {
+      color: #7c3aed;
+      font-size: 0.85rem;
+      word-break: break-all;
+    }
+    
+    .unit-info {
+      font-size: 0.9rem;
+      line-height: 1.4;
+    }
+    
+    .unit-use-info {
+      font-size: 0.9rem;
+      line-height: 1.4;
+      color: #475569;
+    }
+    
+    .remark-info {
+      font-size: 0.9rem;
+      line-height: 1.4;
+      color: #64748b;
+      max-width: 200px;
+      word-break: break-word;
+    }
+    
+    .co-info {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #0ea5e9;
+    }
+    
+    .actions-container {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+    
+    .no-data {
+      text-align: center;
+      padding: 3rem;
+      color: #64748b;
+      font-size: 1.1rem;
+    }
+    
+    .stats-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    
+    .stat-card {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      text-align: center;
+    }
+    
+    .stat-number {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: #0ea5e9;
+      margin-bottom: 0.5rem;
+    }
+    
+    .stat-label {
+      font-size: 0.9rem;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .bell {
+      position: relative;
+      font-size: 22px;
+      cursor: pointer;
+      margin-right: 1rem;
+    }
+    
+    .badge {
+      position: absolute;
+      top: -8px;
+      right: -10px;
+      background: #ef4444;
+      color: white;
+      border-radius: 50%;
+      padding: 2px 6px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    
+    .dropdownNoti {
+      display: none;
+      position: absolute;
+      right: 20px;
+      top: 50px;
+      background: white;
+      width: 320px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      border-radius: 8px;
+      overflow-y: auto;
+      max-height: 60vh;
+      z-index: 999;
+    }
+    
+    .dropdownNoti.active { display: block; }
+    
+    .notification {
+      padding: 12px;
+      border-bottom: 1px solid #e5e7eb;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    
+    .notification:hover {
+      background: #f9fafb;
+    }
+    
+    .notification strong {
+      color: #0ea5e9;
+      display: block;
+      margin-bottom: 5px;
+    }
+    
+    .notification button {
+      margin-top: 6px;
+      padding: 5px 10px;
+      background: #0ea5e9;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    
+    .notification button:hover {
+      background: #0284c7;
+    }
+    
+    /* Loading styles */
+    .loading-popup {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(8px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    
+    .loading-popup.show {
+      display: flex;
+      opacity: 1;
+    }
+    
+    .loading-content {
+      background: white;
+      padding: 2.5rem;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      max-width: 320px;
+      width: 90%;
+      animation: slideUp 0.4s ease-out;
+    }
+    
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .progress-circle {
+      position: relative;
+      width: 100px;
+      height: 100px;
+      margin: 0 auto 1.5rem;
+    }
+    
+    .circle-background {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border: 3px solid #e2e8f0;
+      border-radius: 50%;
+    }
+    
+    .circle-progress {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border: 3px solid transparent;
+      border-top: 3px solid #0ea5e9;
+      border-radius: 50%;
+      animation: spin 1.2s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .circle-inner {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+    }
+    
+    .loading-text {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #0f172a;
+      margin-bottom: 0.25rem;
+    }
+    
+    .loading-dots {
+      display: flex;
+      justify-content: center;
+      gap: 3px;
+    }
+    
+    .loading-dots span {
+      width: 4px;
+      height: 4px;
+      background: #64748b;
+      border-radius: 50%;
+      animation: bounce 1.4s ease-in-out infinite both;
+    }
+    
+    .loading-dots span:nth-child(1) { animation-delay: -0.32s; }
+    .loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+    
+    @keyframes bounce {
+      0%, 80%, 100% {
+        transform: scale(0);
+      }
+      40% {
+        transform: scale(1);
+      }
+    }
+    
+    @media (max-width: 768px) {
+      nav { display: none; }
+      .menu-toggle { display: block; }
+      .mobile-menu.show { display: flex; }
+      .welcome-mobile { display: block; }
+      #welcomeText { display: none; }
+      
+      .filter-controls {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      
+      .date-selector {
+        flex-wrap: wrap;
+      }
+      
+      .table-container {
+        margin: 1rem -1rem;
+        border-radius: 0;
+      }
+      
+      .dropdownNoti {
+        right: 10px;
+        width: calc(100% - 20px);
+        max-width: 320px;
+      }
+ .dropdown {
+    width: 100%;
+  }
+  .dropdown-btn {
+    width: 100%;
+    text-align: left;
+    margin: 0;
+  }
+  .dropdown-content {
+    position: static;
+    box-shadow: none;
+    display: none;
+  }
+  .dropdown-content.show {
+    display: flex;
+  }
+  .dropdown:hover .dropdown-content {
+    display: none;
+  }
+    }
+    
+    @media (max-width: 480px) {
+      .stats-container {
+        grid-template-columns: 1fr;
+      }
+      
+      .page-title {
+        font-size: 1.5rem;
+      }
+      
+      th, td {
+        padding: 0.75rem 0.5rem;
+      }
+    }
+.rental-info {
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: #059669;
+  max-width: 200px;
+  word-break: break-word;
+}
+   /* Special Order table styling */
+#specialOrderTable {
+  min-width: 1300px; /* Increased width for new column */
+}
+
+#specialOrderTable th:nth-child(2),
+#specialOrderTable td:nth-child(2) {
+ content-visibility: hidden;
+}
+
+#specialOrderTable th:nth-child(3),
+#specialOrderTable td:nth-child(3) {
+  min-width: 150px;
+}
+
+#specialOrderTable th:nth-child(4),
+#specialOrderTable td:nth-child(4) {
+  min-width: 100px; /* This is now for Checkout column */
+}
+
+#specialOrderTable th:nth-child(5),
+#specialOrderTable td:nth-child(5) {
+  min-width: 100px; /* This is now for Note column */
+}
+
+#specialOrderTable th:nth-child(6),
+#specialOrderTable td:nth-child(6) {
+  min-width: 120px; /* This is now for Category column */
+}
+/* Add these dropdown styles */
+.dropdown-btn {
+    margin: 0 4px;
+    padding: 8px 12px;
+    background-color: #f3f4f6;
+    border: none;
+    cursor: pointer;
+    font-size: 0.95rem;
+    width: 150px;
+    border-radius: 5px;
+  }
+  .dropdown {
+    position: relative;
+  }
+ .dropdown-content {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background-color: white;
+    min-width: 150px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    z-index: 999;
+    flex-direction: column;
+    border-radius: 5px;
+    overflow: hidden;
+  }
+  .dropdown-content button {
+    padding: 10px;
+    width: 100%;
+    text-align: left;
+    background-color: #f3f4f6;
+    border: none;
+    border-top: 1px solid #ccc;
+    border-radius: 0px;
+    white-space: nowrap;      
+    font-size: 0.9rem;
+  }
+  .dropdown-content button:hover {
+    background-color: white; 
+    color: #000;
+  }
+ .dropdown:hover .dropdown-content {
+    display: flex;
+  }
+  </style>
+</head>
+<body>
+  <!-- Notification Bell and Dropdown -->
+  <div id="dropdownNoti" class="dropdownNoti"></div>
+  
+  <!-- Loading Popup -->
+  <div id="loadingPopup" class="loading-popup">
+    <div class="loading-content">
+      <div class="progress-circle">
+        <div class="circle-background"></div>
+        <div class="circle-progress"></div>
+        <div class="circle-inner">
+          <div class="loading-text">Loading</div>
+          <div class="loading-dots">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        </div>
+      </div>
+      <p>Please wait while we fetch customer data...</p>
+    </div>
+  </div>
+  
+  <header>
+    <div class="logo">🏕️ Campsite Admin Portal</div>
+    <div class="welcome-mobile" id="mobileWelcome"></div>
+    <div class="bell" onclick="handleBellClick()">
+      🔔 <span id="badge" class="badge" style="display:none">0</span>
+    </div>
+    <button class="menu-toggle" onclick="toggleMenu()">☰</button>
+    <nav>
+  <span id="welcomeText" style="margin-right: 1rem; font-weight: bold;"></span>
+  <button class="tab" onclick="location.href='adminpage.html'">Dashboard</button>
+  <button class="tab" onclick="location.href='apPendingCom.html'">Pending Commissions</button>
+  
+  <div class="dropdown">
+    <button class="dropdown-btn">Block & Hold ▼</button>
+    <div class="dropdown-content">
+      <button class="tab" onclick="location.href='apBlockDate.html'">Block Dates</button>
+      <button class="tab" onclick="location.href='apHoldUnit.html'">Hold Unit</button>      
+    </div>
+  </div>
+  
+  <div class="dropdown">
+    <button class="dropdown-btn">Financials ▼</button>
+    <div class="dropdown-content">
+      <button class="tab" onclick="location.href='apExpenses.html'">Expense Tracker</button>
+      <button class="tab" onclick="location.href='apOtherIncome.html'">Other Income</button>
+      <button class="tab" onclick="location.href='apReport.html'">Monthly Report</button>
+    </div>
+  </div>
+  
+  <div class="dropdown">
+    <button class="dropdown-btn">C.O ▼</button>
+    <div class="dropdown-content">
+      <button class="tab" onclick="location.href='apCoView.html'">C.O View</button>
+      <button class="tab" onclick="location.href='apCoData.html'">C.O Data</button>
+      <button class="tab active">Today Checkin</button>
+      <button class="tab" onclick="location.href='apTodayCheckout.html'">Today Checkout</button>
+    </div>
+  </div>
+  
+  <button class="tab" onclick="location.href='apCheckAvailability.html'">Check Availability</button>
+  <button class="tab" onclick="location.href='apBooking.html'">New Booking</button>
+  <button class="tab" onclick="location.href='apAllBooking.html'">All Bookings</button>
+  <button class="logout-btn" onclick="logout()">Logout</button>
+</nav>
+    <div class="mobile-menu" id="mobileMenu">
+  <button class="tab" onclick="location.href='adminpage.html'">Dashboard</button>
+  <button class="tab" onclick="location.href='apPendingCom.html'">Pending Commissions</button>
+  <button class="tab" onclick="location.href='apBlockDate.html'">Block Dates</button>
+  <button class="tab" onclick="location.href='apHoldUnit.html'">Hold Unit</button>
+  <button class="tab" onclick="location.href='apExpenses.html'">Expense Tracker</button>
+  <button class="tab" onclick="location.href='apOtherIncome.html'">Other Income</button>
+  <button class="tab" onclick="location.href='apReport.html'">Monthly Report</button>
+  <button class="tab" onclick="location.href='apCoView.html'">C.O View</button>
+  <button class="tab" onclick="location.href='apCoData.html'">C.O Data</button>
+  <button class="tab active">Today Checkin</button>
+  <button class="tab" onclick="location.href='apTodayCheckout.html'">Today Checkout</button>
+  <button class="tab" onclick="location.href='apCheckAvailability.html'">Check Availability</button>
+  <button class="tab" onclick="location.href='apBooking.html'">New Booking</button>
+  <button class="tab" onclick="location.href='apAllBooking.html'">All Bookings</button>
+  <button class="logout-btn" onclick="logout()">Logout</button>
+</div>
+  </header>
+  
+  <main>
+    <h1 class="page-title">Today's Customer Arrival List</h1>
+    <p class="subtitle">View which customers have arrived or not for check-in today</p>
+    
+    <!-- Statistics Cards -->
+    <div class="stats-container" id="statsContainer">
+      <div class="stat-card">
+        <div class="stat-number" id="totalCustomers">0</div>
+        <div class="stat-label">Total Customers Today</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="arrivedCustomers">0</div>
+        <div class="stat-label">Already Arrived</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="notArrivedCustomers">0</div>
+        <div class="stat-label">Not Arrived Yet</div>
+      </div>
+    </div>
+    
+    <!-- Filter Controls -->
+    <div class="card">
+      <div class="filter-controls">
+        <div class="date-selector">
+          <label for="dateFilter"><strong>Show arrivals for date:</strong></label>
+          <input type="date" id="dateFilter" value="">
+          <button class="btn btn-secondary" onclick="refreshTable()">Refresh</button>
+        </div>
+      </div>
+      
+      <!-- Customer Arrival Table -->
+      <div class="table-container">
+        <table id="arrivalTable">
+          <thead>
+            <tr>
+              <th>No.</th>
+              <th>Name</th>
+              <th>Contact (Phone & Email)</th>
+              <th>Unit & Quantity</th>
+              <th>Unit Use</th>
+              <th>Rental Items</th> <!-- Add this line -->
+              <th>Book ID</th>
+              <th>Remark</th>
+              <th>C.O</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody">
+            <!-- Data will be populated here -->
+          </tbody>
+        </table>
+        <div id="noDataMessage" class="no-data" style="display: none;">
+          No customers with check-in today. Try selecting a different date.
+        </div>
+      </div>
+    </div>
+
+    <!-- Special Order Table Section -->
+    <div class="card">
+      <h3>Special Orders</h3>
+      <div class="filter-controls">
+        <button class="btn" onclick="refreshSpecialOrders()">Refresh Special Orders</button>
+      </div>
+      <div class="table-container">
+        <table id="specialOrderTable">
+          <thead>
+            <tr>
+              <th>No.</th>
+              <th>Date</th>
+              <th>Details</th>
+              <th>Checkout</th> <!-- ADD THIS COLUMN -->
+              <th>Note</th>
+              <th>Category</th>
+              <th>Description</th>
+              <th>Amount (RM)</th>
+              <th>Receive From</th>
+            </tr>
+          </thead>
+          <tbody id="specialOrderTableBody">
+            <!-- Data will be populated here -->
+          </tbody>
+        </table>
+        <div id="noSpecialOrderMessage" class="no-data" style="display: none;">
+          No special orders found for today.
+        </div>
+      </div>
+    </div>
+
+  </main>
+  
+  <audio id="dingSound" preload="auto">
+    <source src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" type="audio/ogg">
+    <source src="https://actions.google.com/sounds/v1/alarms/beep_short.mp3" type="audio/mpeg">
+  </audio>
+
+  <script>
+    // Database URLs
+    const BOOKING_DB_URL = 'https://script.google.com/macros/s/AKfycbwsPIi_Zf7UtwTQJ8BPiLmNR87VxecATUOItw68loKglD60QRcRzeQoqIzyynvTXolipA/exec';
+    const CO_DB_URL = 'https://script.google.com/macros/s/AKfycbxwLq33J4Ud1P7bPVSZM86kr1CUmWeiEAVM9jjB3ffJtiCCfapZEAtVkpzU7v52tmo/exec';
+    const NOTIFICATION_API_URL = "https://script.google.com/macros/s/AKfycbxsqetZ_iRLnZ3mhRcbxX09q4c0aXU_xHzO5JaPkocr0syDM52DsPsGI-raZi2GCpl5/exec";
+// Add this line with your other database URLs
+const OTHER_INCOME_DB_URL = 'https://script.google.com/macros/s/AKfycbzPWBQPRf1FwODxcR4I39FDkjsZR_QDPKwwno__TgB-Nc3lkvYF9_UfxGdaQMHeQJFH/exec';
+    
+    // Global variables
+    let bookingData = [];
+    let coData = [];
+    let otherIncomeData = [];
+    let filteredData = [];
+    
+    
+    const username = localStorage.getItem("username") || "Admin";
+
+// 🔐 Redirect if not logged in
+if (!localStorage.getItem("username") || localStorage.getItem("username") === "Admin") {
+  window.location.href = "index.html";
+} else {
+  // Check user's type
+  fetch("https://script.google.com/macros/s/AKfycbwZYyoTqEYrTzk2mLPDer4RoLysmRVXakI4__TvENZ4GZRzMFvDcFOP8FX3xqG4hPv2TQ/exec")
+    .then(res => res.json())
+    .then(data => {
+      const users = data.users || [];
+      const currentUser = users.find(u => u.username === username);
+      if (!currentUser) {
+        alert("⚠️ Username not recognized. Please log in again.");
+        localStorage.removeItem("username");
+        window.location.href = "index.html";
+        return;
+      }
+
+      if (["staff", "co"].includes(currentUser.type.toLowerCase())) {
+      alert("⚠️ This page is for admin only. Please use your own ID and sign in again.");
+      localStorage.removeItem("username");
+      window.location.href = "index.html";
+      return;
+      }
+    })
+    .catch(() => {
+      alert("⚠️ Failed to verify user type. Please try again.");
+      localStorage.removeItem("username");
+      window.location.href = "index.html";
+    });
+}
+    
+    // Set welcome message
+    document.getElementById("welcomeText").textContent = `Welcome ${username} !!`;
+    document.getElementById("mobileWelcome").textContent = `Welcome ${username} !!`;
+    
+    // Initialize page
+    window.onload = function() {
+      showLoading();
+      // Set default date filter to today (Malaysia time)
+      setTodayDate();
+      loadAllData();
+      setupNotificationSystem();
+      setupMobileDropdowns(); // Add this line
+      
+      // Auto-refresh every 5 minutes
+      setInterval(loadAllData, 300000);
+    };
+    
+    // Menu toggle function
+    function toggleMenu() {
+      document.getElementById("mobileMenu").classList.toggle("show");
+    }
+
+// Add this function to handle mobile dropdown clicks
+function setupMobileDropdowns() {
+  const dropdownBtns = document.querySelectorAll('.dropdown-btn');
+  
+  dropdownBtns.forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      if (window.innerWidth <= 768) {
+        e.preventDefault();
+        e.stopPropagation();
+        const dropdown = this.parentElement;
+        const content = dropdown.querySelector('.dropdown-content');
+        content.classList.toggle('show');
+      }
+    });
+  });
+}
+    
+    // Logout function
+    function logout() {
+      localStorage.removeItem("username");
+      window.location.href = "index.html";
+    }
+
+    // Function to filter and display special orders
+    function filterAndDisplaySpecialOrders() {
+      const selectedDate = document.getElementById('dateFilter').value;
+      if (!selectedDate || !otherIncomeData || otherIncomeData.length === 0) {
+        document.getElementById('specialOrderTableBody').innerHTML = '';
+        document.getElementById('noSpecialOrderMessage').style.display = 'block';
+        return;
+      }
+      
+      // Filter otherIncomeData for the selected date and Notes containing "Details :"
+      const specialOrders = otherIncomeData.filter(income => {
+        // Check if date matches
+        if (!income.date || formatDateToMalaysiaDate(parseDateLocal(income.date)) !== selectedDate) {
+          return false;
+        }
+        
+        // Check if notes contain "Details :" pattern (format number 2)
+        if (!income.notes || typeof income.notes !== 'string') return false;
+        
+        // Check for pattern "Details :" in notes
+        const hasDetailsPattern = income.notes.includes('Details :');
+        const hasForCustomerPattern = income.notes.includes('For Customer :');
+        
+        // Only include items with "Details :" but NOT "For Customer :"
+        // (since "For Customer :" is format number 3)
+        return hasDetailsPattern && !hasForCustomerPattern;
+      });
+      
+      displaySpecialOrders(specialOrders);
+    }
+    
+   // Function to display special orders in the table
+function displaySpecialOrders(orders) {
+  const tableBody = document.getElementById('specialOrderTableBody');
+  const noDataMessage = document.getElementById('noSpecialOrderMessage');
+  
+  if (!orders || orders.length === 0) {
+    tableBody.innerHTML = '';
+    noDataMessage.style.display = 'block';
+    return;
+  }
+  
+  noDataMessage.style.display = 'none';
+  let tableHTML = '';
+  
+  orders.forEach((order, index) => {
+    // Parse notes to extract Details, Checkout, and Note
+    let details = '';
+    let checkout = '';
+    let note = '';
+    
+    if (order.notes) {
+      // Format: "Notes : {note} Details : {details} Checkout : {checkout}"
+      // Or: "Notes : {note} Details : {details}"
+      
+      // First, extract checkout if it exists
+      if (order.notes.includes('Checkout :')) {
+        // Split by "Checkout :"
+        const checkoutParts = order.notes.split('Checkout :');
+        if (checkoutParts.length >= 2) {
+          checkout = checkoutParts[1]?.trim() || '';
+          // Now we have the part before checkout
+          const beforeCheckout = checkoutParts[0];
+          
+          // Extract Note and Details from beforeCheckout
+          if (beforeCheckout.includes('Details :')) {
+            const detailParts = beforeCheckout.split('Details :');
+            if (detailParts.length >= 2) {
+              // First part contains "Notes : {value}"
+              const notePart = detailParts[0];
+              if (notePart.includes('Notes :')) {
+                note = notePart.split('Notes :')[1]?.trim() || '';
+              }
+              
+              // Second part contains details (before checkout)
+              details = detailParts[1]?.trim() || '';
+            }
+          }
+        }
+      } else if (order.notes.includes('Details :')) {
+        // Only has "Notes : {note} Details : {details}" format
+        const parts = order.notes.split('Details :');
+        if (parts.length >= 2) {
+          // First part contains "Notes : {value}"
+          const notePart = parts[0];
+          if (notePart.includes('Notes :')) {
+            note = notePart.split('Notes :')[1]?.trim() || '';
+          }
+          
+          // Second part contains details
+          details = parts[1]?.trim() || '';
+        }
+      } else {
+        // Fallback if pattern doesn't match
+        note = order.notes;
+      }
+    }
+    
+    tableHTML += `
+      <tr>
+        <td>${index + 1}</td>
+        <td>${order.date || 'N/A'}</td>
+        <td>${details || 'N/A'}</td>
+        <td>${checkout || 'N/A'}</td> <!-- ADD CHECKOUT COLUMN -->
+        <td>${note || 'N/A'}</td>
+        <td>${order.category || 'N/A'}</td>
+        <td>${order.description || 'N/A'}</td>
+        <td>${order.amount ? 'RM' + order.amount.toFixed(2) : 'N/A'}</td>
+        <td>${order.receiveFrom || 'N/A'}</td>
+      </tr>
+    `;
+  });
+  
+  tableBody.innerHTML = tableHTML;
+}
+
+    // Function to refresh special orders
+    function refreshSpecialOrders() {
+      showLoading();
+      setTimeout(() => {
+        filterAndDisplaySpecialOrders();
+        hideLoading();
+      }, 500);
+    }
+
+    // Loading functions
+    function showLoading() {
+      document.getElementById('loadingPopup').classList.add('show');
+    }
+    
+    function hideLoading() {
+      document.getElementById('loadingPopup').classList.remove('show');
+    }
+    
+    // Set today's date in Malaysia timezone
+    function setTodayDate() {
+      // Get current date in Malaysia timezone
+      const now = new Date();
+      const malaysiaTime = new Date(now.toLocaleString("en-US", {timeZone: "Asia/Kuala_Lumpur"}));
+      const year = malaysiaTime.getFullYear();
+      const month = String(malaysiaTime.getMonth() + 1).padStart(2, '0');
+      const day = String(malaysiaTime.getDate()).padStart(2, '0');
+      const todayStr = `${year}-${month}-${day}`;
+      
+      document.getElementById('dateFilter').value = todayStr;
+    }
+    
+        // Load data from both databases
+    async function loadAllData() {
+      showLoading();
+      try {
+        const [bookingResponse, coResponse, otherIncomeResponse] = await Promise.all([
+          fetch(BOOKING_DB_URL),
+          fetch(CO_DB_URL),
+          fetch(OTHER_INCOME_DB_URL + '?action=getIncome')
+        ]);
+        
+        const bookingResult = await bookingResponse.json();
+        const coResult = await coResponse.json();
+        const otherIncomeResult = await otherIncomeResponse.json();
+        
+        bookingData = bookingResult.bookings || [];
+        coData = coResult || [];
+        otherIncomeData = otherIncomeResult.income || [];
+        
+        filterAndDisplayData();
+        filterAndDisplaySpecialOrders(); // ADD THIS LINE
+      } catch (error) {
+        console.error("Error loading data:", error);
+        alert("❌ Failed to load customer data. Please try again.");
+      } finally {
+        hideLoading();
+      }
+    }
+
+// Function to get rental items for a specific bookId
+function getRentalItemsForBooking(bookId) {
+  if (!otherIncomeData || otherIncomeData.length === 0) return [];
+  
+  const rentalItems = [];
+  
+  otherIncomeData.forEach(income => {
+    if (!income.notes || !bookId) return;
+    
+    const notes = income.notes.trim();
+    
+    // Check for multiple possible formats:
+    // 1. "For Customer : {bookId}" (space colon space)
+    // 2. "For Customer :{bookId}" (space colon no space)
+    // 3. "For Customer: {bookId}" (no space colon space)
+    // 4. "For Customer:{bookId}" (no space colon no space)
+    
+    // Create patterns to check
+    const patterns = [
+      `For Customer : ${bookId}`,  // space colon space
+      `For Customer :${bookId}`,   // space colon no space  
+      `For Customer: ${bookId}`,   // no space colon space
+      `For Customer:${bookId}`     // no space colon no space
+    ];
+    
+    // Check if any pattern matches
+    const hasMatch = patterns.some(pattern => notes.includes(pattern));
+    
+    if (hasMatch) {
+      // Add the description (and amount if needed)
+      const itemInfo = {
+        description: income.description || '',
+        amount: income.amount || 0,
+        date: income.date || ''
+      };
+      rentalItems.push(itemInfo);
+    }
+  });
+  
+  return rentalItems;
+}
+    
+       // Filter data for selected date and display
+    function filterAndDisplayData() {
+      const selectedDate = document.getElementById('dateFilter').value;
+      if (!selectedDate) return;
+      
+      // Filter bookings for selected check-in date
+      filteredData = bookingData.filter(booking => {
+        // Skip pending payments and blocks
+        if (booking.bookId?.startsWith?.("pending payment") || booking.bookId === "BLOCK") {
+          return false;
+        }
+        
+        // Check if checkin date matches selected date
+        if (!booking.checkin) return false;
+        
+        const checkinDate = parseDateLocal(booking.checkin);
+        if (!checkinDate) return false;
+        
+        // Compare dates in Malaysia timezone
+        const checkinDateStr = formatDateToMalaysiaDate(checkinDate);
+        return checkinDateStr === selectedDate;
+      });
+      
+      // Update statistics
+      updateStatistics();
+      
+      // Display table
+      displayTable();
+      
+      // Filter and display special orders too
+      filterAndDisplaySpecialOrders(); // ADD THIS LINE
+    }
+    
+    // Update statistics counters
+    function updateStatistics() {
+      const total = filteredData.length;
+      let arrived = 0;
+      
+      filteredData.forEach(booking => {
+        const coRecord = coData.find(co => co[0] === booking.bookId);
+        if (coRecord && coRecord[2]) { // Check if Checkin Time has value
+          arrived++;
+        }
+      });
+      
+      document.getElementById('totalCustomers').textContent = total;
+      document.getElementById('arrivedCustomers').textContent = arrived;
+      document.getElementById('notArrivedCustomers').textContent = total - arrived;
+    }
+    
+    // Display table with customer data
+    function displayTable() {
+      const tableBody = document.getElementById('tableBody');
+      const noDataMessage = document.getElementById('noDataMessage');
+      
+      if (filteredData.length === 0) {
+        tableBody.innerHTML = '';
+        noDataMessage.style.display = 'block';
+        return;
+      }
+      
+      noDataMessage.style.display = 'none';
+      let tableHTML = '';
+      
+      filteredData.forEach((booking, index) => {
+        const coRecord = coData.find(co => co[0] === booking.bookId);
+        const hasArrived = coRecord && coRecord[2]; // Checkin Time has value
+        const arrivalTime = hasArrived ? formatDateTime(coRecord[2]) : '';
+        const unitUse = coRecord ? coRecord[4] : ''; // Unit Use from CO database (column index 4)
+        const remark = coRecord ? coRecord[5] : (booking.remark || ''); // Remark from CO database (column index 5) or booking database
+        const coName = coRecord ? coRecord[6] : ''; // C.O Name from CO database (column index 6)
+        const rentalItems = getRentalItemsForBooking(booking.bookId);
+const rentalDisplay = rentalItems.length > 0 
+  ? rentalItems.map(item => `${item.description} (RM${item.amount})`).join('<br>')
+  : 'No rental items';
+        
+        // Parse unit string to display properly
+        const unitDisplay = formatUnitDisplay(booking.unit);
+        
+        // Clean phone number for call and WhatsApp
+        const phoneNumber = String(booking.phone || '');
+        const cleanPhone = phoneNumber.replace(/\D/g, ''); // Remove non-digits
+        
+        tableHTML += `
+  <tr>
+    <td>${index + 1}</td>
+    <td><strong>${booking.name || 'N/A'}</strong></td>
+    <td class="contact-info">
+      <div class="contact-phone">📞 ${phoneNumber || 'N/A'}</div>
+      <div class="contact-email">📧 ${booking.email || 'N/A'}</div>
+    </td>
+    <td class="unit-info">${unitDisplay}</td>
+    <td class="unit-use-info">${unitUse || 'Not assigned'}</td>
+    <td class="rental-info">${rentalDisplay}</td> <!-- Add this line -->
+    <td><code>${booking.bookId || 'N/A'}</code></td>
+    <td class="remark-info">${remark || 'No remark'}</td>
+    <td class="co-info">${coName || 'Not assigned'}</td>
+    <td>
+      <span class="status-badge ${hasArrived ? 'status-arrived' : 'status-not-arrived'}">
+        ${hasArrived ? '✅ Arrived' : '⏳ Not Yet'}
+      </span>
+      ${hasArrived ? `<br><small>${arrivalTime}</small>` : ''}
+    </td>
+    <td>
+      <div class="actions-container">
+        ${phoneNumber ? `
+          <a href="tel:${phoneNumber}" class="btn btn-call btn-small">📞 Call</a>
+          <a href="https://wa.me/${cleanPhone}?text=${encodeURIComponent('Hi! I\'m from MK RIMBA CAMP, as we check in our database you not checkin yet.')}" target="_blank" class="btn btn-whatsapp btn-small">💬 WhatsApp</a>
+        ` : `
+          <button class="btn btn-call btn-small" disabled>📞 Call</button>
+          <button class="btn btn-whatsapp btn-small" disabled>💬 WhatsApp</button>
+        `}
+      </div>
+    </td>
+  </tr>
+`;
+      });
+      
+      tableBody.innerHTML = tableHTML;
+    }
+    
+    // Format unit display
+    function formatUnitDisplay(unitString) {
+      if (!unitString) return 'N/A';
+      
+      // Handle the format: "TentA: 1, LotA: 2, LotB: 0, LotC: 0"
+      const unitMap = {
+        'TentA': 'A-Tent',
+        'LotA': 'Lot A',
+        'LotB': 'Lot B',
+        'LotC': 'Lot C'
+      };
+      
+      const parts = unitString.split(', ');
+      const displayParts = [];
+      
+      parts.forEach(part => {
+        const [type, qty] = part.split(': ');
+        const cleanType = type.trim();
+        const quantity = parseInt(qty);
+        
+        if (quantity > 0 && unitMap[cleanType]) {
+          displayParts.push(`${unitMap[cleanType]} ×${quantity}`);
+        }
+      });
+      
+      return displayParts.join('<br>') || 'No units';
+    }
+    
+    // Refresh table (reload data)
+    function refreshTable() {
+        loadAllData();
+    }
+    
+    // Date utility functions - FIXED for Malaysia timezone
+    function parseDateLocal(dateString) {
+      if (!dateString) return null;
+      
+      // Try different date formats
+      if (dateString.includes('/')) {
+        // DD/MM/YYYY
+        const parts = dateString.split('/');
+        if (parts.length === 3) {
+          // Create date in Malaysia timezone
+          const malaysiaDate = new Date(Date.UTC(parts[2], parts[1] - 1, parts[0]));
+          return malaysiaDate;
+        }
+      } else if (dateString.includes('T')) {
+        // ISO with time - convert to Malaysia timezone
+        const date = new Date(dateString);
+        const malaysiaTime = new Date(date.toLocaleString("en-US", {timeZone: "Asia/Kuala_Lumpur"}));
+        return malaysiaTime;
+      } else if (dateString.includes('-')) {
+        // YYYY-MM-DD
+        const parts = dateString.split('-');
+        if (parts.length === 3) {
+          // Create date in Malaysia timezone
+          const malaysiaDate = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
+          return malaysiaDate;
+        }
+      }
+      
+      // Fallback
+      const date = new Date(dateString);
+      const malaysiaTime = new Date(date.toLocaleString("en-US", {timeZone: "Asia/Kuala_Lumpur"}));
+      return malaysiaTime;
+    }
+    
+    function formatDateToMalaysiaDate(date) {
+      if (!date) return '';
+      const d = date instanceof Date ? date : parseDateLocal(date);
+      if (!d || isNaN(d.getTime())) return '';
+      
+      // Convert to Malaysia timezone and format as YYYY-MM-DD
+      const malaysiaTime = new Date(d.toLocaleString("en-US", {timeZone: "Asia/Kuala_Lumpur"}));
+      const year = malaysiaTime.getFullYear();
+      const month = String(malaysiaTime.getMonth() + 1).padStart(2, '0');
+      const day = String(malaysiaTime.getDate()).padStart(2, '0');
+      
+      return `${year}-${month}-${day}`;
+    }
+    
+    function formatDateTime(dateTimeString) {
+      if (!dateTimeString) return '';
+      const date = new Date(dateTimeString);
+      if (isNaN(date.getTime())) return dateTimeString;
+      
+      return date.toLocaleString('en-GB', {
+        timeZone: 'Asia/Kuala_Lumpur',
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+    
+    // Notification System (same as your existing code)
+    let unread = JSON.parse(localStorage.getItem("unread") || "[]");
+    let lastSeenTime = localStorage.getItem("lastSeenTime") ? new Date(localStorage.getItem("lastSeenTime")) : null;
+    
+    function setupNotificationSystem() {
+      updateNotificationUI();
+      fetchNotifications();
+      setInterval(fetchNotifications, 10000);
+    }
+    
+    function saveNotificationState() {
+      localStorage.setItem("unread", JSON.stringify(unread));
+      if (lastSeenTime) {
+        localStorage.setItem("lastSeenTime", lastSeenTime.toISOString());
+      }
+    }
+    
+    function handleBellClick() {
+      const badge = document.getElementById("badge");
+      if (badge.style.display === "none" || badge.innerText === "0") {
+        window.location.href = "apAllNoti.html";
+      } else {
+        document.getElementById("dropdownNoti").classList.toggle("active");
+      }
+    }
+    
+    async function fetchNotifications() {
+      try {
+        const res = await fetch(NOTIFICATION_API_URL);
+        let data = await res.json();
+        
+        data.sort((a,b) => new Date(b.Timestamp) - new Date(a.Timestamp));
+        
+        if (!lastSeenTime && data.length > 0) {
+          lastSeenTime = new Date(data[0].Timestamp);
+          saveNotificationState();
+          return;
+        }
+        
+        let newOnes = data.filter(n => new Date(n.Timestamp) > lastSeenTime);
+        
+        if (newOnes.length > 0) {
+          document.getElementById("dingSound").play().catch(() => {});
+          unread = [...newOnes, ...unread];
+          lastSeenTime = new Date(newOnes[0].Timestamp);
+          updateNotificationUI();
+          saveNotificationState();
+        }
+      } catch(err) {
+        console.error("Notification fetch error", err);
+      }
+    }
+    
+    function updateNotificationUI() {
+      const badge = document.getElementById("badge");
+      const dropdownNoti = document.getElementById("dropdownNoti");
+      
+      if (unread.length > 0) {
+        badge.innerText = unread.length;
+        badge.style.display = "inline";
+      } else {
+        badge.style.display = "none";
+      }
+      
+      dropdownNoti.innerHTML = "";
+      unread.forEach((n, idx) => {
+        const div = document.createElement("div");
+        div.className = "notification";
+        div.innerHTML = `
+          <strong>🔔 New Notification</strong>
+          <div>"${n.Message}"</div>
+          <div>From: ${n.From} | Agent: ${n.Agent}</div>
+          <button>See more...</button>
+        `;
+        
+        div.addEventListener("click", () => {
+          unread.splice(idx, 1);
+          updateNotificationUI();
+          saveNotificationState();
+        });
+        
+        div.querySelector("button").addEventListener("click", (e) => {
+          e.stopPropagation();
+          window.location.href = "apAllNoti.html";
+        });
+        
+        dropdownNoti.appendChild(div);
+      });
+    }
+  </script>
+</body>
+
+</html>
+
+
+
