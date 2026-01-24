@@ -1,0 +1,1508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Campsite Agent Portal – Other Income</title>
+  <style>
+     * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #f8fafc;
+    }
+header {
+      background: white;
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+      flex-wrap: wrap;
+    }
+.logo { font-weight: bold; }
+    .menu-toggle {
+      display: none;
+      font-size: 1.5rem;
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+    nav {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+
+
+.dropdown-btn {
+    margin: 0 4px;
+    padding: 8px 12px;
+    background-color: #f3f4f6;
+    border: none;
+    cursor: pointer;
+    font-size: 0.95rem;
+    width: 150px;
+  }
+  .dropdown {
+    position: relative;
+  }
+ .dropdown-content {
+    display: none;
+    position: absolute;
+    top: 110%;
+    left: 0;
+    background-color: white;
+    min-width: 100%;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    z-index: 999;
+    flex-direction: column;
+  }
+  .dropdown-content button {
+    padding: 10px;
+    width: 100%;
+    text-align: left;
+    background-color: #f3f4f6;
+    border: none;
+    border-top: 1px solid #ccc;
+    border-radius: 0px; /* ← square buttons */
+    white-space: nowrap;      
+  }
+  .dropdown-content button:hover {
+    background-color: white; 
+    color: #000; /* optional: make text darker for visibility */
+  }
+ .dropdown:hover .dropdown-content {
+    display: flex;
+  }
+
+
+    .mobile-menu {
+      display: none;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-top: 1rem;
+      width: 100%;
+    }
+    .mobile-menu.show {
+      display: flex;
+    }
+    .tab {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 5px;
+      background: #f3f4f6;
+      cursor: pointer;
+      font-size: 0.95rem;
+    }
+    .tab.active {
+      background: #ffffff;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+    .logout-btn {
+      padding: 0.5rem 1rem;
+      background: #ef4444;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .welcome-mobile {
+      display: none;
+      font-size: 0.8rem;
+      color: #334155;
+      margin-left: auto;
+      margin-right: 0.5rem;
+    }
+main {
+      padding: 1.5rem;
+    max-width: 100%;
+    margin: auto;
+    }
+    .card {
+  flex: 1;
+  min-width: 300px;
+  max-width: 100%;
+  padding: 1.5rem;
+  border-radius: 10px;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 0.3rem;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid #d1d5db;
+      border-radius: 5px;
+    }
+    .action-button {
+      background: #0ea5e9;
+      color: white;
+      padding: 0.75rem;
+      width: 100%;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .action-button:hover {
+      background: #0284c7;
+    }
+    .hidden {
+      display: none;
+    }
+.loading-popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(8px);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.loading-popup.show {
+  display: flex;
+  opacity: 1;
+}
+
+.loading-content {
+  background: white;
+  padding: 2.5rem;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  max-width: 320px;
+  width: 90%;
+  animation: slideUp 0.4s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.progress-circle {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  margin: 0 auto 1.5rem;
+}
+
+.circle-background {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid #e2e8f0;
+  border-radius: 50%;
+}
+
+.circle-progress {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid transparent;
+  border-top: 3px solid #0ea5e9;
+  border-radius: 50%;
+  animation: spin 1.2s linear infinite;
+}
+
+.circle-inner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.loading-text {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 0.25rem;
+}
+
+.loading-dots {
+  display: flex;
+  justify-content: center;
+  gap: 3px;
+}
+
+.loading-dots span {
+  width: 4px;
+  height: 4px;
+  background: #64748b;
+  border-radius: 50%;
+  animation: bounce 1.4s ease-in-out infinite both;
+}
+
+.loading-dots span:nth-child(1) { animation-delay: -0.32s; }
+.loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes bounce {
+  0%, 80%, 100% {
+    transform: scale(0);
+  }
+  40% {
+    transform: scale(1);
+  }
+}
+
+.loading-content p {
+  color: #64748b;
+  font-size: 0.9rem;
+  margin: 0;
+  line-height: 1.5;
+}
+    .card-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    flex-wrap: wrap; /* allows wrapping on smaller screens */
+    gap: 2rem;
+   }
+   /* Stylish table design - matching Block Dates style */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  background: white;
+  overflow-x: auto;
+}
+
+thead {
+  background: #f1f5f9;
+}
+
+thead th {
+  padding: 0.75rem;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #334155;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+tbody td {
+  padding: 0.65rem;
+  font-size: 0.9rem;
+  border-bottom: 1px solid #e2e8f0;
+  color: #475569;
+}
+
+tbody tr:hover {
+  background-color: #f9fafb;
+}
+.popup {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.5); display: flex;
+  align-items: center; justify-content: center; z-index: 999;
+}
+.popup-content {
+  background: white; padding: 20px; border-radius: 10px; max-width: 400px;
+  width: 90%;
+}
+.popup-content input { width: 100%; margin-bottom: 10px; }
+.popup-buttons {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.popup-buttons button {
+  flex: 1;
+  padding: 0.5rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.btn-save {
+  background-color: #0ea5e9;
+  color: white;
+}
+
+.btn-save:hover {
+  background-color: #0284c7;
+}
+
+.btn-delete {
+  background-color: #ef4444;
+  color: white;
+}
+
+.btn-delete:hover {
+  background-color: #dc2626;
+}
+
+.btn-cancel {
+  background-color: #e5e7eb;
+  color: #111827;
+}
+
+.btn-cancel:hover {
+  background-color: #d1d5db;
+}
+    .bell {
+      position: relative; font-size: 22px; cursor: pointer;
+    }
+    .badge {
+      position: absolute; top: -8px; right: -10px;
+      background: red; color: white; border-radius: 50%;
+      padding: 2px 6px; font-size: 12px;
+    }
+    .dropdownNoti {
+      display: none;
+      position: absolute; left: 20px; top: 50px;
+      background: white; width: 320px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      border-radius: 8px; 
+      overflow-y: auto;       /* enable vertical scroll */
+      max-height: 60vh;       /* limit height to 60% of screen */
+      z-index: 999;
+    }
+    .dropdownNoti.active { display: block; }
+    .notification {
+      padding: 10px; border-bottom: 1px solid #ddd;
+      cursor: pointer;
+    }
+    .notification strong { color: #0073e6; display: block; margin-bottom: 5px; }
+    .notification button {
+      margin-top: 6px; padding: 5px 10px;
+      background: #0073e6; color: white; border: none;
+      border-radius: 4px; cursor: pointer; font-size: 12px;
+    }
+    .notification button:hover { background: #005bb5; }
+
+ @media (max-width: 768px) {
+      nav {
+        display: none;
+      }
+      .menu-toggle {
+        display: block;
+      }
+      .mobile-menu.show {
+        display: flex;
+      }
+      .welcome-mobile {
+      display: block;
+    }
+   .dropdownNoti {
+      display: none;
+      position: absolute; right: 20px; top: 50px;
+      left: auto;
+      background: white; width: 320px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      border-radius: 8px; 
+      overflow-y: auto;       /* enable vertical scroll */
+      max-height: 60vh;       /* limit height to 60% of screen */
+      z-index: 999;
+    }
+  .dropdownNoti.active {
+    display: block;
+  } 
+    }
+
+/* Global Search Bar */
+.search-container {
+    display: flex;
+    align-items: center;
+    margin-right: 1rem;
+    flex: 1;
+    max-width: 400px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 0.5rem 1rem;
+    border: 1px solid #d1d5db;
+    border-radius: 5px;
+    font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+    .search-container {
+        order: 3;
+        width: 100%;
+        max-width: 100%;
+        margin: 0.5rem 0;
+    }
+}
+.clear-search {
+    background: none;
+    border: none;
+    position: absolute;
+    right: 10px;
+    cursor: pointer;
+    font-size: 1.2rem;
+    color: #888;
+}
+/* Calendar tooltip styling */
+.checkout-tooltip {
+    position: absolute;
+    background: white;
+    border: 1px solid #d1d5db;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    padding: 10px;
+    z-index: 1000;
+    display: none;
+}
+
+.checkout-calendar {
+    margin-top: 5px;
+}
+
+.checkout-calendar input {
+    width: 100%;
+    padding: 5px;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+/* Textarea container for positioning tooltip */
+.textarea-container {
+    position: relative;
+}
+  </style>
+</head>
+<body>
+<header>
+    <div class="logo">🏕️ Campsite Agent Portal</div>
+    <div class="welcome-mobile" id="mobileWelcome"></div>
+    <div class="bell" onclick="handleBellClick()">
+     🔔 <span id="badge" class="badge" style="display:none">0</span>
+    </div>
+    <button class="menu-toggle" onclick="toggleMenu()">☰</button>
+    <nav>
+  <span id="welcomeText" style="margin-right: 1rem; font-weight: bold;"></span>
+  <button class="tab" onclick="location.href='dashboard.html'">Check Availability</button>
+  <button class="tab active">Other Income</button>
+  <button class="tab" onclick="location.href='booking.html'">New Booking</button>
+  <button class="tab" onclick="location.href='all-bookings.html'">My Bookings</button>
+  <button class="tab" onclick="location.href='coData.html'">C.O Data</button>
+  <button class="tab" onclick="location.href='coView.html'">C.O View</button>
+  <button class="logout-btn" onclick="logout()">Logout</button>
+</nav>
+    <div class="mobile-menu" id="mobileMenu">
+  <button class="tab" onclick="location.href='dashboard.html'">Check Availability</button>
+  <button class="tab active">Other Income</button>
+  <button class="tab" onclick="location.href='booking.html'">New Booking</button>
+  <button class="tab" onclick="location.href='all-bookings.html'">My Bookings</button>
+  <button class="tab" onclick="location.href='coData.html'">C.O Data</button>
+  <button class="tab" onclick="location.href='coView.html'">C.O View</button>
+  <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+  </header>
+
+<main>
+  <div class="card-container">
+    <div class="card">
+      <h2>Add Income</h2>
+      <form id="incomeForm">
+        <div class="form-group">
+          <label>Charge On</label>
+          <input type="date" name="chargeOn" required />
+        </div>
+        <div class="form-group">
+          <label>Income Date</label>
+          <input type="date" name="date" required />
+        </div>
+        <div class="form-group">
+          <label>Category</label>
+          <select name="category" id="categorySelect" required>
+             <option value="">-- Select --</option>
+             <option value="Gazebo">Gazebo</option>  
+             <option value="Sea View">Sea View</option>
+             <option value="Other Income">Other Income</option> 
+             <option value="Rental Items">Rental Items</option> 
+             <option value="Rental Scooter">Rental Scooter</option> 
+             <option value="Swimming Pool">Swimming Pool</option> 
+             <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <select name="description" id="descriptionSelect" class="hidden"></select>
+          <input type="text" id="customDescription" name="customDescription" class="hidden" placeholder="Please specify" />
+        </div>
+        <div class="form-group">
+          <label>Amount (RM)</label>
+          <input type="number" name="amount" step="0.01" required />
+        </div>
+
+      <div class="form-group">
+        <label>Payment Method</label>
+        <select name="paymentMethod" required>
+          <option value="">-- Select --</option>
+          <option value="Cash">Cash</option>
+          <option value="Online Transfer">Online Transfer</option>
+        </select>
+      </div>
+
+        <div class="form-group">
+  <label>Receive From</label>
+  <input type="text" name="receiveFrom" id="receiveFrom" readonly style="background-color: #f3f4f6;" />
+</div>
+
+<div class="form-group">
+  <label>Remarks</label>
+  <select id="notesDropdown" onchange="handleNotesChange()">
+    <option value="">-- Select Note Type --</option>
+    <option value="note">Note</option>
+    <option value="customer">Customer</option>
+    <option value="inHouseCustomer">In House Customer</option>
+  </select>
+<div id="checkoutTooltip" class="checkout-tooltip">
+      <div>Select checkout date:</div>
+      <div class="checkout-calendar">
+        <input type="date" id="checkoutDatePicker">
+      </div>
+      <div style="margin-top: 8px;">
+        <button type="button" onclick="insertCheckoutDate()" style="padding: 4px 12px; background: #0ea5e9; color: white; border: none; border-radius: 4px; cursor: pointer;">Insert</button>
+        <button type="button" onclick="hideCheckoutCalendar()" style="padding: 4px 12px; background: #e5e7eb; color: #111827; border: none; border-radius: 4px; cursor: pointer; margin-left: 5px;">X</button>
+      </div>
+    </div>
+  <div class="textarea-container">
+    <textarea name="notes" id="notesField" rows="3" onfocus="showCheckoutCalendar(this)" onclick="showCheckoutCalendar(this)"></textarea>
+    
+  </div>
+</div>
+
+        <button class="action-button" type="submit">Submit Income</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>All Income</h2>
+<div class="search-container" style="position:relative">
+    <input type="text" id="globalSearch" class="search-input" placeholder="Search income records..." />
+    <button class="clear-search" onclick="document.getElementById('globalSearch').value=''; renderIncomeTable();" style="display:none;" id="clearSearch">×</button>
+</div>
+      <div class="form-group">
+        <label>Filter by Month</label>
+        <input type="month" id="monthFilter" />
+      </div>
+      <div style="overflow-x:auto;">
+        <table id="incomeTable">
+          <thead style="background:#e2e8f0;">
+            <tr>
+              <th>Charge On</th>
+              <th>Income Date</th>
+              <th>Category</th>
+              <th>Description</th>
+              <th>Amount (RM)</th>
+              <th>Payment Method</th>
+              <th>Receive From</th>
+              <th>Remarks</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="incomeTableBody">
+            <tr><td colspan="9" style="text-align:center;">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="editIncomePopup" class="popup" style="display:none;">
+    <div class="popup-content">
+      <h3>Edit Income</h3>
+      <form id="editIncomeForm">
+        <input type="hidden" id="editIndex" />
+        <label>Charge On:</label>
+        <input type="date" id="editChargeOn" required /><br/>
+        <label>Date:</label>
+        <input type="date" id="editDate" required /><br/>
+        <label>Category:</label>
+        <select id="editCategory" required>
+        <option value="">-- Select --</option>
+        <option value="Gazebo">Gazebo</option>  
+        <option value="Sea View">Sea View</option>
+        <option value="Other Income">Other Income</option> 
+        <option value="Rental Items">Rental Items</option> 
+        <option value="Rental Scooter">Rental Scooter</option> 
+        <option value="Swimming Pool">Swimming Pool</option> 
+        <option value="Other">Other</option>
+        </select><br/>
+        <label>Description:</label>
+        <select id="editDescriptionSelect" class="hidden"></select>
+        <input type="text" id="editCustomDescription" class="hidden" placeholder="Please specify" /><br/>
+        <label>Amount (RM):</label>
+        <input type="number" step="0.01" id="editAmount" required /><br/>
+
+     <label>Payment Method:</label>
+      <select id="editPaymentMethod" required>
+        <option value="">-- Select --</option>
+        <option value="Cash">Cash</option>
+        <option value="Online Transfer">Online Transfer</option>
+      </select><br/>
+
+        <label>Receive From:</label>
+        <input type="text" id="editReceiveFrom" /><br/>
+        <label>Remarks:</label>
+<select id="editNotesDropdown" onchange="handleEditNotesChange()">
+  <option value="">-- Select Note Type --</option>
+  <option value="note">Note</option>
+  <option value="customer">Customer</option>
+  <option value="inHouseCustomer">In House Customer</option>
+</select>
+<div class="textarea-container">
+  <textarea id="editNotes" rows="3" onfocus="showEditCheckoutCalendar(this)" onclick="showEditCheckoutCalendar(this)"></textarea>
+  <div id="editCheckoutTooltip" class="checkout-tooltip">
+    <div>Select checkout date:</div>
+    <div class="checkout-calendar">
+      <input type="date" id="editCheckoutDatePicker">
+    </div>
+    <div style="margin-top: 8px;">
+      <button type="button" onclick="insertEditCheckoutDate()" style="padding: 4px 12px; background: #0ea5e9; color: white; border: none; border-radius: 4px; cursor: pointer;">Insert</button>
+      <button type="button" onclick="hideEditCheckoutCalendar()" style="padding: 4px 12px; background: #e5e7eb; color: #111827; border: none; border-radius: 4px; cursor: pointer; margin-left: 5px;">X</button>
+    </div>
+  </div>
+</div><br/><br/>
+        <div class="popup-buttons">
+          <button type="submit" class="btn-save">✅ Save</button>
+          <button type="button" class="btn-delete" onclick="deleteFromEdit()">🗑️ Delete</button>
+          <button type="button" class="btn-cancel" onclick="closeEditPopup()">❌ Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+<div id="loadingPopup" class="loading-popup">
+  <div class="loading-content">
+    <div class="progress-circle">
+      <div class="circle-background"></div>
+      <div class="circle-progress"></div>
+      <div class="circle-inner">
+        <div class="loading-text">Loading</div>
+        <div class="loading-dots">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+    </div>
+    <p>Please wait while we process your data...</p>
+  </div>
+</div>
+
+</main>
+  <div id="dropdownNoti" class="dropdownNoti"></div>
+
+<audio id="dingSound" preload="auto">
+    <source src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" type="audio/ogg">
+    <source src="https://actions.google.com/sounds/v1/alarms/beep_short.mp3" type="audio/mpeg">
+</audio>
+<script>
+const username = localStorage.getItem("username") || "Admin";
+
+// Add this line to prefill the Receive From field
+document.getElementById("receiveFrom").value = username;
+
+// 🔐 Redirect if not logged in
+if (!localStorage.getItem("username") || localStorage.getItem("username") === "Admin") {
+  window.location.href = "index.html";
+} else {
+  // Check user's type
+  fetch("https://script.google.com/macros/s/AKfycbwZYyoTqEYrTzk2mLPDer4RoLysmRVXakI4__TvENZ4GZRzMFvDcFOP8FX3xqG4hPv2TQ/exec")
+    .then(res => res.json())
+    .then(data => {
+      const users = data.users || [];
+      const currentUser = users.find(u => u.username === username);
+      if (!currentUser) {
+        alert("⚠️ Username not recognized. Please log in again.");
+        localStorage.removeItem("username");
+        window.location.href = "index.html";
+        return;
+      }
+
+      
+    })
+    .catch(() => {
+      alert("⚠️ Failed to verify user type. Please try again.");
+      localStorage.removeItem("username");
+      window.location.href = "index.html";
+    });
+}
+document.getElementById("welcomeText").textContent = `Welcome ${username} !!`;
+document.getElementById("mobileWelcome").textContent = `Welcome ${username} !!`;
+
+function toggleMenu() {
+  document.getElementById("mobileMenu").classList.toggle("show");
+}
+
+// Loading functions
+function showLoading() {
+  const loadingPopup = document.getElementById('loadingPopup');
+  loadingPopup.classList.add('show');
+}
+
+function hideLoading() {
+  const loadingPopup = document.getElementById('loadingPopup');
+  loadingPopup.classList.remove('show');
+}
+
+const deploymentId = "AKfycbzPWBQPRf1FwODxcR4I39FDkjsZR_QDPKwwno__TgB-Nc3lkvYF9_UfxGdaQMHeQJFH";
+
+const categorySelect = document.getElementById("categorySelect");
+const descriptionSelect = document.getElementById("descriptionSelect");
+const customDescription = document.getElementById("customDescription");
+
+const options = {
+  "Gazebo": ["Gazebo Usage", "Event Space", "Other"],
+  "Sea View": ["Sea View usage", "Event Space", "Other"],
+  "Other Income": ["BBQ Pit Set", "Rental Tent (S)", "Rental Tent (M)", "Other"],
+  "Rental Items": ["Table Fan", "Air Mattress Single", "Other"],
+  "Rental Scooter": ["ATV (40)", "Scooter 2 wheel (20)", "Scooter 3 wheel (30)", "Stand-up (10)", "Fidoo (20)", "Other"],
+  "Swimming Pool": ["Day Pass", "Grouping", "Other"]
+};
+
+const editCategorySelect = document.getElementById("editCategory");
+const editDescriptionSelect = document.getElementById("editDescriptionSelect");
+const editCustomDescription = document.getElementById("editCustomDescription");
+
+editCategorySelect.addEventListener("change", () => {
+  const cat = editCategorySelect.value;
+  editDescriptionSelect.innerHTML = "";
+  editCustomDescription.value = "";
+  editCustomDescription.classList.add("hidden");
+
+  if (options[cat]) {
+    options[cat].forEach(item => {
+      const opt = document.createElement("option");
+      opt.value = item;
+      opt.textContent = item;
+      editDescriptionSelect.appendChild(opt);
+    });
+    editDescriptionSelect.classList.remove("hidden");
+  } else {
+    editDescriptionSelect.classList.add("hidden");
+    editCustomDescription.classList.remove("hidden");
+  }
+});
+
+editDescriptionSelect.addEventListener("change", () => {
+  editCustomDescription.classList.toggle("hidden", editDescriptionSelect.value !== "Other");
+});
+
+categorySelect.addEventListener("change", () => {
+  const cat = categorySelect.value;
+  descriptionSelect.innerHTML = "";
+  customDescription.value = "";
+  customDescription.classList.add("hidden");
+
+  if (options[cat]) {
+    options[cat].forEach(item => {
+      const opt = document.createElement("option");
+      opt.value = item;
+      opt.textContent = item;
+      descriptionSelect.appendChild(opt);
+    });
+    descriptionSelect.classList.remove("hidden");
+  } else {
+    descriptionSelect.classList.add("hidden");
+    customDescription.classList.remove("hidden");
+  }
+});
+
+descriptionSelect.addEventListener("change", () => {
+  customDescription.classList.toggle("hidden", descriptionSelect.value !== "Other");
+});
+
+function logout() {
+  localStorage.removeItem("username");
+  window.location.href = "index.html";
+}
+
+function handleNotesChange() {
+  const dropdown = document.getElementById("notesDropdown");
+  const notesField = document.getElementById("notesField");
+  const selected = dropdown.value;
+  
+  switch(selected) {
+    case "note":
+      notesField.value = "";
+      break;
+    case "customer":
+      notesField.value = "Notes : \nDetails :\nCheckout :";
+      // Auto show calendar for customer
+      setTimeout(() => {
+        notesField.focus();
+        showCheckoutCalendar(notesField);
+      }, 100);
+      break;
+    case "inHouseCustomer":
+      notesField.value = "Notes : \nFor Customer :\nCheckout :";
+      // Auto show calendar for in-house customer
+      setTimeout(() => {
+        notesField.focus();
+        showCheckoutCalendar(notesField);
+      }, 100);
+      break;
+    default:
+      notesField.value = "";
+  }
+}
+
+function handleEditNotesChange() {
+  const dropdown = document.getElementById("editNotesDropdown");
+  const notesField = document.getElementById("editNotes");
+  const selected = dropdown.value;
+  
+  switch(selected) {
+    case "note":
+      notesField.value = "";
+      break;
+    case "customer":
+      notesField.value = "Notes : \nDetails :\nCheckout :";
+      // Auto show calendar for customer
+      setTimeout(() => {
+        notesField.focus();
+        showEditCheckoutCalendar(notesField);
+      }, 100);
+      break;
+    case "inHouseCustomer":
+      notesField.value = "Notes : \nFor Customer :\nCheckout :";
+      // Auto show calendar for in-house customer
+      setTimeout(() => {
+        notesField.focus();
+        showEditCheckoutCalendar(notesField);
+      }, 100);
+      break;
+    default:
+      notesField.value = "";
+  }
+}
+
+// Calendar functions for main form
+let currentTextarea = null;
+
+function showCheckoutCalendar(textarea) {
+  currentTextarea = textarea;
+  const tooltip = document.getElementById("checkoutTooltip");
+  const rect = textarea.getBoundingClientRect();
+  
+  tooltip.style.display = "block";
+  tooltip.style.position = "absolute";
+  tooltip.style.top = (rect.bottom + window.scrollY) + "px";
+  tooltip.style.left = (rect.left + window.scrollX) + "px";
+  
+  // Set today's date as default
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById("checkoutDatePicker").value = today;
+}
+
+function hideCheckoutCalendar() {
+  document.getElementById("checkoutTooltip").style.display = "none";
+  currentTextarea = null;
+}
+
+function insertCheckoutDate() {
+  if (!currentTextarea) return;
+  
+  const datePicker = document.getElementById("checkoutDatePicker");
+  const selectedDate = datePicker.value;
+  
+  if (selectedDate) {
+    // Format date as DD/MM/YYYY
+    const [year, month, day] = selectedDate.split('-');
+    const formattedDate = `${day}/${month}/${year}`;
+    
+    // Check if textarea already contains "Checkout :"
+    const currentText = currentTextarea.value;
+    
+    if (currentText.includes("Checkout :")) {
+      // Replace existing checkout date or add it
+      const lines = currentText.split('\n');
+      const newLines = lines.map(line => {
+        if (line.trim().startsWith("Checkout :")) {
+          return `Checkout : ${formattedDate}`;
+        }
+        return line;
+      });
+      currentTextarea.value = newLines.join('\n');
+    } else {
+      // Add checkout line
+      currentTextarea.value = currentText + (currentText ? '\n' : '') + `Checkout : ${formattedDate}`;
+    }
+  }
+  
+  hideCheckoutCalendar();
+  // Prevent form submission by returning false
+  return false;
+}
+
+// Calendar functions for edit form
+let currentEditTextarea = null;
+
+function showEditCheckoutCalendar(textarea) {
+  currentEditTextarea = textarea;
+  const tooltip = document.getElementById("editCheckoutTooltip");
+  const rect = textarea.getBoundingClientRect();
+  
+  tooltip.style.display = "block";
+  tooltip.style.position = "absolute";
+  tooltip.style.top = (rect.bottom + window.scrollY) + "px";
+  tooltip.style.left = (rect.left + window.scrollX) + "px";
+  
+  // Check if there's already a checkout date in the textarea
+  const currentText = textarea.value;
+  const checkoutMatch = currentText.match(/Checkout : (\d{2}\/\d{2}\/\d{4})/);
+  
+  if (checkoutMatch) {
+    // Parse existing date to set in date picker
+    const [day, month, year] = checkoutMatch[1].split('/');
+    document.getElementById("editCheckoutDatePicker").value = `${year}-${month}-${day}`;
+  } else {
+    // Set today's date as default
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById("editCheckoutDatePicker").value = today;
+  }
+}
+
+function hideEditCheckoutCalendar() {
+  document.getElementById("editCheckoutTooltip").style.display = "none";
+  currentEditTextarea = null;
+}
+
+function insertEditCheckoutDate() {
+  if (!currentEditTextarea) return;
+  
+  const datePicker = document.getElementById("editCheckoutDatePicker");
+  const selectedDate = datePicker.value;
+  
+  if (selectedDate) {
+    // Format date as DD/MM/YYYY
+    const [year, month, day] = selectedDate.split('-');
+    const formattedDate = `${day}/${month}/${year}`;
+    
+    // Check if textarea already contains "Checkout :"
+    const currentText = currentEditTextarea.value;
+    
+    if (currentText.includes("Checkout :")) {
+      // Replace existing checkout date
+      const lines = currentText.split('\n');
+      const newLines = lines.map(line => {
+        if (line.trim().startsWith("Checkout :")) {
+          return `Checkout : ${formattedDate}`;
+        }
+        return line;
+      });
+      currentEditTextarea.value = newLines.join('\n');
+    } else {
+      // Add checkout line
+      currentEditTextarea.value = currentText + (currentText ? '\n' : '') + `Checkout : ${formattedDate}`;
+    }
+  }
+  
+  hideEditCheckoutCalendar();
+  // Prevent form submission by returning false
+  return false;
+}
+
+// Close calendar when clicking outside
+document.addEventListener('click', function(event) {
+  const tooltip = document.getElementById("checkoutTooltip");
+  const editTooltip = document.getElementById("editCheckoutTooltip");
+  
+  if (tooltip && tooltip.style.display === 'block' && 
+      !tooltip.contains(event.target) && 
+      event.target.id !== 'notesField') {
+    hideCheckoutCalendar();
+  }
+  
+  if (editTooltip && editTooltip.style.display === 'block' && 
+      !editTooltip.contains(event.target) && 
+      event.target.id !== 'editNotes') {
+    hideEditCheckoutCalendar();
+  }
+});
+
+function formatDate(isoDate) {
+  if (!isoDate) return "";
+  const [year, month, day] = isoDate.split("-");
+  return `${day}/${month}/${year}`;
+}
+
+function reformatDDMMYYYY(input) {
+  try {
+    const dateObj = new Date(input.split("/").reverse().join("-"));
+    const day = String(dateObj.getDate()).padStart(2, '0');
+    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const year = dateObj.getFullYear();
+    return `${day}/${month}/${year}`;
+  } catch {
+    return input;
+  }
+}
+
+document.getElementById("incomeForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const form = e.target;
+  const formData = new FormData(form);
+  const paymentMethod = formData.get("paymentMethod");
+
+  const category = formData.get("category");
+  let description = "";
+
+  if (category === "Other") {
+    description = formData.get("customDescription").trim();
+  } else {
+    const selected = descriptionSelect.value;
+    description = selected === "Other" ? customDescription.value.trim() : selected;
+  }
+
+  if (!description) return alert("Please provide a valid description.");
+
+  const chargeOnFormatted = formatDate(formData.get("chargeOn"));
+  const dateFormatted = formatDate(formData.get("date"));
+
+  let rawAmount = parseFloat(formData.get("amount"));
+  if (isNaN(rawAmount)) return alert("Please enter a valid number for amount.");
+  let formattedAmount = rawAmount.toFixed(2);
+
+  const params = new URLSearchParams();
+  params.append("action", "addIncome");
+  params.append("chargeOn", chargeOnFormatted);
+  params.append("date", dateFormatted);
+  params.append("category", category);
+  params.append("description", description);
+  params.append("amount", formattedAmount);
+  params.append("paymentMethod", paymentMethod);
+  params.append("receiveFrom", formData.get("receiveFrom"));
+  params.append("notes", formData.get("notes"));
+
+  showLoading();
+
+  try {
+    await fetch(`https://script.google.com/macros/s/${deploymentId}/exec`, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: params.toString()
+    });
+    alert("✅ Income saved successfully!");
+    await loadAllIncome();
+    form.reset();
+    document.getElementById("receiveFrom").value = username;
+    descriptionSelect.innerHTML = "";
+    descriptionSelect.classList.add("hidden");
+    customDescription.classList.add("hidden");
+  } catch (err) {
+    console.error("Error saving income:", err);
+    alert("❌ Failed to save income. Please try again.");
+  } finally {
+    hideLoading();
+  }
+});
+
+async function loadAllIncome() {
+  const tbody = document.getElementById("incomeTableBody");
+  tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;">Loading...</td></tr>`;
+
+  showLoading(); // Add this line
+
+  try {
+    const res = await fetch(`https://script.google.com/macros/s/${deploymentId}/exec?action=getIncome`);
+    const data = await res.json();
+    allIncome = data.income || [];
+    renderIncomeTable();
+  } catch (err) {
+    console.error("Failed to load income", err);
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; color:red;">Failed to load income</td></tr>`;
+  }finally {
+    hideLoading(); // Add this line
+  }
+}
+
+let allIncome = [];
+
+function renderIncomeTable() {
+  const tbody = document.getElementById("incomeTableBody");
+  const selectedMonth = document.getElementById("monthFilter").value;
+  const searchQuery = document.getElementById("globalSearch").value.toLowerCase();
+  const currentUsername = localStorage.getItem("username") || "";
+
+  // Sort allIncome by Income Date (latest first)
+  const sortedIncome = [...allIncome].sort((a, b) => {
+    const dateA = new Date(a.date);
+    const dateB = new Date(b.date);
+    return dateB - dateA; // Latest first (descending order)
+  });
+
+  const filtered = sortedIncome.filter(entry => {
+    // Month filter
+    if (selectedMonth) {
+      if (!entry.date) return false;
+      const entryDateObj = new Date(entry.date);
+      const entryMonth = String(entryDateObj.getMonth() + 1).padStart(2, '0');
+      const entryYear = entryDateObj.getFullYear().toString();
+      const [filterYear, filterMonth] = selectedMonth.split("-");
+      if (entryMonth !== filterMonth || entryYear !== filterYear) return false;
+    }
+
+    // Search filter
+    if (searchQuery) {
+      const searchFields = [
+        entry.category?.toLowerCase(),
+        entry.description?.toLowerCase(),
+        entry.paymentMethod?.toLowerCase(),
+        entry.receiveFrom?.toLowerCase(),
+        entry.notes?.toLowerCase(),
+        reformatDDMMYYYY(entry.chargeOn)?.toLowerCase(),
+        reformatDDMMYYYY(entry.date)?.toLowerCase(),
+        parseFloat(entry.amount)?.toString()
+      ];
+      return searchFields.some(field => field && field.includes(searchQuery));
+    }
+
+    return true;
+  });
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;">No records found.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(entry => {
+    const index = allIncome.findIndex(e => e.timestamp === entry.timestamp);
+    
+    // Check if current user can edit this record
+    const canEdit = (entry.receiveFrom?.toLowerCase() === currentUsername.toLowerCase());
+    
+    // Determine button HTML based on permission
+    let buttonHtml = '';
+    if (canEdit) {
+      buttonHtml = `<button class="action-button" onclick="openEditIncome(${index})">Edit</button>`;
+    } else {
+      // Show disabled/locked button
+      buttonHtml = `<button class="action-button" style="background-color: #9ca3af; cursor: not-allowed;" disabled>Locked</button>`;
+      // Optional: Add tooltip
+      // buttonHtml = `<button class="action-button" style="background-color: #9ca3af; cursor: not-allowed;" disabled title="Owned by ${entry.receiveFrom}">Locked</button>`;
+    }
+    
+    return `
+      <tr>
+        <td>${reformatDDMMYYYY(entry.chargeOn)}</td>
+        <td>${reformatDDMMYYYY(entry.date)}</td>
+        <td>${entry.category}</td>
+        <td>${entry.description}</td>
+        <td>${parseFloat(entry.amount).toFixed(2)}</td>
+        <td>${entry.paymentMethod}</td>
+        <td>${entry.receiveFrom}</td>
+        <td>${entry.notes}</td>
+        <td>${buttonHtml}</td>
+      </tr>
+    `;
+  }).join("");
+}
+
+document.getElementById("monthFilter").addEventListener("change", renderIncomeTable);
+// Add search functionality
+document.getElementById("globalSearch").addEventListener("input", renderIncomeTable);
+
+// Show/hide clear button
+document.getElementById("globalSearch").addEventListener("input", function() {
+    const clearBtn = document.getElementById("clearSearch");
+    clearBtn.style.display = this.value ? 'block' : 'none';
+    renderIncomeTable();
+});
+
+function openEditIncome(index) {
+  const entry = allIncome[index];
+  const currentUsername = localStorage.getItem("username") || "";
+  
+  // Check permission before allowing edit
+  if (entry.receiveFrom?.toLowerCase() !== currentUsername.toLowerCase()) {
+    alert(`⚠️ You cannot edit this record. This record belongs to ${entry.receiveFrom}.`);
+    return;
+  }
+
+  document.getElementById("editPaymentMethod").value = entry.paymentMethod;
+  document.getElementById("editIndex").value = index;
+  document.getElementById("editChargeOn").value = toInputDateFormat(entry.chargeOn);
+  document.getElementById("editDate").value = toInputDateFormat(entry.date);
+  editCategorySelect.value = entry.category;
+  editCategorySelect.dispatchEvent(new Event("change"));
+
+  setTimeout(() => {
+    if (options[entry.category]) {
+      editDescriptionSelect.value = entry.description;
+      editCustomDescription.classList.add("hidden");
+    } else {
+      editCustomDescription.value = entry.description;
+      editDescriptionSelect.classList.add("hidden");
+      editCustomDescription.classList.remove("hidden");
+    }
+    
+     if (entry.description === "Other") {
+      editCustomDescription.classList.remove("hidden");
+    }
+   
+  }, 100);
+
+  document.getElementById("editAmount").value = entry.amount;
+  document.getElementById("editReceiveFrom").value = entry.receiveFrom;
+  document.getElementById("editNotes").value = entry.notes;
+  document.getElementById("editIncomePopup").style.display = "flex";
+
+// Add this to set the dropdown based on existing notes
+const editNotesDropdown = document.getElementById("editNotesDropdown");
+const notesValue = entry.notes || "";
+
+if (notesValue.includes("Notes :") && notesValue.includes("For Customer :")) {
+  editNotesDropdown.value = "inHouseCustomer";
+} else if (notesValue.includes("Notes :") && notesValue.includes("Details :")) {
+  editNotesDropdown.value = "customer";
+} else {
+  editNotesDropdown.value = "note";
+}
+}
+
+function closeEditPopup() {
+  document.getElementById("editIncomePopup").style.display = "none";
+}
+
+async function deleteFromEdit() {
+  if (!confirm("❌ Are you sure you want to delete this income?")) return;
+  const index = parseInt(document.getElementById("editIndex").value);
+  const entry = allIncome[index];
+
+  const params = new URLSearchParams();
+  params.append("action", "deleteIncome");
+  params.append("originalTimestamp", entry.timestamp);
+
+  showLoading();
+  try {
+    await fetch(`https://script.google.com/macros/s/${deploymentId}/exec`, {
+      method: "POST",
+      body: params.toString(),
+      headers: { "Content-Type": "application/x-www-form-urlencoded" }
+    });
+    alert("🗑️ Income deleted.");
+    closeEditPopup();
+    loadAllIncome();
+  } catch (err) {
+    alert("❌ Failed to delete income.");
+  } finally {
+    hideLoading();
+  }
+}
+
+function toInputDateFormat(dateStr) {
+  if (!dateStr) return "";
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+
+  const parts = dateStr.split("/");
+  if (parts.length === 3) {
+    const [dd, mm, yyyy] = parts;
+    return `${yyyy}-${mm.padStart(2, '0')}-${dd.padStart(2, '0')}`;
+  }
+
+  const date = new Date(dateStr);
+  if (!isNaN(date)) {
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
+  return "";
+}
+
+document.getElementById("editIncomeForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (!confirm("✅ Confirm to update this income?")) return;
+
+  const index = parseInt(document.getElementById("editIndex").value);
+  const entry = allIncome[index];
+
+  const params = new URLSearchParams();
+  params.append("action", "editIncome");
+  params.append("originalTimestamp", entry.timestamp);
+  params.append("chargeOn", formatDate(document.getElementById("editChargeOn").value));
+  params.append("date", formatDate(document.getElementById("editDate").value));
+  params.append("category", document.getElementById("editCategory").value);
+
+  let finalDesc = "";
+  if (editCategorySelect.value === "Other") {
+    finalDesc = editCustomDescription.value.trim();
+  } else {
+    const selected = editDescriptionSelect.value;
+    finalDesc = selected === "Other" ? editCustomDescription.value.trim() : selected;
+  }
+
+  if (!finalDesc) return alert("Please provide a valid description.");
+  params.append("description", finalDesc);
+  params.append("amount", parseFloat(document.getElementById("editAmount").value).toFixed(2));
+  params.append("paymentMethod", document.getElementById("editPaymentMethod").value);
+  params.append("receiveFrom", document.getElementById("editReceiveFrom").value);
+  params.append("notes", document.getElementById("editNotes").value);
+
+  showLoading();
+  try {
+    await fetch(`https://script.google.com/macros/s/${deploymentId}/exec`, {
+      method: "POST",
+      body: params.toString(),
+      headers: { "Content-Type": "application/x-www-form-urlencoded" }
+    });
+    alert("✅ Income updated!");
+    closeEditPopup();
+    loadAllIncome();
+  } catch (err) {
+    alert("❌ Failed to update income.");
+  } finally {
+    hideLoading();
+  }
+});
+
+window.addEventListener("DOMContentLoaded", function() {
+  showLoading();
+  setTimeout(() => {
+    loadAllIncome();
+  }, 500);
+});
+
+const API_URL = "https://script.google.com/macros/s/AKfycbxsqetZ_iRLnZ3mhRcbxX09q4c0aXU_xHzO5JaPkocr0syDM52DsPsGI-raZi2GCpl5/exec";
+
+    let unread = JSON.parse(localStorage.getItem("unread") || "[]");
+    let lastSeenTime = localStorage.getItem("lastSeenTime") ? new Date(localStorage.getItem("lastSeenTime")) : null;
+
+    function saveState() {
+      localStorage.setItem("unread", JSON.stringify(unread));
+      if (lastSeenTime) {
+        localStorage.setItem("lastSeenTime", lastSeenTime.toISOString());
+      }
+    }
+
+    function handleBellClick() {
+      const badge = document.getElementById("badge");
+      if (badge.style.display === "none" || badge.innerText === "0") {
+        // No unread → go to apAllNoti.html
+        window.location.href = "allNoti.html";
+      } else {
+        // Toggle dropdown
+        document.getElementById("dropdownNoti").classList.toggle("active");
+      }
+    }
+
+    async function fetchNotifications() {
+      try {
+        const res = await fetch(API_URL);
+        let data = await res.json();
+
+        // sort newest first
+        data.sort((a,b)=> new Date(b.Timestamp) - new Date(a.Timestamp));
+
+        if (!lastSeenTime && data.length > 0) {
+          // first load: set lastSeenTime but do not trigger sound
+          lastSeenTime = new Date(data[0].Timestamp);
+          saveState();
+          return;
+        }
+
+        let newOnes = data.filter(n => new Date(n.Timestamp) > lastSeenTime);
+
+        if (newOnes.length > 0) {
+          // play sound once for new arrivals
+          document.getElementById("dingSound").play().catch(()=>{});
+          
+          // prepend new ones
+          unread = [...newOnes, ...unread];
+
+          // update last seen time to newest
+          lastSeenTime = new Date(newOnes[0].Timestamp);
+
+          updateUI();
+          saveState();
+        }
+      } catch(err) {
+        console.error("Fetch error", err);
+      }
+    }
+
+    function updateUI() {
+      const badge = document.getElementById("badge");
+      const dropdownNoti = document.getElementById("dropdownNoti");
+
+      if (unread.length > 0) {
+        badge.innerText = unread.length;
+        badge.style.display = "inline";
+      } else {
+        badge.style.display = "none";
+      }
+
+      dropdownNoti.innerHTML = "";
+      unread.forEach((n, idx) => {
+        const div = document.createElement("div");
+        div.className = "notification";
+        div.innerHTML = `
+          <strong>🔔 New Notification</strong>
+          <div>"${n.Message}"</div>
+          <div>From: ${n.From} | Agent: ${n.Agent}</div>
+          <button>See more...</button>
+        `;
+
+        // click on card removes it
+        div.addEventListener("click", () => {
+          unread.splice(idx, 1);
+          updateUI();
+          saveState();
+        });
+
+        // prevent button from removing notification, go to apAllNoti.html
+        div.querySelector("button").addEventListener("click", (e) => {
+          e.stopPropagation();
+          window.location.href = "allNoti.html";
+        });
+
+        dropdownNoti.appendChild(div);
+      });
+    }
+
+    // restore UI from storage on load
+    updateUI();
+
+    // initial fetch
+    fetchNotifications();
+    // poll every 10s
+    setInterval(fetchNotifications, 10000);
+
+function extractUsernameFromUserId(userId) {
+  if (!userId) return "";
+  const parts = userId.split(" - ");
+  return parts[0] || "";
+}
+</script>
+</body>
+</html>
+
